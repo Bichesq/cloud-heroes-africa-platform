@@ -47,6 +47,10 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-05-18 | Profile completion gate | Profile completion is not a hard blocker at login; students may explore the platform but must complete their profile before taking any courses | Decided | Team / Bichesq | Gives students flexibility to explore while enforcing completion before serious commitment [page:2] |
 | 2026-05-18 | Assessment placement | Assessments belong inside the learning platform, not as a standalone external step in the onboarding flow | Decided | Team / Kris | Keeps education delivery and assessment together; avoids duplicating functionality outside the learning platform [page:2] |
 | 2026-05-18 | Assessment hierarchy | Assessments are tiered: Unit assessment → Module assessment → Program assessment | Decided | Team | Mirrors the course hierarchy (Program > Module > Unit); each level has its own competency check [page:2] |
+| 2026-05-21 | Application architecture | The registration/onboarding module and the learning platform are separate applications, sharing a common authentication mechanism | Decided | Team / Kris | Avoids monolith; allows each app to scale independently (e.g., fewer containers for registration, more for learning); Kris and Bichesq agreed explicitly [page:3] |
+| 2026-05-21 | Shared authentication | Authentication is the common layer across all platform modules; each new module piggybacks on the same auth setup | Decided | Team / Kris | Keeps login consistent across separate apps without duplicating auth logic [page:3] |
+| 2026-05-21 | Student help sessions | Open help sessions follow a volunteer-slot model: volunteers register for recurring slots (e.g., Wednesday/Saturday); sessions only open if a student has booked | Decided | Team / Kris | Prevents empty sessions; makes volunteer time purposeful; students book with topic so tutor can prepare [page:3] |
+| 2026-05-21 | Help request triage | Student help requests are handled asynchronously first (chat / short written answer); only escalated to a calendar session if the async response is insufficient | Decided | Team / Bichesq | Avoids blocking students on scheduling; keeps simple questions fast and light [page:3] |
 
 ---
 
@@ -62,6 +66,9 @@ These are currently useful assumptions that let the team move forward, but they 
 | 2026-05-18 | Demo hosting | The first demo may run on a smaller or simplified environment before final AWS setup | Working Assumption | Team | Kris explicitly described showing a smaller-server demo before AWS approval [page:1] |
 | 2026-05-18 | Validation path | Internal team members plus some outside testers will likely be the first evaluators of the platform | Working Assumption | Team | Team discussed external testers and emphasized that the user base is effectively internal/community-led at first [page:1] |
 | 2026-05-18 | Jira workflow | Harriet may use repo documents, rather than raw meeting notes, as the main input for Jira creation | Working Assumption | Harriet / Team | This is implied by the plan to turn the documentation into stories and subtasks [page:1] |
+| 2026-05-21 | Unit completion status | A two-status model is being designed for: "Completed" (finished course content) and "Competent" / "Verified" (passed the knowledge check); a student can complete a unit without yet being competent | Working Assumption | Team / Kris | Proposed by Kris and used as the design basis for the unit flow; not yet formally signed off [page:3] |
+| 2026-05-21 | Knowledge check delivery | Unit knowledge checks are treated as separate from the course content itself; a student finishes a unit and then receives / unlocks a knowledge check as a distinct step | Working Assumption | Team / Kris | Allows knowledge checks to be delivered via different channels (in-platform or email link) and keeps content delivery clean [page:3] |
+| 2026-05-21 | Knowledge check failure flow | If a student fails a knowledge check, the unit status resets to "Retake"; after a second failure, a team member is notified to follow up with the student | Working Assumption | Team / Kris | Balances automated enforcement with human support; not yet formally approved [page:3] |
 
 ---
 
@@ -71,7 +78,7 @@ These decisions are important and should be resolved as early as possible.
 
 | Date Logged | Area | Question | Status | Owner | Why It Matters |
 |---|---|---|---|---|---|
-| 2026-05-18 | Product structure | Is this one application, multiple apps in one repo, or multiple repos? | Open | Team | Affects architecture, repo structure, deployment, and Jira breakdown [page:1] |
+| 2026-05-18 | Product structure | Is this one application, multiple apps in one repo, or multiple repos? | Decided | Team | Resolved in May 21 session: separate applications sharing a common auth layer [page:3] |
 | 2026-05-18 | Repo structure | If there are multiple application surfaces, should this be a monorepo? | Open | Bichesq / Team | Affects development workflow and implementation boundaries |
 | 2026-05-18 | Invite flow | Will invite codes be delivered by email, SMS, or both? | Decided | Team | Resolved in May 18 session: delivery is by email only [page:2] |
 | 2026-05-18 | Bot protection | Will Google reCAPTCHA be used, and if so which version or pricing tier? | Decided | Team | Resolved in May 18 session: reCAPTCHA is confirmed; specific version/tier still to be determined [page:2] |
@@ -84,6 +91,10 @@ These decisions are important and should be resolved as early as possible.
 | 2026-05-18 | Invite code entry UX | Should the invite code be entered manually (copy-paste) or auto-populated via a link in the email? | Open | Team / Allen | Allen preferred copy-paste for security; Kris was open to either; not resolved [page:2] |
 | 2026-05-18 | Advanced student bypass | How should advanced students bypass lower-level modules — admin-granted exception or a separate self-assessment? | Open | Team / Kris | Risk that students exploit bypass for privilege; needs a controlled, fair mechanism [page:2] |
 | 2026-05-18 | Placement assessment | Should a placement/level assessment be included during onboarding registration, or handled entirely within the learning platform? | Open | Team / Bichesq | Bichesq suggested it may still be valid at registration for placing students at the right level [page:2] |
+| 2026-05-21 | Assessments as a separate module | Should assessments be their own standalone module, separate from the learning platform, or remain integrated within it? | Open | Team / Kris | Payload CMS may not be optimally suited for dynamic assessment logic; separating it could give more flexibility but adds architectural complexity [page:3] |
+| 2026-05-21 | Student presentations / assignments | Should practical presentations or assignments be required at the module level or only at the program level? | Open | Team / Kris | Number of required presentations scales significantly as student numbers grow; level needs to be decided before the assessment system is built [page:3] |
+| 2026-05-21 | Payload CMS for learning platform | Is Payload CMS the right tool for the learning portal given the dynamic assessment and progress-tracking requirements, or does it need to be reconsidered? | Open | Team / Bichesq | Kris raised concern that heavy customisation of Payload for assessments could cause problems on future Payload updates; Bichesq believes it is feasible [page:3] |
+| 2026-05-21 | LinkedIn / social media posting | Should student work (e.g., presentations) be posted on the Cloud Heroes LinkedIn page, and who is responsible for consistent posting alongside Enda? | Open | Team / Harriet | LinkedIn page is currently underutilised; Harriet raised it as a student engagement and community-growth lever; no second volunteer confirmed yet [page:3] |
 
 ---
 
@@ -92,18 +103,21 @@ These decisions are important and should be resolved as early as possible.
 These should be explicitly reviewed and either marked **Decided** or kept **Open** with blockers.
 
 ### Highest-priority decisions
-1. One app vs multi-app structure
-2. One repo vs monorepo vs multiple repos
-3. First demo flow
-4. Invite code entry UX (copy-paste vs auto-link)
-5. reCAPTCHA provider and cost direction
-6. Assessment structure and question design
-7. Placement assessment — onboarding vs learning platform
-8. Advanced student bypass mechanism
-9. Minimal dashboard definition
-10. Demo hosting approach
-11. Design system direction
-12. Jira board starting epic order [page:1]
+1. Monorepo vs separate repos (repo structure)
+2. Assessments as a separate module vs integrated in the learning platform
+3. Payload CMS suitability for the learning portal
+4. Student presentation / assignment level (module vs program)
+5. Invite code entry UX (copy-paste vs auto-link)
+6. reCAPTCHA provider and cost direction
+7. Assessment question design and storage
+8. Placement assessment — onboarding vs learning platform
+9. Advanced student bypass mechanism
+10. Help Desk design and workflow
+11. LinkedIn posting ownership and process
+12. First demo flow and scope
+13. Design system direction
+14. Minimal dashboard definition
+15. Jira board starting epic order [page:1]
 
 ---
 
@@ -115,46 +129,4 @@ These entries track how the team works, not just what the product does.
 |---|---|---|---|---|---|
 | 2026-05-18 | Collaboration | Central implementation should happen through Bichesq's lens and direction | Decided | Team | Kris explicitly described the team observing and supporting through Bichesq's workflow [page:1] |
 | 2026-05-18 | Experimentation | Experiments are allowed if contributors want to try alternate ideas independently | Decided | Team | These can happen through clones, forks, or branches and then be reviewed later [page:1] |
-| 2026-05-18 | Session management | The team wants to define how to stop and resume Claude coding sessions cleanly | Open | Team | This was a major process concern raised during the meeting [page:1] |
-| 2026-05-18 | AI skills usage | The team wants to explore different Claude skills and possibly multi-agent approaches later | Working Assumption | Team | Mentioned as an area for experimentation rather than an immediate requirement [page:1] |
-| 2026-05-18 | Git conventions | Commit wording and PR wording should be standardized | Decided | Team | Explicit action item from meeting notes [page:1] |
-| 2026-05-18 | AI token efficiency | Use Plan Mode in Claude before coding to reduce unnecessary context and token usage | Decided | Team | Meeting identified token bloat as a key risk to productive AI sessions [page:2] |
-| 2026-05-18 | AI context management | Be highly specific in prompts and limit the number of active tools / MCPs to avoid context window bloat | Decided | Team | Discussed as a practical discipline to adopt immediately across all coding sessions [page:2] |
-| 2026-05-18 | Local MCP servers | Team members should research and experiment with local MCP server setups to improve token efficiency | Working Assumption | Team | Raised as an action item at the close of the May 18 session; findings to be shared at next sync [page:2] |
-| 2026-05-18 | AI tool exploration | Team members should test alternative AI/brain-mapping tools (e.g., Caveman Talk) to identify context-reduction strategies | Working Assumption | Team | Raised at close of session; not a firm commitment, but encouraged before next sync [page:2] |
-
----
-
-## 7. Risks Logged
-
-This section tracks risks the team has already recognized.
-
-| Date | Risk | Status | Owner | Mitigation Direction |
-|---|---|---|---|---|
-| 2026-05-18 | Waiting for AWS approval could stall the project | Active | Team | Continue planning and pre-building while approval is pending [page:1] |
-| 2026-05-18 | Scope could spread too early without a clear first demo path | Active | Bichesq / Team | Prioritize a bounded onboarding-to-dashboard slice |
-| 2026-05-18 | AI sessions could become too large and hard to manage | Active | Team | Define stop/resume rules and work in smaller slices [page:1] |
-| 2026-05-18 | Multiple contributors experimenting could create divergence | Active | Bichesq / Team | Keep central repo direction clear and review experiments before adoption [page:1] |
-| 2026-05-18 | Important product decisions are still undocumented | Active | Team | Use next planning session to resolve the highest-impact open decisions [page:1] |
-
----
-
-## 8. Changes to Prior Decisions
-
-Use this section only when something actually changes.
-
-| Date | Previous Decision | New Decision | Reason | Owner |
-|---|---|---|---|---|
-| \_TBD\_ | | | | |
-
----
-
-## 9. Logging Template
-
-Copy this block when adding a new entry.
-
-### Decision Entry
-- **Date:**
-- **Area:**
-- **Decision or Question:**
-- **Status:** Decided / Working
+| 2026-
