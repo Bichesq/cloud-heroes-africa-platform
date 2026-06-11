@@ -1,2 +1,4 @@
 # Ignore the backup directory
 backup/
+# Added by code-review-graph
+.code-review-graph/
