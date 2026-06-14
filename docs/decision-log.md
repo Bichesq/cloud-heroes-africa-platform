@@ -38,12 +38,12 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-05-18 | Demo direction | Aim to produce a working demo for Yannick, Samoa, Enda, and other stakeholders | Decided | Team | The team wants to show something concrete, not just a proposal |
 | 2026-05-18 | Planning output | Documentation should later be translated into Jira epics, stories, and subtasks | Decided | Team / Harriet | Kris explicitly linked the planning docs to later Jira structuring |
 | 2026-05-18 | Process standardization | Git commit and PR standards should be defined for this project | Decided | Team | Explicit action item from the meeting |
-| 2026-05-18 | Invite code scope | Invite codes are one-to-one, unique per student, and temporary (not bulk batch codes) | Decided | Team | Bulk codes risk leakage; one-to-one tied to student email is more secure |
-| 2026-05-18 | Access control | Platform access is gated by an invite code; open self-registration is not allowed | Decided | Team | Prevents unvetted users from entering the platform; ensures trust and quality control |
-| 2026-05-18 | Student intake flow | An external form (e.g., Google Form) is used to collect student interest; a human reviews responses before invites are sent | Decided | Team | Human-in-the-loop vetting ensures only suitable students receive invite codes |
-| 2026-05-18 | Invite code delivery | The platform generates invite codes and sends them via email to vetted students | Decided | Team | Codes tied to student email; email delivery confirmed over SMS or manual sharing |
-| 2026-05-18 | Registration gateway | Student must provide their email + invite code + complete reCAPTCHA to begin registration | Decided | Team | Combination of email and code is harder to brute-force; reCAPTCHA blocks bot attacks |
-| 2026-05-18 | Authentication method | Google OAuth is used to complete registration after invite code verification | Decided | Team | Reduces typing; pulls first name, last name, and email from Google account |
+| 2026-05-18 | Invite code scope | Invite codes are one-to-one, unique per student, and temporary (not bulk batch codes) | Replaced | Team | Replaced by the June 11 decision to eliminate invite codes entirely in favour of an approved-email list |
+| 2026-05-18 | Access control | Platform access is gated by an invite code; open self-registration is not allowed | Replaced | Team | Replaced by the June 11 decision: access is now gated by an admin-managed approved-email list checked during Google Auth |
+| 2026-05-18 | Student intake flow | An external form (e.g., Google Form) is used to collect student interest; a human reviews responses before invites are sent | Decided | Team | Human-in-the-loop vetting ensures only suitable students are approved; still applies under the new email-list model |
+| 2026-05-18 | Invite code delivery | The platform generates invite codes and sends them via email to vetted students | Replaced | Team | Replaced by the June 11 decision: approved students are added directly to an approved-email list; no invite code is generated or sent |
+| 2026-05-18 | Registration gateway | Student must provide their email + invite code + complete reCAPTCHA to begin registration | Replaced | Team | Replaced by the June 11 decision: the invite code and reCAPTCHA steps are eliminated; Google Auth checks the approved-email list instead |
+| 2026-05-18 | Authentication method | Google OAuth is used to complete registration after invite code verification | Decided | Team | Remains valid; Google Auth is still the authentication method, now checking the approved-email list instead of an invite code |
 | 2026-05-18 | Profile completion gate | Profile completion is not a hard blocker at login; students may explore the platform but must complete their profile before taking any courses | Decided | Team / Bichesq | Gives students flexibility to explore while enforcing completion before serious commitment |
 | 2026-05-18 | Assessment placement | Assessments belong inside the learning platform, not as a standalone external step in the onboarding flow | Decided | Team / Kris | Keeps education delivery and assessment together; avoids duplicating functionality outside the learning platform |
 | 2026-05-18 | Assessment hierarchy | Assessments are tiered: Unit assessment → Module assessment → Program assessment | Decided | Team | Mirrors the course hierarchy (Program > Module > Unit); each level has its own competency check |
@@ -79,7 +79,7 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-06-04 | Knowledge base publication control | Resolved Help Desk tickets are not automatically made visible as public knowledge base content; each case must be reviewed to determine whether it becomes a KB article, triggers a course update, or remains internal only | Decided | Team / Kris | Explicitly rejected automatic visibility for every resolved question |
 | 2026-06-04 | Community visibility moderation | Help Desk submissions should be scanned before becoming community-visible, potentially using AI to detect vulgar or inappropriate content | Decided | Team / Kris | Questions/descriptions may need screening before community exposure |
 | 2026-06-04 | Student hub chat history | Global chat history is removed from the Student Hub because Help Desk threads/articles now serve as the structured support interaction model | Decided | Team / Kris | Chat history was no longer needed under the new Help Desk design |
-| 2026-06-04 | Platform naming | The student-facing gateway/landing application is named Student Hub | Decided | Team / Kris | Renamed the former “blue module” / gateway app to Student Hub |
+| 2026-06-04 | Platform naming | The student-facing gateway/landing application is named Student Hub | Decided | Team / Kris | Renamed the former "blue module" / gateway app to Student Hub |
 | 2026-06-04 | Platform naming | The course/program/module creation application is named Learning Management | Decided | Team / Kris / Eddie | Agreed name for the creator/management surface |
 | 2026-06-04 | App partitioning | The platform is structured into five application surfaces: Student Hub, Learning Platform, Learning Management, Administration, and Donor Hub | Decided | Team / Kris / Bichesq | Kris enumerated the five apps and Bichesq agreed |
 | 2026-06-04 | Learning delivery architecture | The Learning Platform remains a separate application from Student Hub and Learning Management, acting as the student-facing viewer/executor of assessments and course content | Decided | Team / Kris / Bichesq | Separate deployment reduces coupling |
@@ -94,6 +94,14 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-06-08 | Learning Management event ownership | Events are created and managed in Learning Management and surfaced to students through calendar views in Student Hub and related student-facing surfaces | Decided | Team / Kris | Kris explicitly placed event creation on the Learning Management side |
 | 2026-06-08 | Learning Management authentication | Learning Management uses Microsoft SSO with Cloud Heroes Africa organization accounts; separate in-app profile/password management is not required | Decided | Team / Kris / Bichesq | Kris explicitly said volunteer/author access will use organizational Microsoft accounts and Entra profile data |
 | 2026-06-08 | Learning Management core scope | Learning Management is responsible for program/module/unit design and management, assessment design and management, and learning-material administration | Decided | Team / Kris / Bichesq | The June 8 session clarified that Learning Management is where program structures, assessments, and learning materials are designed and maintained |
+| 2026-06-11 | Invite code elimination | The invite code system is fully removed from the platform; no invite code is generated, sent, or entered by students | Decided | Team / Kris | Kris proposed and the team agreed to simplify the flow; invite codes added complexity and manual steps without sufficient additional security over an approved-email list |
+| 2026-06-11 | reCAPTCHA removal | reCAPTCHA is removed from the registration/login flow alongside the invite code elimination | Decided | Team / Kris | No longer needed once the invite code step is gone; the approved-email list provides the access gate |
+| 2026-06-11 | Student access control mechanism | Access to the platform is now controlled by an admin-managed approved-email list; when a student authenticates with Google, the system checks whether their Gmail is on the approved list; if yes they enter the platform, if no they are redirected to the registration form | Decided | Team / Kris / Bichesq | Replaces the invite code gate; simpler for students, requires an admin operation to approve new students |
+| 2026-06-11 | Approved student list in Administration | Administration will include a managed list of approved new students (Gmail addresses) that serves as the authentication gate for Student Hub | Decided | Team / Kris | Admins add a student's Gmail to this list after vetting; the list is the firewall replacing the invite code |
+| 2026-06-11 | Student Hub login page button model | The login page has two buttons — Get Started and Student Sign-In (Continue with Google) — but both lead to the same Google Auth flow; if the Gmail is on the approved list the student is logged in, if not they are redirected to the registration form | Decided | Team / Kris / Bichesq / Allen | Both paths resolve to the same outcome; two buttons improve UX clarity for new vs returning students without requiring separate logic paths |
+| 2026-06-11 | Calendar on Student Hub | The calendar is surfaced as a widget on the Student Hub dashboard rather than a dedicated full page | Decided | Team / Kris / Bichesq | Keeps the dashboard consolidated; event detail can be expanded from the widget |
+| 2026-06-11 | Welcome video on Student Hub login page | A welcome/community introduction video will be embedded on the Student Hub login/landing page | Decided | Team / Kris / Herman | Herman raised the idea and Kris agreed; content and production details to be decided separately |
+| 2026-06-11 | Student Hub requirements structure | Student Hub requirements will be written as a Project Overview MD file plus individual per-screen MD files (e.g., login.md, profile.md, dashboard.md); screenshot references to inspiration designs may be included | Decided | Team / Kris / Bichesq | Kris proposed this structure explicitly; gives Claude precise, bounded context per screen rather than one large prompt |
 
 ***
 
@@ -104,7 +112,7 @@ These are currently useful assumptions that let the team move forward, but they 
 | Date | Area | Working Assumption | Status | Owner | Reason / Notes |
 |---|---|---|---|---|---|
 | 2026-05-18 | Product shape | The platform may involve around three application surfaces | Replaced | Team | Replaced by the June 4 decision confirming five application surfaces |
-| 2026-05-18 | First implementation slice | Onboarding is the most logical first slice: login, registration, invite verification, assessment, dashboard entry | Working Assumption | Bichesq | These were the concrete screens and flows named in the planning discussion |
+| 2026-05-18 | First implementation slice | Onboarding is the most logical first slice: login, registration, invite verification, assessment, dashboard entry | Replaced | Bichesq | Replaced by the June 11 decision eliminating invite codes and reCAPTCHA; the first slice is now login (Google Auth against approved-email list), registration redirect, and dashboard entry |
 | 2026-05-18 | Claude workflow | Claude will be used incrementally in bounded tasks rather than one giant build session | Working Assumption | Team | Meeting emphasized session boundaries, revisions, token limits, and structured workflow |
 | 2026-05-18 | Demo hosting | The first demo may run on a smaller or simplified environment before final AWS setup | Working Assumption | Team | Kris explicitly described showing a smaller-server demo before AWS approval |
 | 2026-05-18 | Validation path | Internal team members plus some outside testers will likely be the first evaluators of the platform | Working Assumption | Team | Early validation is expected to be internal/community-led |
@@ -125,6 +133,7 @@ These are currently useful assumptions that let the team move forward, but they 
 | 2026-06-08 | Service Desk recovery path | Account recovery may use account migration to a new email identity, supported by a unique student ID and strict manual verification | Working Assumption | Team / Kris | The meeting leaned this way strongly, but did not finalize the exact operational procedure |
 | 2026-06-08 | Learning Management assignment model | Learning Management may need flexible support for assignments and materials beyond fixed quiz-style tasks, including uploads, presentations, interviews, or document submissions | Working Assumption | Team / Kris / Bichesq | The meeting explored multiple assignment formats, but did not lock the exact data model or workflow |
 | 2026-06-08 | Global admin creation control | Creation of new administrators should likely be handled above the normal Administration module rather than delegated broadly to administrators/volunteers | Working Assumption | Team / Kris | Kris explicitly expressed concern that normal admins should not be able to create other volunteers without a stronger governance process |
+| 2026-06-11 | UI library for Student Hub | HeroUI V3 (formerly NextUI) is the leading candidate for the Student Hub dashboard UI library; ShadCN was also raised as an alternative | Working Assumption | Team / Kris / Bichesq | Kris pointed to HeroUI V3 as the leading option seen in multiple searches; final selection should be confirmed before screen-level requirements are written |
 
 ***
 
@@ -137,11 +146,11 @@ These decisions are important and should be resolved as early as possible.
 | 2026-05-18 | Repo structure | If there are multiple application surfaces, should this be a monorepo? | Open | Bichesq / Team | Affects development workflow and implementation boundaries |
 | 2026-05-18 | Assessment design | What questions will the assessment ask, and how should answers be stored? | Open | Team | Explicitly raised in the meeting |
 | 2026-05-18 | Demo scope | What exactly must work live in the first stakeholder demo, and what can be mocked? | Open | Team | Critical for scoping the first build |
-| 2026-05-18 | Design system | What UI/design system direction should the app follow? | Open | Team | Explicitly called out as a required planning topic |
+| 2026-05-18 | Design system | What UI/design system direction should the app follow? | Open | Team | HeroUI V3 is the leading candidate (June 11) but not yet locked; needs final confirmation before detailed screen specs are written |
 | 2026-05-18 | API structure | What API style and conventions should be standardized? | Open | Team | Affects Claude prompt quality and implementation consistency |
 | 2026-05-18 | Infrastructure | What minimum infrastructure is required for the first demo? | Open | Team | Needed to avoid overbuilding too early |
 | 2026-05-18 | Board interaction | Should the board be brought in before implementation starts, or after a first internal build exists? | Open | Team | Strategic sequencing question |
-| 2026-05-18 | Invite code entry UX | Should the invite code be entered manually (copy-paste) or auto-populated via a link in the email? | Open | Team / Allen | Security and ease-of-use trade-off remains unresolved |
+| 2026-05-18 | Invite code entry UX | Should the invite code be entered manually (copy-paste) or auto-populated via a link in the email? | Replaced | Team / Allen | Resolved by the June 11 decision to eliminate invite codes entirely; no longer applicable |
 | 2026-05-18 | Advanced student bypass | How should advanced students bypass lower-level modules — admin-granted exception or a separate self-assessment? | Open | Team / Kris | Needs a controlled and fair mechanism |
 | 2026-05-18 | Placement assessment | Should a placement/level assessment be included during onboarding registration, or handled entirely within the learning platform? | Open | Team / Bichesq | Affects placement accuracy and onboarding flow |
 | 2026-05-21 | Assessments as a separate module | Should assessments be their own standalone module, separate from the learning platform, or remain integrated within it? | Open | Team / Kris | Architectural flexibility vs complexity trade-off |
@@ -155,6 +164,9 @@ These decisions are important and should be resolved as early as possible.
 | 2026-06-04 | Incident threshold | At what point should multiple Service Desk reports be promoted into a formal incident, and what triage rules should trigger that escalation? | Open | Team / Kris | Affects operational response and prioritization |
 | 2026-06-08 | Student identity display policy | Should students be allowed to set a separate display name / preferred name for platform and event visibility, or should visible names stay tightly aligned to verified identity data? | Open | Team / Kris / Bichesq | Kris raised moderation, abuse, and identity clarity concerns, but the policy was not finalized |
 | 2026-06-08 | Assignment delivery workflow | Should assignments be handled through structured submission forms in-platform, direct communication with instructors, live interview-style completion, or a mixed model? | Open | Team / Kris / Bichesq | June 8 clarified the need for flexible assignment formats, but not the final workflow or implementation pattern |
+| 2026-06-11 | Student Hub login page — admin/volunteer sign-in path | Should the Student Hub login page also surface a Microsoft SSO path for admin/volunteers (and a Donor Hub login), or should those remain on separate entry pages? | Open | Team / Kris | Kris raised the idea of putting multiple sign-in options on one page but the team did not finalize whether to co-locate them |
+| 2026-06-11 | Calendar RSVP / attendance feature | Should the calendar widget on the Student Hub dashboard allow students to indicate attendance or RSVP for events? | Open | Team / Kris / Flora | Raised during the June 11 discussion but not resolved; affects event management complexity |
+| 2026-06-11 | Student vetting process design | What is the formal structure of the student vetting process — individual interviews, group welcome sessions, behavioural scoring, or a simpler form-only review — and how does it feed the approved-email list? | Open | Team / Kris | Kris explicitly said this needs to be figured out separately; the approved-email list gates access but the upstream vetting workflow is undefined |
 
 ## 5. Decision Candidates for Next Session
 
@@ -165,27 +177,28 @@ These should be explicitly reviewed and either marked **Decided** or kept **Open
 2. Assessments as a separate module vs integrated in the learning platform
 3. Payload CMS suitability for the learning portal
 4. Student presentation / assignment level (module vs program)
-5. Invite code entry UX (copy-paste vs auto-link)
-6. reCAPTCHA provider and cost direction
-7. Assessment question design and storage
-8. Placement assessment — onboarding vs learning platform
-9. Advanced student bypass mechanism
-10. Home screen detailed data wiring and API dependencies
-11. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
-12. Service Desk approval workflow and responsible parties
-13. First demo flow and scope
-14. Design system direction
-15. Minimal dashboard definition for the first POC
-16. Jira board starting epic order
-17. Help Desk submission UX: single threaded intake vs explicit branching choices
-18. Help Desk queue structure: general queue vs expertise-based queues
-19. Service Desk intake, identity verification, and lost-email recovery process
-20. Immediate-help classification and routing criteria
-21. Service Desk intake channel: support email vs web form vs Student Hub-linked form vs direct queue integration
-22. Incident escalation thresholds and triage rules
-23. Student visible-name / display-name policy
-24. Assignment delivery workflow and submission model
-25. Learning Management content-sharing model for reusing units/modules across programs
+5. UI library final selection for Student Hub (HeroUI V3 vs ShadCN vs other)
+6. Assessment question design and storage
+7. Placement assessment — onboarding vs learning platform
+8. Advanced student bypass mechanism
+9. Home screen detailed data wiring and API dependencies
+10. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
+11. Service Desk approval workflow and responsible parties
+12. First demo flow and scope
+13. Minimal dashboard definition for the first POC
+14. Jira board starting epic order
+15. Help Desk submission UX: single threaded intake vs explicit branching choices
+16. Help Desk queue structure: general queue vs expertise-based queues
+17. Service Desk intake, identity verification, and lost-email recovery process
+18. Immediate-help classification and routing criteria
+19. Service Desk intake channel: support email vs web form vs Student Hub-linked form vs direct queue integration
+20. Incident escalation thresholds and triage rules
+21. Student visible-name / display-name policy
+22. Assignment delivery workflow and submission model
+23. Learning Management content-sharing model for reusing units/modules across programs
+24. Student Hub login page — co-location of admin/volunteer and donor sign-in paths
+25. Calendar RSVP / attendance feature on Student Hub dashboard
+26. Student vetting process design and how it feeds the approved-email list
 
 ***
 
@@ -216,3 +229,5 @@ These entries track how the team works, not just what the product does.
 | 2026-06-04 | Requirements sharing | The design / requirements page link should be shared with the group after the meeting for continued coordination | Decided | Team / Bichesq / Kris | Closing action from the June 4 meeting |
 | 2026-06-08 | POC-first development approach | Bichesq should take an exploratory first crack at the Student Hub POC before all requirements are finalized, so implementation questions can surface early and feed later planning | Decided | Team / Kris / Bichesq | Kris explicitly asked Bichesq to build an exploratory proof of concept before Thursday |
 | 2026-06-08 | External website as student-facing entry point | The Cloud Heroes Africa website acts as the public-facing welcome layer, while Student Hub handles authenticated student entry and post-invite flows | Decided | Team / Kris / Bichesq | The June 8 discussion treated the website as the main welcome page rather than creating a separate redundant welcome surface |
+| 2026-06-11 | Screen-by-screen requirements writing | The team will write Student Hub requirements screen by screen, producing one MD file per screen, before handing off to Claude for implementation | Decided | Team / Kris / Bichesq / Eddie | Kris and the team agreed in the June 11 session that screen-by-screen design and documentation is the correct sequencing before any build work |
+| 2026-06-11 | Design-before-build approach | The team will design screens visually (or descriptively with screenshot references) before writing requirements MD files, so that Claude receives a precise design target rather than guessing | Decided | Team / Kris / Eddie / Bichesq | Kris outlined two paths and the team leaned toward designing screens ahead of time to get exactly what is envisioned |
