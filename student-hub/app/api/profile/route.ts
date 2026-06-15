@@ -1,5 +1,5 @@
 import { getSession } from "@/lib/auth";
-import { saveStudent, getStudent } from "@/lib/mock-api";
+import { getStudent, updateStudentProfile } from "@/lib/mock-api";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
@@ -7,7 +7,6 @@ export async function GET() {
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   }
-
   const student = await getStudent(session.user.email);
   return NextResponse.json({ student });
 }
@@ -19,13 +18,11 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
+  const updated = await updateStudentProfile(session.user.email, body);
 
-  await saveStudent({
-    email: session.user.email,
-    given_name: session.user.given_name,
-    family_name: session.user.family_name,
-    ...body,
-  });
+  if (!updated) {
+    return NextResponse.json({ error: "Student not found" }, { status: 404 });
+  }
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, student: updated });
 }

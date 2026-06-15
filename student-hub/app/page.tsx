@@ -1,4 +1,5 @@
-import Link from "next/link";
+"use client";
+import { signIn } from "next-auth/react";
 
 const FEATURES = [
   {
@@ -36,12 +37,12 @@ export default function LandingPage() {
         <span className="font-semibold text-sm">
           Cloud Heroes <span className="text-blue-600">Africa</span>
         </span>
-        <Link
-          href="/invite"
+        <button
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
           className="text-sm text-blue-600 hover:underline font-medium"
         >
           Sign in →
-        </Link>
+        </button>
       </header>
 
       {/* Hero */}
@@ -62,13 +63,13 @@ export default function LandingPage() {
         </p>
 
         <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <Link
-            href="/invite"
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium
                        px-8 py-3 rounded-lg text-sm transition-colors"
           >
-            Get Started →
-          </Link>
+            Get Started with Google →
+          </button>
           <a
             href="#about"
             className="border border-gray-200 hover:border-gray-300 text-gray-600
@@ -114,15 +115,26 @@ export default function LandingPage() {
           Ready to start your journey?
         </h2>
         <p className="text-blue-100 text-sm mb-6">
-          You&apos;ll need an invite code from your programme coordinator to register.
+          Already been accepted? Sign in with the Google account you registered with.
         </p>
-        <Link
-          href="/invite"
+        <button
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
           className="bg-white text-blue-600 hover:bg-blue-50 font-medium
                      px-8 py-3 rounded-lg text-sm transition-colors inline-block"
         >
-          Enter your invite code →
-        </Link>
+          Sign in with Google →
+        </button>
+        <p className="text-blue-200 text-xs mt-4">
+          Not yet accepted?{" "}
+          <a
+            href={process.env.NEXT_PUBLIC_REGISTRATION_FORM_URL ?? "#"}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline hover:text-white"
+          >
+            Apply to join →
+          </a>
+        </p>
       </section>
 
       {/* Footer */}
@@ -135,9 +147,12 @@ export default function LandingPage() {
           <a href="/support" className="text-xs text-gray-400 hover:text-gray-600">
             Support
           </a>
-          <a href="/invite" className="text-xs text-gray-400 hover:text-gray-600">
+          <button
+            onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+            className="text-xs text-gray-400 hover:text-gray-600"
+          >
             Sign in
-          </a>
+          </button>
         </div>
       </footer>
 

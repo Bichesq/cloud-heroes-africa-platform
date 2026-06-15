@@ -44,4 +44,5 @@ next-env.d.ts
 .env.local
 
 # data files
+data/approved-emails.json
 data/students.json

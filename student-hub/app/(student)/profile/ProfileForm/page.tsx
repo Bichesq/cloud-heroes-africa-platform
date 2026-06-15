@@ -17,11 +17,11 @@ const COUNTRIES = [
 export default function ProfileForm({ defaultValues }: Props) {
   const router = useRouter();
   const [form, setForm] = useState<Partial<Student>>({
-    legal_name: "",
-    display_name: "",
+    legalName: "",
+    displayName: "",
     phone: "",
-    alternate_email: "",
-    birth_date: "",
+    alternateEmail: "",
+    birthDate: "",
     city: "",
     country: "",
     ...defaultValues,
@@ -37,7 +37,7 @@ export default function ProfileForm({ defaultValues }: Props) {
     e.preventDefault();
     setError("");
 
-    if (!form.city || !form.country || !form.legal_name || !form.birth_date) {
+    if (!form.city || !form.country || !form.legalName || !form.birthDate) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -72,7 +72,7 @@ export default function ProfileForm({ defaultValues }: Props) {
           <Field label="First name">
             <input
               type="text"
-              value={form.given_name ?? ""}
+              value={form.givenName ?? ""}
               disabled
               className="input bg-gray-50 text-gray-400 cursor-not-allowed"
             />
@@ -80,7 +80,7 @@ export default function ProfileForm({ defaultValues }: Props) {
           <Field label="Last name">
             <input
               type="text"
-              value={form.family_name ?? ""}
+              value={form.familyName ?? ""}
               disabled
               className="input bg-gray-50 text-gray-400 cursor-not-allowed"
             />
@@ -107,8 +107,8 @@ export default function ProfileForm({ defaultValues }: Props) {
           <Field label="Legal name *" hint="Full name as it appears on your ID">
             <input
               type="text"
-              value={form.legal_name ?? ""}
-              onChange={(e) => update("legal_name", e.target.value)}
+              value={form.legalName ?? ""}
+              onChange={(e) => update("legalName", e.target.value)}
               placeholder="e.g. Amara Kwame Osei"
               className="input"
               required
@@ -120,8 +120,8 @@ export default function ProfileForm({ defaultValues }: Props) {
           >
             <input
               type="text"
-              value={form.display_name ?? ""}
-              onChange={(e) => update("display_name", e.target.value)}
+              value={form.displayName ?? ""}
+              onChange={(e) => update("displayName", e.target.value)}
               placeholder="e.g. AK"
               className="input"
             />
@@ -147,8 +147,8 @@ export default function ProfileForm({ defaultValues }: Props) {
           <Field label="Alternate email" hint="Optional backup email address">
             <input
               type="email"
-              value={form.alternate_email ?? ""}
-              onChange={(e) => update("alternate_email", e.target.value)}
+              value={form.alternateEmail ?? ""}
+              onChange={(e) => update("alternateEmail", e.target.value)}
               placeholder="backup@example.com"
               className="input"
             />
@@ -165,8 +165,8 @@ export default function ProfileForm({ defaultValues }: Props) {
           <Field label="Date of birth *">
             <input
               type="date"
-              value={form.birth_date ?? ""}
-              onChange={(e) => update("birth_date", e.target.value)}
+              value={form.birthDate ?? ""}
+              onChange={(e) => update("birthDate", e.target.value)}
               className="input"
               required
             />

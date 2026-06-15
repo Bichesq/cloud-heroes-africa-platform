@@ -1,16 +1,39 @@
 import { DefaultSession } from "next-auth";
+export type ApprovedEmailStatus = "approved" | "revoked" | "pending";
+export type ApprovedEmailSource = "form" | "manual" | "import";
+
+export type ApprovedEmail = {
+  id: string;
+  email: string;
+  status: ApprovedEmailStatus;
+  source: ApprovedEmailSource;
+  notes: string;
+  createdBy: string;
+  createdAt: string;
+  updatedBy: string | null;
+  updatedAt: string | null;
+};
+
+export type StudentStatus = "active" | "banned";
 
 export type Student = {
+  id: string;
+  approvedEmailId: string;          // FK → ApprovedEmail.id
   email: string;
-  given_name: string;
-  family_name: string;
-  legal_name?: string;
-  display_name?: string;       // TODO: policy not settled — include or drop?
+  givenName: string;
+  familyName: string;
+  legalName?: string;
+  displayName?: string;             // TODO: policy not settled
   phone?: string;
-  alternate_email?: string;
-  birth_date?: string;           // ISO 8601
-  city: string;
-  country: string;
+  alternateEmail?: string;
+  birthDate?: string;               // ISO 8601
+  city?: string;
+  country?: string;
+  status: StudentStatus;
+  lastLogin: string;                // ISO 8601
+  profileCompletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 declare module "next-auth" {
@@ -42,4 +65,12 @@ export type CalendarEvent = {
   title: string;
   date: string;
   time: string;
+};
+
+export type KBArticle = {
+  id: number;
+  title: string;
+  category: string;
+  excerpt: string;
+  url: string;
 };

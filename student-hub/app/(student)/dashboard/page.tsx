@@ -23,7 +23,7 @@ export default async function DashboardPage() {
   const student = await getStudent(session.user.email);
 
   // TODO: replace mockStudent with real data from LMS API
-  const displayName = student?.display_name
+  const displayName = student?.displayName
     ?? session.user.given_name
     ?? mockStudent.name;
 
