@@ -1,92 +1,154 @@
-import type { Alert, CalendarEvent } from "@/types";
+/* ------------------------------------------------------------------ *
+ * Mock data for the redesigned dashboard.
+ * TODO: replace every export with real LMS / API calls.
+ * ------------------------------------------------------------------ */
+
+export type LessonStatus = "not-started" | "in-progress" | "locked";
+
+export type Lesson = {
+  id: number;
+  brand: string; // short monogram placeholder for a tool logo (Jenkins, Docker…)
+  title: string;
+  description: string;
+  lessonLabel: string; // e.g. "Lesson 2"
+  status: LessonStatus;
+  statusLabel: string; // e.g. "Not Started"
+  instructor: string;
+  instructorRole: string;
+  active?: boolean; // highlighted (blue) row
+};
+
+export type ResumeModule = {
+  track: string; // "DevOps Track Lv1"
+  progress: number; // 60
+  progressLabel: string; // "In Progress"
+  moduleNumber: number; // 1
+  moduleTitle: string; // "DevOps Foundations"
+  moduleDescription: string;
+};
+
+export type NewCourse = {
+  title: string;
+  members: number;
+  instructor: string;
+  tag: string; // "Beginner"
+};
+
+export type CalendarDayCell = {
+  day: number;
+  muted?: boolean; // out-of-month
+  event?: boolean; // has a dot
+  selected?: boolean; // orange fill (today/selected)
+};
+
+export type CalendarEvent = {
+  title: string;
+  time: string;
+  live?: boolean;
+};
+
+export type ProgressItem = {
+  label: string;
+  value: number; // 0–100
+};
+
+/* -------------------------- Student -------------------------------- */
 
 export const mockStudent = {
-  name: "Amara Osei",
-  cohort: "Cohort 3 — 2025",
-  programProgress: 42,
-  modulesCompleted: 5,
-  totalModules: 12,
+  name: "Chem Patrick",
+  firstName: "Chem",
+  level: "Student | Intermediate",
+  track: "DevOps Engineer Track",
 };
 
-export const mockAssessments = {
-  last: {
-    title: "Cloud Fundamentals Quiz",
-    score: 78,
-    maxScore: 100,
-    date: "2025-05-30",
-    status: "passed" as const,
-  },
-  next: {
-    title: "AWS S3 & IAM Lab",
-    due: "2025-06-14",
-    type: "Lab",
-  },
+/* --------------------- Resume / New course ------------------------- */
+
+export const mockResume: ResumeModule = {
+  track: "DevOps Track Lv1",
+  progress: 60,
+  progressLabel: "In Progress",
+  moduleNumber: 1,
+  moduleTitle: "DevOps Foundations",
+  moduleDescription:
+    "Understand identity, access, and security fundamentals in the cloud.",
 };
 
-export const mockAlerts: Alert[] = [
-  { id: 1, type: "info",    message: "Week 6 materials are now available on the learning platform." },
-  { id: 2, type: "warning", message: "Submit your Lab 3 reflection by Friday 13 June." },
-  { id: 3, type: "success", message: "Your mentor session is confirmed for Saturday 10 am WAT." },
-];
+export const mockNewCourse: NewCourse = {
+  title: "Kubernetes Foundations",
+  members: 148,
+  instructor: "Ndzenyuy Jones",
+  tag: "Beginner",
+};
 
-export const mockCalendarEvents: CalendarEvent[] = [
-  { id: 1, title: "Live Q&A — Networking Basics", date: "2025-06-12", time: "7:00 PM WAT" },
-  { id: 2, title: "Lab 3 Deadline",               date: "2025-06-14", time: "11:59 PM WAT" },
-  { id: 3, title: "Mentor Check-in",              date: "2025-06-15", time: "10:00 AM WAT" },
-  { id: 4, title: "Group Study Session",           date: "2025-06-18", time: "6:00 PM WAT" },
-];
+/* ----------------------------- Lessons ----------------------------- */
 
-export const mockKBArticles = [
+const LESSON_DESC =
+  "Master CI/CD pipelines and learn how to automate your deployment workflows.";
+
+export const mockLessons: Lesson[] = [
   {
     id: 1,
-    title: "How to access the Learning Platform",
-    category: "Getting Started",
-    excerpt: "Step-by-step guide to logging into the learning platform for the first time.",
-    url: "#",
+    brand: "Jk",
+    title: "Setting up Jenkins",
+    description: LESSON_DESC,
+    lessonLabel: "Lesson 2",
+    status: "not-started",
+    statusLabel: "Not Started",
+    instructor: "Ndzenyuy Jones",
+    instructorRole: "Course Instructor",
+    active: true,
   },
   {
     id: 2,
-    title: "What to do if you miss a live session",
-    category: "Programme",
-    excerpt: "All live sessions are recorded. Here's how to find and watch recordings.",
-    url: "#",
+    brand: "Dk",
+    title: "Docker Fundamentals",
+    description: LESSON_DESC,
+    lessonLabel: "Lesson 3",
+    status: "not-started",
+    statusLabel: "Not Started",
+    instructor: "Ndzenyuy Jones",
+    instructorRole: "Course Instructor",
   },
   {
     id: 3,
-    title: "How to reset your MFA",
-    category: "Account",
-    excerpt: "Lost access to your authenticator? Contact your programme coordinator.",
-    url: "#",
-  },
-  {
-    id: 4,
-    title: "Submitting assignments and labs",
-    category: "Assessments",
-    excerpt: "A guide to uploading and submitting your work before deadlines.",
-    url: "#",
-  },
-  {
-    id: 5,
-    title: "Getting help from your mentor",
-    category: "Support",
-    excerpt: "How to book mentor sessions and what to prepare beforehand.",
-    url: "#",
-  },
-  {
-    id: 6,
-    title: "Programme schedule and cohort calendar",
-    category: "Programme",
-    excerpt: "Understanding the weekly schedule, live sessions, and key milestones.",
-    url: "#",
+    brand: "Dk",
+    title: "Docker Fundamentals",
+    description: LESSON_DESC,
+    lessonLabel: "Lesson 4",
+    status: "not-started",
+    statusLabel: "Not Started",
+    instructor: "Ndzenyuy Jones",
+    instructorRole: "Course Instructor",
   },
 ];
 
-export type KBArticle = (typeof mockKBArticles)[number];
+/* --------------------------- Calendar ------------------------------ */
 
-// TODO: replace all with real API calls
-// Open questions:
-// - programProgress source: LMS API or manual field?
-// - Calendar events data model from Learning Management?
-// - Next assessment: cohort schedule or individual path?
-// - Knowledge base location: Notion, Confluence, custom?
-// - Learning platform URL + does it SSO?
+export const mockCalendar = {
+  monthLabel: "June",
+  year: 2026,
+  time: "10 : 30 AM WAT",
+  // Replicated exactly from the approved design (June 2026 grid).
+  // [day, muted, event, selected]
+  days: [
+    { day: 29, muted: true }, { day: 30, muted: true }, { day: 31, muted: true },
+    { day: 1 }, { day: 2 }, { day: 3 }, { day: 4 },
+    { day: 5 }, { day: 6 }, { day: 7 }, { day: 8 }, { day: 9 }, { day: 10, event: true }, { day: 11 },
+    { day: 12 }, { day: 13 }, { day: 14 }, { day: 15 }, { day: 16 }, { day: 17, event: true }, { day: 18 },
+    { day: 19 }, { day: 20 }, { day: 21 }, { day: 22 }, { day: 23 }, { day: 24, selected: true }, { day: 25 },
+    { day: 26 }, { day: 27 }, { day: 28 }, { day: 29 }, { day: 30 }, { day: 31, muted: true }, { day: 1, muted: true },
+  ] as CalendarDayCell[],
+  event: {
+    title: "DevOps Class",
+    time: "2:00 - 3:30 PM WAT",
+    live: true,
+  } as CalendarEvent,
+};
+
+/* -------------------------- Your progress -------------------------- */
+
+export const mockProgress: ProgressItem[] = [
+  { label: "Basics of Linux", value: 55 },
+  { label: "Cloud Security", value: 30 },
+  { label: "Terraform", value: 75 },
+];

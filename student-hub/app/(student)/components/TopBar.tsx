@@ -1,14 +1,25 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+import { Avatar, Input } from "@heroui/react";
+import {
+  Bell,
+  Search,
+  Sun,
+  Moon,
+  Monitor,
+  ChevronDown,
+  type LucideIcon,
+} from "lucide-react";
 
-const NAV_ITEMS = [
-  { href: "/dashboard", label: "Dashboard", icon: "⊞" },
-  { href: "/profile",   label: "My Profile", icon: "◎" },
-  { href: "/support",   label: "Help Desk",  icon: "?" },
+const TABS = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/explore", label: "Explore Programs" },
 ];
+
+type Theme = "light" | "dark" | "system";
 
 type Props = {
   givenName: string;
@@ -18,106 +29,120 @@ type Props = {
 
 export default function TopBar({ givenName, familyName, email }: Props) {
   const pathname = usePathname();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [theme, setTheme] = useState<Theme>("light");
 
-  const initials = `${givenName?.[0] ?? ""}${familyName?.[0] ?? ""}`.toUpperCase();
+  const fullName = [givenName, familyName].filter(Boolean).join(" ");
 
   return (
-    <>
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-10">
-
-        {/* Mobile: logo + hamburger */}
-        <div className="flex items-center gap-3">
-          <button
-            className="md:hidden text-gray-500 hover:text-gray-700 p-1"
-            onClick={() => setMobileNavOpen((v) => !v)}
-            aria-label="Toggle navigation"
-          >
-            {mobileNavOpen ? "✕" : "☰"}
-          </button>
-          <span className="md:hidden font-semibold text-sm">
-            Cloud Heroes <span className="text-blue-600">Africa</span>
-          </span>
+    <header className="flex h-[88px] shrink-0 items-center gap-6 bg-cha-canvas px-7">
+      {/* Logo */}
+      <div className="flex shrink-0 items-center gap-3">
+        <div className="grid h-11 w-11 place-items-center rounded-[10px] bg-cha-blue text-[9px] font-extrabold leading-none text-white">
+          CHA
         </div>
-
-        {/* Desktop: page title (derived from path) */}
-        <div className="hidden md:block">
-          <span className="text-sm font-medium text-gray-700">
-            {NAV_ITEMS.find((n) => pathname.startsWith(n.href))?.label ?? ""}
-          </span>
+        <div className="font-display text-[15px] font-extrabold leading-[1.05] tracking-wide">
+          CLOUD HEROES
+          <br />
+          AFRICA
         </div>
+      </div>
 
-        {/* Right — avatar + dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => setMenuOpen((v) => !v)}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-            aria-label="User menu"
-          >
-            <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-semibold flex items-center justify-center">
-              {initials}
-            </div>
-            <span className="hidden md:block text-sm text-gray-600">
-              {givenName}
-            </span>
-          </button>
-
-          {menuOpen && (
-            <div className="absolute right-0 mt-2 w-52 bg-white border border-gray-100 rounded-xl shadow-lg py-2 z-20">
-              <div className="px-4 py-2 border-b border-gray-100">
-                <p className="text-sm font-medium">{givenName} {familyName}</p>
-                <p className="text-xs text-gray-400 truncate">{email}</p>
-              </div>
-              <Link
-                href="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="block px-4 py-2 text-sm text-gray-600 hover:bg-gray-50"
-              >
-                Edit profile
-              </Link>
-              <button
-                onClick={() => signOut({ callbackUrl: "/invite" })}
-                className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50"
-              >
-                Sign out
-              </button>
-            </div>
-          )}
-        </div>
-      </header>
-
-      {/* Mobile nav drawer */}
-      {mobileNavOpen && (
-        <nav className="md:hidden bg-white border-b border-gray-100 px-4 py-3 flex flex-col gap-1">
-          {NAV_ITEMS.map(({ href, label, icon }) => {
-            const active = pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setMobileNavOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                  active
-                    ? "bg-blue-50 text-blue-700 font-medium"
-                    : "text-gray-600 hover:bg-gray-50"
-                }`}
-              >
-                <span>{icon}</span>
-                {label}
-              </Link>
-            );
-          })}
-          <div className="border-t border-gray-100 mt-2 pt-2">
-            <button
-              onClick={() => signOut({ callbackUrl: "/invite" })}
-              className="w-full text-left px-3 py-2 text-sm text-red-500 hover:bg-red-50 rounded-lg"
+      {/* Primary tabs */}
+      <nav className="flex items-end gap-6 self-stretch pb-[30px]">
+        {TABS.map((t) => {
+          const active = pathname.startsWith(t.href);
+          return (
+            <Link
+              key={t.href}
+              href={t.href}
+              className={`border-b-2 pb-2 text-[15px] transition-colors ${
+                active
+                  ? "border-cha-orange font-bold text-cha-ink"
+                  : "border-transparent font-medium text-zinc-500 hover:text-cha-ink"
+              }`}
             >
-              Sign out
-            </button>
+              {t.label}
+            </Link>
+          );
+        })}
+      </nav>
+
+      <div className="flex-1" />
+
+      {/* Notifications */}
+      <button
+        className="relative grid h-10 w-10 place-items-center rounded-full bg-white text-cha-ink shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-colors hover:bg-zinc-50"
+        aria-label="Notifications"
+      >
+        <Bell size={18} />
+        <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full border-[1.5px] border-white bg-red-500" />
+      </button>
+
+      <div className="h-8 w-px bg-zinc-200" />
+
+      {/* Search */}
+      <div className="w-[300px] shrink-0">
+        <Input
+          type="search"
+          placeholder="Search"
+          aria-label="Search"
+          className="rounded-full"
+          startContent={<Search size={18} className="text-zinc-400" />}
+          endContent={
+            <span className="rounded-md border border-zinc-200 px-1.5 py-0.5 text-[11px] font-semibold text-zinc-400">
+              Ctrl K
+            </span>
+          }
+        />
+      </div>
+
+      <div className="flex-1" />
+
+      {/* Theme toggle */}
+      <div className="flex items-center gap-0.5 rounded-full bg-white p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+        <ThemeButton icon={Sun} on={theme === "light"} onClick={() => setTheme("light")} label="Light" />
+        <ThemeButton icon={Moon} on={theme === "dark"} onClick={() => setTheme("dark")} label="Dark" />
+        <ThemeButton icon={Monitor} on={theme === "system"} onClick={() => setTheme("system")} label="System" />
+      </div>
+
+      {/* Profile */}
+      <div className="flex shrink-0 items-center gap-2.5">
+        <div className="text-right">
+          <div className="font-display text-[17px] font-extrabold leading-tight">
+            Profile
           </div>
-        </nav>
-      )}
-    </>
+          <div className="text-sm font-semibold leading-tight text-cha-ink">
+            {fullName || "Student"}
+          </div>
+          <div className="text-[11px] text-zinc-400">{email}</div>
+        </div>
+        <ChevronDown size={18} className="text-zinc-400" />
+      </div>
+    </header>
+  );
+}
+
+function ThemeButton({
+  icon: Icon,
+  on,
+  onClick,
+  label,
+}: {
+  icon: LucideIcon;
+  on: boolean;
+  onClick: () => void;
+  label: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      aria-pressed={on}
+      className={`grid h-[34px] w-[34px] place-items-center rounded-full transition-colors ${
+        on ? "bg-zinc-100 text-cha-ink" : "text-zinc-500 hover:text-cha-ink"
+      }`}
+    >
+      <Icon size={16} />
+    </button>
   );
 }
