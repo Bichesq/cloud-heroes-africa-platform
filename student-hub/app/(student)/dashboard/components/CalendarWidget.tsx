@@ -31,7 +31,7 @@ export default function CalendarWidget({ calendar }: Props) {
       {/* Rail header */}
       <div className="mb-4 flex items-center gap-3">
         <button
-          className="grid h-[34px] w-[34px] place-items-center rounded-full bg-white text-cha-ink shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-colors hover:bg-zinc-50"
+          className="grid h-[34px] w-[34px] place-items-center rounded-full bg-cha-surface text-cha-ink shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-colors hover:bg-cha-surface-2"
           aria-label="Toggle calendar panel"
         >
           <ChevronRight size={18} />
@@ -53,8 +53,8 @@ export default function CalendarWidget({ calendar }: Props) {
             <span className="font-display text-lg font-bold">
               {MONTHS[monthIndex]}
             </span>
-            <span className="text-lg text-zinc-400">{calendar.year}</span>
-            <ChevronDown size={15} className="text-zinc-400" />
+            <span className="text-lg text-cha-faint">{calendar.year}</span>
+            <ChevronDown size={15} className="text-cha-faint" />
           </div>
           <div className="flex items-center gap-1">
             <NavBtn
@@ -73,7 +73,7 @@ export default function CalendarWidget({ calendar }: Props) {
         </div>
 
         {/* Weekday header */}
-        <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-zinc-400">
+        <div className="grid grid-cols-7 text-center text-[11px] font-semibold text-cha-faint">
           {WEEKDAYS.map((d) => (
             <span key={d}>{d}</span>
           ))}
@@ -88,13 +88,13 @@ export default function CalendarWidget({ calendar }: Props) {
                 cell.selected
                   ? "bg-cha-orange font-medium text-white"
                   : cell.muted
-                    ? "text-zinc-300"
-                    : "text-cha-eclipse hover:bg-zinc-50"
+                    ? "text-cha-faint"
+                    : "text-cha-ink hover:bg-cha-surface-2"
               }`}
             >
               {cell.day}
               {cell.event && !cell.selected && (
-                <span className="absolute bottom-1.5 h-[3px] w-[3px] rounded-full bg-zinc-500" />
+                <span className="absolute bottom-1.5 h-[3px] w-[3px] rounded-full bg-cha-muted" />
               )}
             </button>
           ))}
@@ -105,7 +105,7 @@ export default function CalendarWidget({ calendar }: Props) {
         {/* Time */}
         <div className="flex items-center justify-between">
           <span className="text-[15px] font-bold">Time</span>
-          <span className="rounded-full bg-zinc-100 px-3.5 py-1.5 text-[13px] font-semibold text-zinc-700">
+          <span className="rounded-full bg-cha-surface-2 px-3.5 py-1.5 text-[13px] font-semibold text-cha-muted">
             {calendar.time}
           </span>
         </div>
@@ -121,7 +121,7 @@ export default function CalendarWidget({ calendar }: Props) {
                 className={`rounded-full px-3.5 py-1.5 text-[13px] font-semibold transition-colors ${
                   on
                     ? "bg-cha-orange text-white"
-                    : "bg-zinc-100 text-zinc-600 hover:bg-zinc-200"
+                    : "bg-cha-surface-2 text-cha-muted hover:bg-cha-border"
                 }`}
               >
                 {p}
@@ -149,7 +149,7 @@ export default function CalendarWidget({ calendar }: Props) {
         </div>
 
         {/* Range tabs */}
-        <div className="flex items-center gap-0.5 self-start rounded-full bg-zinc-50 p-1">
+        <div className="flex items-center gap-0.5 self-start rounded-full bg-cha-surface-2 p-1">
           {RANGES.map((r, i) => {
             const on = range === i;
             return (
@@ -157,7 +157,7 @@ export default function CalendarWidget({ calendar }: Props) {
                 key={r}
                 onClick={() => setRange(i)}
                 className={`rounded-full px-[18px] py-1.5 text-[13px] font-semibold transition-colors ${
-                  on ? "bg-cha-eclipse text-white" : "text-zinc-500"
+                  on ? "bg-cha-eclipse text-white dark:bg-cha-blue" : "text-cha-muted"
                 }`}
               >
                 {r}
@@ -183,7 +183,7 @@ function NavBtn({
     <button
       onClick={onClick}
       aria-label={label}
-      className="grid h-[30px] w-[30px] place-items-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100"
+      className="grid h-[30px] w-[30px] place-items-center rounded-full text-cha-muted transition-colors hover:bg-cha-surface-2"
     >
       {children}
     </button>

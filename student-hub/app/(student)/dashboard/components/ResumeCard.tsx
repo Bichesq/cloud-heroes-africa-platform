@@ -19,15 +19,15 @@ export default function ResumeCard({ resume }: { resume: ResumeModule }) {
       </div>
 
       {/* White progress panel */}
-      <div className="flex w-[232px] shrink-0 flex-col gap-2.5 rounded-2xl bg-white p-4 text-cha-ink">
-        <div className="text-xs font-semibold text-zinc-500">
+      <div className="flex w-[232px] shrink-0 flex-col gap-2.5 rounded-2xl bg-cha-surface p-4 text-cha-ink">
+        <div className="text-xs font-semibold text-cha-muted">
           {resume.progressLabel}
         </div>
         <div className="flex items-start gap-3">
           <div className="font-display text-[44px] font-extrabold leading-[0.9]">
             {resume.progress}%
           </div>
-          <p className="m-0 text-[11.5px] leading-snug text-zinc-500">
+          <p className="m-0 text-[11.5px] leading-snug text-cha-muted">
             {resume.moduleDescription}
           </p>
         </div>
@@ -35,7 +35,7 @@ export default function ResumeCard({ resume }: { resume: ResumeModule }) {
           <div className="text-[11px] font-bold">
             Module {resume.moduleNumber}:
           </div>
-          <div className="text-[13px] text-zinc-700">{resume.moduleTitle}</div>
+          <div className="text-[13px] text-cha-muted">{resume.moduleTitle}</div>
         </div>
       </div>
     </div>

@@ -10,11 +10,11 @@ export default function LessonRow({ lesson }: { lesson: Lesson }) {
 
   const shell = active
     ? "bg-cha-blue text-white"
-    : "border border-zinc-200 bg-zinc-50 text-cha-ink";
-  const sub = active ? "text-white/80" : "text-zinc-500";
-  const tile = active ? "bg-white/20 text-white" : "bg-white text-zinc-700";
-  const circle = active ? "border-white/70" : "border-zinc-300";
-  const gear = active ? "text-white/85" : "text-zinc-400";
+    : "border border-cha-border bg-cha-surface-2 text-cha-ink";
+  const sub = active ? "text-white/80" : "text-cha-muted";
+  const tile = active ? "bg-white/20 text-white" : "bg-cha-surface text-cha-muted";
+  const circle = active ? "border-white/70" : "border-cha-faint";
+  const gear = active ? "text-white/85" : "text-cha-faint";
 
   return (
     <div
@@ -50,7 +50,7 @@ export default function LessonRow({ lesson }: { lesson: Lesson }) {
         <div className="flex min-w-0 items-center gap-2">
           <div
             className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
-              active ? "bg-white/20 text-white" : "bg-zinc-200 text-zinc-600"
+              active ? "bg-white/20 text-white" : "bg-cha-border text-cha-muted"
             }`}
           >
             {lesson.instructor

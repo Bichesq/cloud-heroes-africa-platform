@@ -3,26 +3,35 @@ import { redirect } from "next/navigation";
 import Sidebar from "./components/Sidebar";
 import TopBar from "./components/TopBar";
 
+/**
+ * Student shell — redesigned to the Cloud Heroes Africa design.
+ * A full-width 88px top bar sits above a row of the 300px sidebar and
+ * the scrolling main region. The dashboard page owns its own content +
+ * calendar rail grid, so `main` is full-width (no max-w cap).
+ */
 export default async function StudentLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const session = await getSession();
-  if (!session) redirect("/invite");
+  if (!session) redirect("/");
 
-  const { given_name, family_name, email } = session.user;
+  const { given_name, family_name, email, image } = session.user;
+  const fullName = [given_name, family_name].filter(Boolean).join(" ");
+
 
   return (
-    <div className="min-h-screen flex bg-gray-50">
-      <Sidebar />
-      <div className="flex-1 flex flex-col min-w-0">
-        <TopBar
-          givenName={given_name}
-          familyName={family_name}
-          email={email}
+    <div className="flex h-screen flex-col overflow-hidden bg-cha-canvas text-cha-ink">
+      <TopBar givenName={given_name} familyName={family_name} email={email} avatarUrl={image ?? undefined} />
+      <div className="flex min-h-0 flex-1">
+        <Sidebar
+          name={fullName || "Student"}
+          level="Student | Intermediate"
+          track="DevOps Engineer Track"
+          avatarUrl={image ?? undefined}
         />
-        <main className="flex-1 px-6 py-8 max-w-4xl w-full mx-auto">
+        <main className="min-w-0 flex-1 overflow-auto px-8 pb-12 pt-6">
           {children}
         </main>
       </div>

@@ -29,6 +29,8 @@ export type Student = {
   birthDate?: string;               // ISO 8601
   city?: string;
   country?: string;
+  track?: string;
+  avatarUrl?: string;
   status: StudentStatus;
   lastLogin: string;                // ISO 8601
   profileCompletedAt: string | null;
@@ -42,6 +44,7 @@ declare module "next-auth" {
       given_name: string;
       family_name: string;
       email: string;
+      image?: string | null;
     } & DefaultSession["user"];
   }
 
@@ -49,6 +52,7 @@ declare module "next-auth" {
     given_name?: string;
     family_name?: string;
     email?: string;
+    picture?: string;
   }
 }
 

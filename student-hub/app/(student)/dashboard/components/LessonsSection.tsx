@@ -26,7 +26,7 @@ export default function LessonsSection({ lessons }: { lessons: Lesson[] }) {
               className={`-mb-px whitespace-nowrap border-b-2 pb-3 text-[15px] transition-colors ${
                 active
                   ? "border-cha-orange font-bold text-cha-ink"
-                  : "border-transparent font-medium text-zinc-500 hover:text-cha-ink"
+                  : "border-transparent font-medium text-cha-muted hover:text-cha-ink"
               }`}
             >
               {t.label}

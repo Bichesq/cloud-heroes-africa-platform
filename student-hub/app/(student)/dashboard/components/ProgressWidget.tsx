@@ -12,11 +12,11 @@ export default function ProgressWidget({ items }: { items: ProgressItem[] }) {
         <div key={item.label}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-sm font-bold">{item.label}</span>
-            <span className="text-[13px] font-bold text-zinc-500">
+            <span className="text-[13px] font-bold text-cha-muted">
               {item.value}%
             </span>
           </div>
-          <div className="h-3 w-full overflow-hidden rounded-full bg-zinc-100">
+          <div className="h-3 w-full overflow-hidden rounded-full bg-cha-surface-2">
             <div
               className="h-full rounded-full bg-gradient-to-r from-[#FF8D28] to-cha-orange transition-all"
               style={{ width: `${item.value}%` }}

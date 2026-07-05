@@ -1,9 +1,15 @@
+/**
+ * Edge-safe auth configuration.
+ * This file must NOT import any Node.js-only modules (fs, path, crypto, etc.)
+ * because it is used in middleware which runs on the Edge Runtime.
+ *
+ * Node.js-dependent callbacks (signIn) live in auth.config.ts and are only
+ * consumed by the full NextAuth instance in auth.ts (Node.js runtime).
+ */
 import type { NextAuthConfig } from "next-auth";
 import Google from "next-auth/providers/google";
-import { findApprovedEmail } from "./approved-emails";
-import { upsertStudent } from "./mock-api";
 
-export const authConfig: NextAuthConfig = {
+export const authConfigEdge: NextAuthConfig = {
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
@@ -12,27 +18,6 @@ export const authConfig: NextAuthConfig = {
   ],
   session: { strategy: "jwt" },
   callbacks: {
-    async signIn({ profile }) {
-      if (!profile?.email) return false;
-
-      const email = profile.email.toLowerCase().trim();
-
-      // Step 1 — check ApprovedEmail
-      const approved = await findApprovedEmail(email);
-      if (!approved) return "/not-approved";
-
-      // Step 2 — upsert Student (auto-create on first login,
-      //           update lastLogin on subsequent logins)
-      await upsertStudent({
-        email,
-        givenName: profile.given_name ?? "",
-        familyName: profile.family_name ?? "",
-        approvedEmailId: approved.id,
-      });
-
-      return true;
-    },
-
     async jwt({ token, profile }) {
       if (profile) {
         token.given_name  = profile.given_name ?? undefined;

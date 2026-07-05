@@ -58,25 +58,25 @@ export default function Sidebar({
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-[300px] shrink-0 flex-col gap-4 overflow-y-auto rounded-tr-[28px] bg-white px-5 pb-5 pt-7 md:flex">
+    <aside className="hidden w-[300px] shrink-0 flex-col gap-4 overflow-y-auto rounded-tr-[28px] bg-cha-surface px-5 pb-5 pt-7 md:flex">
       {/* Profile */}
       <div className="flex items-center gap-3.5">
-        <Avatar
-          src={avatarUrl}
-          alt={name}
-          className="h-14 w-14 shrink-0"
-        >
-          {name
-            .split(" ")
-            .map((w) => w[0])
-            .slice(0, 2)
-            .join("")}
-        </Avatar>
+        <Avatar.Root className="h-14 w-14 shrink-0 rounded-full ring-2 ring-cha-orange ring-offset-2">
+          <Avatar.Image src={avatarUrl} />
+          <Avatar.Fallback>
+            {name
+              .split(" ")
+              .map((n) => n[0])
+              .join("")
+              .slice(0, 2)
+              .toUpperCase()}
+          </Avatar.Fallback>
+        </Avatar.Root>
         <div>
           <div className="font-display text-xl font-bold leading-tight">
             {name}
           </div>
-          <div className="mt-0.5 text-xs leading-snug text-zinc-500">
+          <div className="mt-0.5 text-xs leading-snug text-cha-muted">
             {level}
             <br />
             {track}
@@ -90,7 +90,7 @@ export default function Sidebar({
       {/* Support card */}
       <div className="cha-card-outline relative mt-1 p-[18px]">
         <button
-          className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-50"
+          className="absolute right-2.5 top-2.5 grid h-7 w-7 place-items-center rounded-full text-cha-faint transition-colors hover:bg-cha-surface-2"
           aria-label="Dismiss"
         >
           <X size={16} />
@@ -98,7 +98,7 @@ export default function Sidebar({
         <div className="flex items-center gap-2 text-sm font-bold">
           <Headphones size={18} /> Need support?
         </div>
-        <p className="my-2.5 text-[12.5px] leading-snug text-zinc-500">
+        <p className="my-2.5 text-[12.5px] leading-snug text-cha-muted">
           Contact one of our team members to get the help you need.
         </p>
         <Button
@@ -110,11 +110,11 @@ export default function Sidebar({
       </div>
 
       {/* Bottom */}
-      <div className="mt-auto flex flex-col gap-1 border-t border-zinc-100 pt-3">
+      <div className="mt-auto flex flex-col gap-1 border-t border-cha-border pt-3">
         <NavRow href="/settings" label="Settings" icon={Settings} pathname={pathname} />
         <button
           onClick={() => signOut({ callbackUrl: "/invite" })}
-          className="flex h-12 items-center gap-3 rounded-full px-4 text-left text-sm font-semibold text-cha-ink transition-colors hover:bg-zinc-50"
+          className="flex h-12 items-center gap-3 rounded-full px-4 text-left text-sm font-semibold text-cha-ink transition-colors hover:bg-cha-surface-2"
         >
           <LogOut size={20} />
           <span className="flex-1">Log out</span>
@@ -135,7 +135,7 @@ function NavGroup({
 }) {
   return (
     <div>
-      <div className="px-2 pb-1.5 text-xs font-semibold text-zinc-400">
+      <div className="px-2 pb-1.5 text-xs font-semibold text-cha-faint">
         {label}
       </div>
       <div className="flex flex-col gap-0.5">
@@ -161,7 +161,7 @@ function NavRow({
       className={`flex h-12 items-center gap-3 rounded-full px-4 text-sm font-semibold transition-colors ${
         active
           ? "bg-cha-orange text-white"
-          : "text-cha-ink hover:bg-zinc-50"
+          : "text-cha-ink hover:bg-cha-surface-2"
       }`}
     >
       <Icon size={20} className="shrink-0" />
