@@ -16,6 +16,25 @@ export type ApprovedEmail = {
 
 export type StudentStatus = "active" | "banned";
 
+export type MfaMethodKind = "email" | "authenticator" | "sms";
+
+export type MfaMethod = {
+  id: string;
+  method: MfaMethodKind;
+  transport: string;                // where codes go, e.g. "bic***@gmail.com"
+  identifier: string;               // short device label/code, e.g. "MFA-4F2A"
+  lastUsed: string | null;          // ISO 8601
+  active: boolean;
+  createdAt: string;                // ISO 8601
+};
+
+export type Passkey = {
+  id: string;
+  label: string;                    // device/label, e.g. "Chrome on Windows"
+  registeredAt: string;             // ISO 8601
+  lastUsed: string | null;          // ISO 8601
+};
+
 export type Student = {
   id: string;
   approvedEmailId: string;          // FK → ApprovedEmail.id
@@ -29,8 +48,13 @@ export type Student = {
   birthDate?: string;               // ISO 8601
   city?: string;
   country?: string;
+  timezone?: string;                // canonical entry from TIMEZONES
   track?: string;
   avatarUrl?: string;
+  photoPublic: boolean;             // "Display Profile Photo to Public"
+  countryPublic: boolean;           // "Display Country of Origin"
+  mfaMethods: MfaMethod[];          // mfaEnabled derives from any active method
+  passkeys: Passkey[];
   status: StudentStatus;
   lastLogin: string;                // ISO 8601
   profileCompletedAt: string | null;

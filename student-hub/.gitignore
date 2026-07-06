@@ -46,3 +46,7 @@ next-env.d.ts
 # data files
 data/approved-emails.json
 data/students.json
+data/audit-log.json
+
+# user-uploaded avatars
+/public/uploads/

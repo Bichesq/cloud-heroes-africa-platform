@@ -5,10 +5,22 @@ import type { Student } from "@/types";
 
 const FILE = path.join(process.cwd(), "data", "students.json");
 
+/** Fill defaults for fields added after a record was written. */
+function normalize(s: Student): Student {
+  return {
+    ...s,
+    photoPublic: s.photoPublic ?? true,
+    countryPublic: s.countryPublic ?? true,
+    mfaMethods: s.mfaMethods ?? [],
+    passkeys: s.passkeys ?? [],
+    status: s.status ?? "active",
+  };
+}
+
 async function read(): Promise<Student[]> {
   try {
     const raw = await fs.readFile(FILE, "utf-8");
-    return JSON.parse(raw);
+    return (JSON.parse(raw) as Student[]).map(normalize);
   } catch {
     return [];
   }
@@ -48,6 +60,10 @@ export async function upsertStudent(params: {
     email: params.email.toLowerCase(),
     givenName: params.givenName,
     familyName: params.familyName,
+    photoPublic: true,
+    countryPublic: true,
+    mfaMethods: [],
+    passkeys: [],
     status: "active",
     lastLogin: now,
     profileCompletedAt: null,
@@ -79,23 +95,24 @@ export async function updateStudentProfile(
 
   const now = new Date().toISOString();
 
-  students[index] = {
+  const merged: Student = {
     ...students[index],
     ...profile,
     email: students[index].email,         // never overwrite email
     id: students[index].id,               // never overwrite id
     approvedEmailId: students[index].approvedEmailId, // never overwrite FK
-    profileCompletedAt:
-      profile.legalName &&
-      profile.city &&
-      profile.country &&
-      profile.birthDate &&
-      profile.phone
-        ? students[index].profileCompletedAt ?? now  // set once, never reset
-        : students[index].profileCompletedAt,
     updatedAt: now,
   };
 
+  // Completion is judged on the merged record (partial updates — e.g. a
+  // single privacy toggle — must not prevent completion). Set once, never reset.
+  merged.profileCompletedAt =
+    students[index].profileCompletedAt ??
+    (merged.legalName && merged.city && merged.country && merged.birthDate && merged.phone
+      ? now
+      : null);
+
+  students[index] = merged;
   await write(students);
   return students[index];
 }

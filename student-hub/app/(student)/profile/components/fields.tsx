@@ -21,11 +21,15 @@ export function Field({
   label,
   required,
   hint,
+  error,
+  warning,
   children,
 }: {
   label: string;
   required?: boolean;
   hint?: string;
+  error?: string;
+  warning?: string;
   children: ReactNode;
 }) {
   return (
@@ -35,7 +39,17 @@ export function Field({
         {required && <span className="text-red-500"> *</span>}
       </label>
       {children}
-      {hint && <p className="text-[11.5px] text-cha-faint">{hint}</p>}
+      {error ? (
+        <p role="alert" className="text-[11.5px] font-medium text-red-500">
+          {error}
+        </p>
+      ) : warning ? (
+        <p className="text-[11.5px] font-medium text-amber-600 dark:text-amber-400">
+          {warning}
+        </p>
+      ) : (
+        hint && <p className="text-[11.5px] text-cha-faint">{hint}</p>
+      )}
     </div>
   );
 }
@@ -46,6 +60,7 @@ export function TextInput({
   disabled,
   placeholder,
   leading,
+  invalid,
   type = "text",
 }: {
   value: string;
@@ -53,13 +68,15 @@ export function TextInput({
   disabled?: boolean;
   placeholder?: string;
   leading?: ReactNode;
+  invalid?: boolean;
   type?: string;
 }) {
+  const borderClass = invalid ? "border-red-400" : "border-cha-border";
   if (leading) {
     return (
       <div
         className={
-          "flex h-11 w-full items-center gap-2 rounded-xl border border-cha-border bg-cha-surface px-3.5 " +
+          `flex h-11 w-full items-center gap-2 rounded-xl border ${borderClass} bg-cha-surface px-3.5 ` +
           "shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition focus-within:border-cha-blue focus-within:ring-4 focus-within:ring-cha-blue/15 " +
           (disabled ? "bg-cha-surface-2" : "")
         }
@@ -83,7 +100,7 @@ export function TextInput({
       disabled={disabled}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}
-      className={fieldClass}
+      className={invalid ? fieldClass.replace("border-cha-border", "border-red-400") : fieldClass}
     />
   );
 }
@@ -93,11 +110,13 @@ export function SelectInput({
   onChange,
   disabled,
   options,
+  invalid,
 }: {
   value: string;
   onChange: (v: string) => void;
   disabled?: boolean;
-  options: string[];
+  options: readonly string[];
+  invalid?: boolean;
 }) {
   return (
     <div className="relative">
@@ -106,10 +125,15 @@ export function SelectInput({
         disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         className={
-          fieldClass +
+          (invalid ? fieldClass.replace("border-cha-border", "border-red-400") : fieldClass) +
           " cursor-pointer appearance-none pr-9 disabled:cursor-not-allowed"
         }
       >
+        {!options.includes(value) && (
+          <option value={value} disabled>
+            {value || "Select…"}
+          </option>
+        )}
         {options.map((o) => (
           <option key={o} value={o}>
             {o}
