@@ -1,8 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { PanelLeft, Users } from "lucide-react";
+import { Users } from "lucide-react";
 import IdentityCard from "./IdentityCard";
 import PersonalInfo, { type PersonalForm } from "./PersonalInfo";
 import MfaCard from "./MfaCard";
@@ -102,21 +101,12 @@ export default function ProfileClient({ data }: { data: ProfileData }) {
       <div className="flex min-w-0 flex-col gap-6">
         {/* Header */}
         <div className="flex items-start justify-between gap-5">
-          <div className="flex items-start gap-3.5">
-            <Link
-              href="/dashboard"
-              className="mt-1.5 grid h-[34px] w-[34px] place-items-center rounded-full bg-cha-surface text-cha-ink shadow-[0_1px_3px_rgba(0,0,0,0.06)] transition-colors hover:bg-cha-surface-2"
-              aria-label="Back to dashboard"
-            >
-              <PanelLeft size={18} />
-            </Link>
-            <div>
-              <h1 className="whitespace-nowrap font-display text-[40px] font-extrabold leading-[1.1]">
-                My Profile
-              </h1>
-              <div className="mt-2 text-[19px] font-semibold text-cha-muted">
-                Student Information
-              </div>
+          <div>
+            <h1 className="whitespace-nowrap font-display text-[40px] font-extrabold leading-[1.1]">
+              My Profile
+            </h1>
+            <div className="mt-2 text-[19px] font-semibold text-cha-muted">
+              Student Information
             </div>
           </div>
 

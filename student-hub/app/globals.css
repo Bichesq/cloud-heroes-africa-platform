@@ -28,6 +28,12 @@
   --color-cha-blue: #0485f7; /* links / utility */
   --color-cha-eclipse: #18181b; /* dark chips / filled tabs */
 
+  /* Status accents (tokens.md "Status tokens") — event blocks, badges */
+  --color-cha-warning: #f0a93b; /* amber — live class blocks, warnings */
+  --color-cha-warning-soft: #f5c05a;
+  --color-cha-success: #34c759;
+  --color-cha-danger: #ef4444;
+
   /* Fonts — variables are provided by next/font in app/layout.tsx */
   --font-display: var(--font-host), "Host Grotesk", system-ui, sans-serif;
   --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
@@ -92,4 +98,15 @@
 body {
   @apply bg-cha-canvas text-cha-ink;
   font-family: var(--font-body);
+}
+
+/* Gentle floating motion — used by the 404 "You are here" pin. */
+@keyframes cha-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }

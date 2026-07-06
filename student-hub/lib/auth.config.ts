@@ -58,13 +58,13 @@ export const authConfig: NextAuthConfig = {
         nextUrl.pathname.startsWith("/profile");
 
       if (isProtected && !isLoggedIn) {
-        return Response.redirect(new URL("/", nextUrl));
+        return Response.redirect(new URL("/SignIn", nextUrl));
       }
       return true;
     },
   },
   pages: {
-    signIn: "/",
+    signIn: "/SignIn",
     error:  "/",
   },
 };
