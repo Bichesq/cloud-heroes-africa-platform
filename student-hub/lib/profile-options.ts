@@ -96,3 +96,11 @@ export const TIMEZONES: string[] = [
 ];
 
 export const DEFAULT_TIMEZONE = "Douala (GMT +1)";
+
+/** Parses the fixed UTC offset out of a "City (GMT +N)" entry. These African
+ * zones don't observe DST, so a fixed hour offset is sufficient. Falls back
+ * to 0 (UTC) for an unrecognised value. */
+export function timezoneOffsetHours(tz: string | undefined | null): number {
+  const match = tz?.match(/GMT\s*([+-]\d+)/);
+  return match ? parseInt(match[1], 10) : 0;
+}

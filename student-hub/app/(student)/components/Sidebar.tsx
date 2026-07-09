@@ -7,8 +7,7 @@ import { signOut } from "next-auth/react";
 import { Avatar, Button } from "@heroui/react";
 import {
   LayoutDashboard,
-  BookOpen,
-  ClipboardCheck,
+  GraduationCap,
   CalendarDays,
   PieChart,
   StickyNote,
@@ -33,8 +32,7 @@ type NavLink = {
 
 const MAIN: NavLink[] = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/courses", label: "Courses", icon: BookOpen },
-  { href: "/assessments", label: "Assessments", icon: ClipboardCheck },
+  { href: "/my-program", label: "My Program", icon: GraduationCap },
   { href: "/calendar", label: "Calendar", icon: CalendarDays },
   { href: "/analytics", label: "Analytics", icon: PieChart },
 ];
@@ -49,15 +47,13 @@ const COLLAPSE_KEY = "cha_sidebar_collapsed";
 
 type Props = {
   name?: string;
-  level?: string;
   track?: string;
   avatarUrl?: string;
 };
 
 export default function Sidebar({
   name = "Chem Patrick",
-  level = "Student | Intermediate",
-  track = "DevOps Engineer Track",
+  track = "CHA Student",
   avatarUrl,
 }: Props) {
   const pathname = usePathname();
@@ -116,8 +112,6 @@ export default function Sidebar({
               {name}
             </div>
             <div className="mt-0.5 text-xs leading-snug text-cha-muted">
-              {level}
-              <br />
               {track}
             </div>
           </div>
@@ -175,7 +169,7 @@ export default function Sidebar({
           collapsed={collapsed}
         />
         <button
-          onClick={() => signOut({ callbackUrl: "/invite" })}
+          onClick={() => signOut({ callbackUrl: "/SignIn" })}
           aria-label="Log out"
           title={collapsed ? "Log out" : undefined}
           className={`flex h-12 items-center gap-3 rounded-full text-left text-sm font-semibold text-cha-ink transition-colors hover:bg-cha-surface-2 ${

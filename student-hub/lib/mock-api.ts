@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import type { Student } from "@/types";
+import { DEFAULT_PROGRAM_ID } from "./curriculum";
 
 const FILE = path.join(process.cwd(), "data", "students.json");
 
@@ -13,6 +14,7 @@ function normalize(s: Student): Student {
     countryPublic: s.countryPublic ?? true,
     mfaMethods: s.mfaMethods ?? [],
     passkeys: s.passkeys ?? [],
+    activeProgramId: s.activeProgramId ?? DEFAULT_PROGRAM_ID,
     status: s.status ?? "active",
   };
 }
@@ -38,7 +40,7 @@ export async function upsertStudent(params: {
   givenName: string;
   familyName: string;
   approvedEmailId: string;
-}): Promise<Student> {
+}): Promise<{ student: Student; isNew: boolean }> {
   const students = await read();
   const now = new Date().toISOString();
   const existing = students.find(
@@ -50,7 +52,7 @@ export async function upsertStudent(params: {
     existing.lastLogin = now;
     existing.updatedAt = now;
     await write(students);
-    return existing;
+    return { student: existing, isNew: false };
   }
 
   // First login — auto-create Student record
@@ -64,6 +66,7 @@ export async function upsertStudent(params: {
     countryPublic: true,
     mfaMethods: [],
     passkeys: [],
+    activeProgramId: DEFAULT_PROGRAM_ID,
     status: "active",
     lastLogin: now,
     profileCompletedAt: null,
@@ -73,7 +76,7 @@ export async function upsertStudent(params: {
 
   students.push(newStudent);
   await write(students);
-  return newStudent;
+  return { student: newStudent, isNew: true };
 }
 
 export async function getStudent(email: string): Promise<Student | null> {

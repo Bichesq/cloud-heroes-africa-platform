@@ -42,7 +42,7 @@ export type Student = {
   givenName: string;
   familyName: string;
   legalName?: string;
-  displayName?: string;             // TODO: policy not settled
+  displayName?: string;             // preferred name shown in the dashboard greeting
   phone?: string;
   alternateEmail?: string;
   birthDate?: string;               // ISO 8601
@@ -55,9 +55,79 @@ export type Student = {
   countryPublic: boolean;           // "Display Country of Origin"
   mfaMethods: MfaMethod[];          // mfaEnabled derives from any active method
   passkeys: Passkey[];
+  activeProgramId?: string;         // FK → Program.id; the student's single active enrollment
   status: StudentStatus;
   lastLogin: string;                // ISO 8601
   profileCompletedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/* --------------------------- Curriculum ----------------------------- */
+/* Simulated learning content for the dashboard/My Program POC. Isolated
+ * behind lib/curriculum.ts so a future real-LMS integration only needs to
+ * replace that module's I/O, not the types or the dashboard consumers. */
+
+export type UnitType = "lesson" | "lab" | "assessment";
+
+export type Unit = {
+  id: string;
+  title: string;
+  type: UnitType;
+  order: number;
+  durationMin: number;
+};
+
+export type Module = {
+  id: string;
+  title: string;
+  order: number;
+  description: string; // short focus blurb, e.g. for the resume banner
+  units: Unit[];
+};
+
+export type Program = {
+  id: string;
+  title: string;
+  modules: Module[];
+};
+
+export type UnitCompletion = {
+  studentId: string;
+  unitId: string;
+  completedAt: string; // ISO 8601
+};
+
+/* --------------------------- Calendar events -------------------------- */
+/* Shared learning + beyond-learning events store for the dashboard widget
+ * (and, eventually, the full /calendar page). Times are stored in UTC;
+ * widgets convert to the student's profile timezone for display. */
+
+export type LearningEventType = "learning" | "community" | "other";
+
+export type LearningEvent = {
+  id: string;
+  type: LearningEventType;
+  title: string;
+  description: string;
+  start: string; // ISO 8601, UTC
+  end: string; // ISO 8601, UTC
+  link: string | null;
+};
+
+/* ----------------------------- To Do -------------------------------- */
+
+export type TodoSource = "student" | "system";
+
+export type Todo = {
+  id: string;
+  studentId: string;
+  title: string;
+  dueDate: string | null; // "YYYY-MM-DD"
+  link: string | null;
+  source: TodoSource;
+  completedAt: string | null; // ISO 8601
+  dismissed: { at: string; reason: string } | null; // system tasks only
   createdAt: string;
   updatedAt: string;
 };

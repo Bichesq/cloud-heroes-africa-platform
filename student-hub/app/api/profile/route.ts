@@ -20,6 +20,7 @@ const AUDITED_FIELDS: (keyof Student & string)[] = [
   "givenName",
   "familyName",
   "legalName",
+  "displayName",
   "timezone",
   "alternateEmail",
   "country",
@@ -67,6 +68,7 @@ export async function POST(req: NextRequest) {
       p.lastName ?? current.familyName
     }`.trim();
   }
+  if (p.displayName !== undefined) update.displayName = p.displayName;
   if (p.timezone !== undefined) update.timezone = p.timezone;
   if (p.secondaryEmail !== undefined) update.alternateEmail = p.secondaryEmail;
   if (p.country !== undefined) update.country = p.country;

@@ -1,0 +1,113 @@
+[
+  {
+    "id": "cloud-practitioner",
+    "title": "Cloud Practitioner",
+    "modules": [
+      {
+        "id": "m1",
+        "title": "Cloud Concepts",
+        "order": 1,
+        "description": "Learn the core vocabulary and service models behind cloud computing.",
+        "units": [
+          { "id": "m1-u1", "title": "What Is Cloud Computing?", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m1-u2", "title": "Cloud Service Models", "type": "lesson", "order": 2, "durationMin": 20 },
+          { "id": "m1-u3", "title": "Cloud Concepts Quiz", "type": "assessment", "order": 3, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m2",
+        "title": "Identity & Access Management",
+        "order": 2,
+        "description": "Understand identity, access, and security fundamentals in the cloud.",
+        "units": [
+          { "id": "m2-u1", "title": "Understanding Identity", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m2-u2", "title": "IAM Lab", "type": "lab", "order": 2, "durationMin": 30 },
+          { "id": "m2-u3", "title": "IAM Assessment", "type": "assessment", "order": 3, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m3",
+        "title": "Storage Fundamentals",
+        "order": 3,
+        "description": "Compare object, block, and file storage and when to use each.",
+        "units": [
+          { "id": "m3-u1", "title": "Object vs Block Storage", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m3-u2", "title": "Storage Lab", "type": "lab", "order": 2, "durationMin": 30 },
+          { "id": "m3-u3", "title": "Storage Assessment", "type": "assessment", "order": 3, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m4",
+        "title": "Networking Basics",
+        "order": 4,
+        "description": "Get comfortable with cloud networking, DNS, and load balancing.",
+        "units": [
+          { "id": "m4-u1", "title": "Networking Foundations", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m4-u2", "title": "DNS & Load Balancing", "type": "lesson", "order": 2, "durationMin": 20 },
+          { "id": "m4-u3", "title": "Networking Lab", "type": "lab", "order": 3, "durationMin": 30 },
+          { "id": "m4-u4", "title": "Networking Assessment", "type": "assessment", "order": 4, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m5",
+        "title": "What Is the Cloud?",
+        "order": 5,
+        "description": "Explore the history, economics, and shared responsibility model of the cloud.",
+        "units": [
+          { "id": "m5-u1", "title": "History of Cloud Computing", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m5-u2", "title": "On-Prem vs Cloud", "type": "lesson", "order": 2, "durationMin": 20 },
+          { "id": "m5-u3", "title": "Public, Private & Hybrid Cloud", "type": "lesson", "order": 3, "durationMin": 20 },
+          { "id": "m5-u4", "title": "Cloud Economics", "type": "lesson", "order": 4, "durationMin": 20 },
+          { "id": "m5-u5", "title": "Shared Responsibility Model", "type": "lesson", "order": 5, "durationMin": 20 },
+          { "id": "m5-u6", "title": "Cloud Deployment Lab", "type": "lab", "order": 6, "durationMin": 30 },
+          { "id": "m5-u7", "title": "Cost Management Lab", "type": "lab", "order": 7, "durationMin": 30 },
+          { "id": "m5-u8", "title": "Compliance Basics", "type": "lesson", "order": 8, "durationMin": 20 },
+          { "id": "m5-u9", "title": "What Is the Cloud? Assessment", "type": "assessment", "order": 9, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m6",
+        "title": "Global Cloud Infrastructure",
+        "order": 6,
+        "description": "See how regions, availability zones, and CDNs deliver global scale.",
+        "units": [
+          { "id": "m6-u1", "title": "Regions & Availability Zones", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m6-u2", "title": "Edge Locations", "type": "lesson", "order": 2, "durationMin": 20 },
+          { "id": "m6-u3", "title": "Global Infrastructure Lab", "type": "lab", "order": 3, "durationMin": 30 },
+          { "id": "m6-u4", "title": "High Availability Design", "type": "lesson", "order": 4, "durationMin": 20 },
+          { "id": "m6-u5", "title": "Disaster Recovery Basics", "type": "lesson", "order": 5, "durationMin": 20 },
+          { "id": "m6-u6", "title": "Fault Tolerance Lab", "type": "lab", "order": 6, "durationMin": 30 },
+          { "id": "m6-u7", "title": "Content Delivery Networks", "type": "lesson", "order": 7, "durationMin": 20 },
+          { "id": "m6-u8", "title": "Multi-Region Architecture", "type": "lesson", "order": 8, "durationMin": 20 },
+          { "id": "m6-u9", "title": "Infrastructure Lab 2", "type": "lab", "order": 9, "durationMin": 30 },
+          { "id": "m6-u10", "title": "Global Infrastructure Assessment", "type": "assessment", "order": 10, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m7",
+        "title": "Virtual Networks",
+        "order": 7,
+        "description": "Build and route traffic through your own virtual private cloud.",
+        "units": [
+          { "id": "m7-u1", "title": "VPC Fundamentals", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m7-u2", "title": "Subnets & Routing Lab", "type": "lab", "order": 2, "durationMin": 30 },
+          { "id": "m7-u3", "title": "Virtual Networks Assessment", "type": "assessment", "order": 3, "durationMin": 15 }
+        ]
+      },
+      {
+        "id": "m8",
+        "title": "Security & Compliance",
+        "order": 8,
+        "description": "Apply encryption, compliance frameworks, and incident response basics.",
+        "units": [
+          { "id": "m8-u1", "title": "Cloud Security Fundamentals", "type": "lesson", "order": 1, "durationMin": 20 },
+          { "id": "m8-u2", "title": "Encryption Basics", "type": "lesson", "order": 2, "durationMin": 20 },
+          { "id": "m8-u3", "title": "Compliance Frameworks", "type": "lesson", "order": 3, "durationMin": 20 },
+          { "id": "m8-u4", "title": "Security Lab", "type": "lab", "order": 4, "durationMin": 30 },
+          { "id": "m8-u5", "title": "Incident Response Basics", "type": "lesson", "order": 5, "durationMin": 20 },
+          { "id": "m8-u6", "title": "Security & Compliance Assessment", "type": "assessment", "order": 6, "durationMin": 15 }
+        ]
+      }
+    ]
+  }
+]

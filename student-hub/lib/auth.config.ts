@@ -23,14 +23,16 @@ export const authConfig: NextAuthConfig = {
 
       // Step 2 — upsert Student (auto-create on first login,
       //           update lastLogin on subsequent logins)
-      await upsertStudent({
+      const { isNew } = await upsertStudent({
         email,
         givenName: profile.given_name ?? "",
         familyName: profile.family_name ?? "",
         approvedEmailId: approved.id,
       });
 
-      return true;
+      // First-ever login lands on the profile page so students fill it in
+      // before reaching the dashboard.
+      return isNew ? "/profile" : true;
     },
 
     async jwt({ token, profile }) {
@@ -55,7 +57,8 @@ export const authConfig: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const isProtected =
         nextUrl.pathname.startsWith("/dashboard") ||
-        nextUrl.pathname.startsWith("/profile");
+        nextUrl.pathname.startsWith("/profile") ||
+        nextUrl.pathname.startsWith("/my-program");
 
       if (isProtected && !isLoggedIn) {
         return Response.redirect(new URL("/SignIn", nextUrl));

@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Avatar } from "@heroui/react";
+import { usePathname, useRouter } from "next/navigation";
+import { signOut } from "next-auth/react";
+import { Avatar, Dropdown, Label } from "@heroui/react";
 import {
   Bell,
   Search,
@@ -11,6 +12,10 @@ import {
   Moon,
   Monitor,
   ChevronDown,
+  LayoutDashboard,
+  User,
+  Settings,
+  LogOut,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,7 +35,25 @@ type Props = {
 
 export default function TopBar({ givenName, familyName, email, avatarUrl }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [theme, setTheme] = useState<Theme>("light");
+
+  function handleProfileMenuAction(key: React.Key) {
+    switch (key) {
+      case "dashboard":
+        router.push("/dashboard");
+        break;
+      case "profile":
+        router.push("/profile");
+        break;
+      case "settings":
+        router.push("/settings");
+        break;
+      case "logout":
+        signOut({ callbackUrl: "/SignIn" });
+        break;
+    }
+  }
 
   useEffect(() => {
     const savedTheme = (localStorage.getItem("theme") as Theme) || "light";
@@ -172,20 +195,42 @@ export default function TopBar({ givenName, familyName, email, avatarUrl }: Prop
             </div>
             <div className="truncate text-[11px] text-cha-faint">{email}</div>
           </div>
-          <div className="flex shrink-0 items-center gap-1.5">
-            <Avatar.Root className="h-10 w-10 shrink-0 rounded-full ring-2 ring-cha-orange ring-offset-2">
-              <Avatar.Image src={avatarUrl} />
-              <Avatar.Fallback>
-                {(fullName || "S")
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .slice(0, 2)
-                  .toUpperCase()}
-              </Avatar.Fallback>
-            </Avatar.Root>
-            <ChevronDown size={18} className="shrink-0 text-cha-faint" />
-          </div>
+          <Dropdown>
+            <Dropdown.Trigger className="flex shrink-0 items-center gap-1.5 rounded-full outline-none">
+              <Avatar.Root className="h-10 w-10 shrink-0 rounded-full ring-2 ring-cha-orange ring-offset-2">
+                <Avatar.Image src={avatarUrl} />
+                <Avatar.Fallback>
+                  {(fullName || "S")
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </Avatar.Fallback>
+              </Avatar.Root>
+              <ChevronDown size={18} className="shrink-0 text-cha-faint" />
+            </Dropdown.Trigger>
+            <Dropdown.Popover className="min-w-[200px]">
+              <Dropdown.Menu onAction={handleProfileMenuAction}>
+                <Dropdown.Item id="dashboard" textValue="Dashboard">
+                  <LayoutDashboard size={16} className="shrink-0 text-cha-muted" />
+                  <Label>Dashboard</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="profile" textValue="Profile">
+                  <User size={16} className="shrink-0 text-cha-muted" />
+                  <Label>Profile</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="settings" textValue="Settings">
+                  <Settings size={16} className="shrink-0 text-cha-muted" />
+                  <Label>Settings</Label>
+                </Dropdown.Item>
+                <Dropdown.Item id="logout" textValue="Log out" variant="danger">
+                  <LogOut size={16} className="shrink-0 text-danger" />
+                  <Label>Log out</Label>
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown.Popover>
+          </Dropdown>
         </div>
       </div>
     </header>

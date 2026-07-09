@@ -53,6 +53,7 @@ export default function ProfileClient({ data }: { data: ProfileData }) {
   const initialForm: PersonalForm = {
     firstName: data.firstName,
     lastName: data.lastName,
+    displayName: data.displayName,
     timezone: data.timezone,
     secondaryEmail: data.secondaryEmail,
     country: data.country,
@@ -114,7 +115,11 @@ export default function ProfileClient({ data }: { data: ProfileData }) {
   }
 
   async function save() {
-    const parsed = profileFormSchema.safeParse(form);
+    // photoPublic/countryPublic live in their own state (set via the toggle
+    // confirm flow, not this form) but profileFormSchema requires them —
+    // include the current values so a personal-info save doesn't fail
+    // validation on fields the user never touched here.
+    const parsed = profileFormSchema.safeParse({ ...form, photoPublic, countryPublic });
     if (!parsed.success) {
       setErrors(zodFieldErrors(parsed));
       setBanner({ tone: "error", text: "Please fix the highlighted fields." });

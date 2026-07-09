@@ -40,7 +40,8 @@ export const authConfigEdge: NextAuthConfig = {
       const isLoggedIn = !!auth?.user;
       const isProtected =
         nextUrl.pathname.startsWith("/dashboard") ||
-        nextUrl.pathname.startsWith("/profile");
+        nextUrl.pathname.startsWith("/profile") ||
+        nextUrl.pathname.startsWith("/my-program");
 
       if (isProtected && !isLoggedIn) {
         return Response.redirect(new URL("/SignIn", nextUrl));

@@ -27,6 +27,10 @@ const birthDate = z
 export const profileFormSchema = z.object({
   firstName: name,
   lastName: name,
+  displayName: z
+    .string()
+    .trim()
+    .max(60, "Keep it under 60 characters"),
   timezone: z
     .string()
     .refine((v) => TIMEZONES.includes(v), "Select a timezone from the list"),

@@ -1,0 +1,56 @@
+[
+  {
+    "id": "e1",
+    "type": "learning",
+    "title": "DevOps Class",
+    "description": "Live class covering CI/CD pipelines and deployment automation.",
+    "start": "2026-07-09T13:00:00.000Z",
+    "end": "2026-07-09T14:30:00.000Z",
+    "link": "https://zoom.us/j/71670423115"
+  },
+  {
+    "id": "e2",
+    "type": "learning",
+    "title": "Kubernetes Class",
+    "description": "Hands-on session on pods, deployments, and services.",
+    "start": "2026-07-09T16:00:00.000Z",
+    "end": "2026-07-09T17:30:00.000Z",
+    "link": "https://zoom.us/j/71670423115"
+  },
+  {
+    "id": "e3",
+    "type": "community",
+    "title": "DevOps Meetup AMA",
+    "description": "Ask-me-anything with CHA alumni working in cloud infrastructure.",
+    "start": "2026-07-10T17:00:00.000Z",
+    "end": "2026-07-10T18:00:00.000Z",
+    "link": "https://cloudheroesafrica.com/community/ama"
+  },
+  {
+    "id": "e4",
+    "type": "learning",
+    "title": "Module 4 Assessment Due",
+    "description": "Networking Basics assessment closes at the end of the day.",
+    "start": "2026-07-12T22:30:00.000Z",
+    "end": "2026-07-12T23:59:00.000Z",
+    "link": "/my-program#module-m4"
+  },
+  {
+    "id": "e5",
+    "type": "community",
+    "title": "Office Hours",
+    "description": "Drop-in Q&A with your program coordinator.",
+    "start": "2026-07-14T15:00:00.000Z",
+    "end": "2026-07-14T16:00:00.000Z",
+    "link": "https://cloudheroesafrica.com/community/office-hours"
+  },
+  {
+    "id": "e6",
+    "type": "learning",
+    "title": "Intermediate DevOps Class",
+    "description": "Deeper dive into infrastructure as code.",
+    "start": "2026-07-16T14:00:00.000Z",
+    "end": "2026-07-16T15:00:00.000Z",
+    "link": "https://zoom.us/j/71670423115"
+  }
+]

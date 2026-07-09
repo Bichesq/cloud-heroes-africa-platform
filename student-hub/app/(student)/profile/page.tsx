@@ -21,6 +21,7 @@ export default async function ProfilePage() {
   const data: ProfileData = {
     firstName: student?.givenName || session.user.given_name || "",
     lastName: student?.familyName || session.user.family_name || "",
+    displayName: student?.displayName ?? "",
     primaryEmail: session.user.email,
     secondaryEmail: student?.alternateEmail ?? "",
     phone: student?.phone ?? "",

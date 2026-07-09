@@ -5,6 +5,7 @@ import type { MfaMethod, Passkey } from "@/types";
 export type ProfileData = {
   firstName: string;
   lastName: string;
+  displayName: string; // preferred name shown in the dashboard greeting
   primaryEmail: string;
   secondaryEmail: string;
   phone: string;

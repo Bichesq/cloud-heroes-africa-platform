@@ -7,6 +7,7 @@ import { Field, TextInput, SelectInput, cardClass } from "./fields";
 export type PersonalForm = {
   firstName: string;
   lastName: string;
+  displayName: string;
   timezone: string;
   secondaryEmail: string;
   country: string;
@@ -99,6 +100,19 @@ export default function PersonalInfo({
             onChange={(v) => onChange("lastName", v)}
           />
         </Field>
+        <Field
+          label="Preferred Display Name"
+          error={errors.displayName}
+          hint="Shown in your dashboard greeting instead of your first name."
+        >
+          <TextInput
+            value={form.displayName}
+            disabled={ro}
+            invalid={!!errors.displayName}
+            onChange={(v) => onChange("displayName", v)}
+          />
+        </Field>
+
         <Field label="Timezone" required error={errors.timezone} warning={warnings.timezone}>
           <SelectInput
             value={form.timezone}
@@ -108,7 +122,6 @@ export default function PersonalInfo({
             options={TIMEZONES}
           />
         </Field>
-
         <Field
           label="Primary Email Address"
           required
@@ -122,6 +135,7 @@ export default function PersonalInfo({
             onChange={() => {}}
           />
         </Field>
+
         <Field label="Secondary Email Address" error={errors.secondaryEmail}>
           <TextInput
             type="email"
@@ -140,7 +154,6 @@ export default function PersonalInfo({
             options={COUNTRIES}
           />
         </Field>
-
         <Field label="Phone Number" required error={errors.phone} warning={warnings.phone}>
           <TextInput
             type="tel"
@@ -152,6 +165,7 @@ export default function PersonalInfo({
             leading={<span className="text-[15px] leading-none">{countryFlag(form.country)}</span>}
           />
         </Field>
+
         <Field label="Birth Date" required error={errors.birthDate} warning={warnings.birthDate}>
           <TextInput
             value={form.birthDate}
@@ -161,7 +175,6 @@ export default function PersonalInfo({
             onChange={(v) => onChange("birthDate", v)}
           />
         </Field>
-        <div className="hidden xl:block" />
       </div>
     </div>
   );
