@@ -19,10 +19,21 @@ import {
   type LucideIcon,
 } from "lucide-react";
 
-const TABS = [
+/** Every student page's own label — matches the sidebar's nav so the two
+ * stay in sync. The first top-bar tab mirrors whichever of these the
+ * student is currently on, instead of always saying "Dashboard". */
+const PAGE_TITLES = [
   { href: "/dashboard", label: "Dashboard" },
-  { href: "/explore", label: "Explore Programs" },
+  { href: "/my-program", label: "My Program" },
+  { href: "/calendar", label: "Calendar" },
+  { href: "/analytics", label: "Analytics" },
+  { href: "/notes", label: "Notes" },
+  { href: "/support", label: "Helpdesk" },
+  { href: "/profile", label: "My Profile" },
+  { href: "/settings", label: "Settings" },
 ];
+
+const EXPLORE_TAB = { href: "/explore", label: "Explore Programs" };
 
 type Theme = "light" | "dark" | "system";
 
@@ -104,6 +115,10 @@ export default function TopBar({ givenName, familyName, email, avatarUrl }: Prop
 
   const fullName = [givenName, familyName].filter(Boolean).join(" ");
 
+  const currentPage =
+    PAGE_TITLES.find((p) => pathname.startsWith(p.href)) ?? PAGE_TITLES[0];
+  const tabs = [currentPage, EXPLORE_TAB];
+
   return (
     <header className="flex h-[88px] shrink-0 items-stretch bg-cha-canvas">
       {/* Col 1 — logo + company name, aligns with the 300px sidebar */}
@@ -128,7 +143,7 @@ export default function TopBar({ givenName, familyName, email, avatarUrl }: Prop
         <div className="flex min-w-0 flex-1 items-center justify-between gap-4 self-stretch">
           {/* Primary tabs */}
           <nav className="flex items-end gap-6 self-stretch pb-[30px]">
-            {TABS.map((t) => {
+            {tabs.map((t) => {
               const active = pathname.startsWith(t.href);
               return (
                 <Link
