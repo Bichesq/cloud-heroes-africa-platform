@@ -44,7 +44,7 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-05-18 | Invite code delivery | The platform generates invite codes and sends them via email to vetted students | Replaced | Team | Replaced by the June 11 decision: approved students are added directly to an approved-email list; no invite code is generated or sent |
 | 2026-05-18 | Registration gateway | Student must provide their email + invite code + complete reCAPTCHA to begin registration | Replaced | Team | Replaced by the June 11 decision: the invite code and reCAPTCHA steps are eliminated; Google Auth checks the approved-email list instead |
 | 2026-05-18 | Authentication method | Google OAuth is used to complete registration after invite code verification | Decided | Team | Remains valid; Google Auth is still the authentication method, now checking the approved-email list instead of an invite code |
-| 2026-05-18 | Profile completion gate | Profile completion is not a hard blocker at login; students may explore the platform but must complete their profile before taking any courses | Decided | Team / Bichesq | Gives students flexibility to explore while enforcing completion before serious commitment |
+| 2026-05-18 | Profile completion gate | Profile completion is not a hard blocker at login; students may explore the platform but must complete their profile before taking any courses | Replaced | Team / Bichesq | Replaced by the July 13 decision: profile completion is now a hard gate; students must fully complete their profile before any platform access |
 | 2026-05-18 | Assessment placement | Assessments belong inside the learning platform, not as a standalone external step in the onboarding flow | Decided | Team / Kris | Keeps education delivery and assessment together; avoids duplicating functionality outside the learning platform |
 | 2026-05-18 | Assessment hierarchy | Assessments are tiered: Unit assessment → Module assessment → Program assessment | Decided | Team | Mirrors the course hierarchy (Program > Module > Unit); each level has its own competency check |
 | 2026-05-21 | Application architecture | The registration/onboarding module and the learning platform are separate applications, sharing a common authentication mechanism | Decided | Team / Kris | Avoids monolith; allows each app to scale independently |
@@ -102,6 +102,40 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-06-11 | Calendar on Student Hub | The calendar is surfaced as a widget on the Student Hub dashboard rather than a dedicated full page | Decided | Team / Kris / Bichesq | Keeps the dashboard consolidated; event detail can be expanded from the widget |
 | 2026-06-11 | Welcome video on Student Hub login page | A welcome/community introduction video will be embedded on the Student Hub login/landing page | Decided | Team / Kris / Herman | Herman raised the idea and Kris agreed; content and production details to be decided separately |
 | 2026-06-11 | Student Hub requirements structure | Student Hub requirements will be written as a Project Overview MD file plus individual per-screen MD files (e.g., login.md, profile.md, dashboard.md); screenshot references to inspiration designs may be included | Decided | Team / Kris / Bichesq | Kris proposed this structure explicitly; gives Claude precise, bounded context per screen rather than one large prompt |
+| 2026-06-15 | Platform monorepo | A monorepo will house all five sub-applications to ensure a consistent data model across all user views | Decided | Team / Kris / Bichesq | Resolves open repo structure question; demonstrated by Bichesq in the June 15 session |
+| 2026-06-15 | UI component library | Hero UI is confirmed as the component library for the POC; ShadCN was considered but Hero UI selected for speed | Decided | Team / Kris / Eddie | Replaces the June 11 working assumption; Eddie presented initial Figma designs using the Hero UI kit |
+| 2026-06-15 | AI development "clean slate" approach | Only final, consolidated requirements are fed to Claude; raw iterative meeting notes are never sent to Claude | Decided | Team / Kris / Bichesq | Prevents token waste and avoids confusing Claude with discarded ideas |
+| 2026-06-18 | Student Hub initial scope | The initial Student Hub scope is fixed at four pages: Login, Dashboard, Profile, and Calendar | Decided | Team / Kris / Eddie | Defined during the June 18 design review session |
+| 2026-06-18 | Student Hub login page design | The login flow uses a single "Sign in with Google" button only; no multi-step email/password form | Decided | Team / Kris / Eddie | Multi-step form explicitly rejected; leverages Google's native authentication flow |
+| 2026-06-18 | Student profile page purpose | The profile page prioritizes direct editing of user settings (name, email) at the top; statistics belong on the dashboard, not the profile | Decided | Team / Kris / Eddie | Profile is for editing personal information, not a "mini-dashboard" |
+| 2026-06-18 | Student Hub typography | Inter and Plus Jakarta Sans from Google Fonts are the platform's typefaces | Decided | Team / Eddie | Web fonts avoid licensing issues and simplify implementation |
+| 2026-06-22 | AI code generation strategy | Claude generates UI code using a "design engine": referencing Hero UI's official Markdown docs from a Figma layout, not a manually built component map | Decided | Team / Kris / Bichesq | More robust and future-proof; allows easy UI library swaps via a skill modification |
+| 2026-06-25 | Student profile public/private structure | The student profile separates admin-only data from a public preview; privacy toggles control whether profile picture and country of origin are publicly visible | Decided | Team / Kris / Eddie | Balances community identity with student privacy |
+| 2026-06-25 | Student profile location fields | Country of Origin (required; community identity + admin analytics; public visibility optional) and Time Zone (required; scheduling; admin-only). "Current Location" field removed. | Decided | Team / Kris / Eddie | Time Zone directly serves scheduling; Current Location was too imprecise and privacy-sensitive |
+| 2026-06-25 | Student profile long name display | Long names in public profile previews wrap to a second line rather than truncate | Decided | Team / Kris | Preserves the full name; truncation could be perceived as disrespectful |
+| 2026-06-25 | Profile bio and pronouns | Bio field and pronouns are deferred to a future version; not included in Phase 1 | Decided | Team / Kris | Avoids moderation burden and potential community friction at launch |
+| 2026-06-25 | MFA panel in Phase 1 | The right-hand MFA setup panel is removed from Phase 1 scope; MFA setup is integrated directly into the main profile form | Decided | Team / Kris / Eddie | Simplifies Phase 1 development scope |
+| 2026-06-25 | Mobile view requirement | A responsive mobile design is required for Student Hub screens | Decided | Team / Kris | Explicitly confirmed during the June 25 design review |
+| 2026-06-29 | Student profile MFA section scope | The profile MFA section in Phase 1 shows only device management (revoke access, edit device name); city field removed from profile header | Decided | Team / Kris / Eddie | City data may be outdated; device management is the core Phase 1 MFA need |
+| 2026-06-29 | Student-to-student calendar event invite | Student-to-student event invites are rejected for V1 due to abuse risk (spam, harassment) and scope creep; may be reconsidered in V2/V3 if a friends system exists | Decided | Team / Kris | Would require a full social ecosystem (blocking, reporting) outside V1 scope |
+| 2026-06-29 | Student Hub dashboard V1 layout | The V1 dashboard is a static, fixed layout for all users; customizable widget-based dashboard deferred to V2/V3 | Decided | Team / Kris / Bichesq | Prioritizes core functionality at launch |
+| 2026-06-29 | Zero state dashboard | A "zero state" screen is designed for users who have not yet enrolled in any program; includes welcome message, community info, and enrollment call to action | Decided | Team / Kris / Eddie | Prevents a blank, confusing dashboard for new users |
+| 2026-06-29 | Login page imagery | The Student Hub login/landing page features a large, accurate map of Africa to reinforce the mission; adult imagery only | Decided | Team / Kris / Eddie | Emphasizes the mission; ensures the platform is not perceived as targeting children |
+| 2026-07-02 | Learning Platform content hierarchy | Program > Module > Unit is the official content hierarchy; assessments are separated from unit content to allow independent updates | Decided | Team / Kris / Bichesq | Prevents students from re-doing entire units when only an assessment changes |
+| 2026-07-02 | Assessment types | Two types: Knowledge Checks (short embedded quizzes within units) and Assessments (standalone, combining MCQ and practical submissions outside units) | Decided | Team / Kris / Bichesq | Separation enables independent update of content and evaluation |
+| 2026-07-02 | Student Hub dashboard scope boundary | Student Hub shows only progress previews (current unit, courses remaining, badges); full course catalogs and enrollment belong in the Learning Platform only | Decided | Team / Kris / Bichesq | Prevents user confusion; avoids surfacing courses with unmet prerequisites |
+| 2026-07-02 | Student Hub login copy | The login page headline reads "Become a citizen of the Cloud Heroes community" | Decided | Team / Kris / Bichesq | Brand and mission framing for the platform entry point |
+| 2026-07-06 | Learning Platform as separate application | The Learning Platform is a fully separate app from Student Hub with its own dedicated top-nav navigation; the two connect via a clear "handshake" transition | Decided | Team / Kris / Bichesq | Enables independent development and scalability; avoids a monolithic design |
+| 2026-07-06 | Content format: data-light strategy | The platform uses static visuals with local text-to-speech (TTS), not video or recorded audio files | Decided | Team / Kris / Bichesq | Kilobytes per unit vs megabytes for video; critical given high mobile data costs for students |
+| 2026-07-06 | Multiple content creators | The instructor/creator field supports multiple names to credit all content creators | Decided | Team / Kris / Bichesq | Recognizes contributor effort; prevents a single creator from being expected to handle ongoing student support |
+| 2026-07-09 | Unit unlocking logic | A points-based system manages unit access: completing a unit earns points; starting a new unit requires a minimum point total; replaces complex logical dependencies | Decided | Team / Kris / Bichesq | More flexible; allows multiple course entry points by simply adjusting point thresholds |
+| 2026-07-09 | Goals Meeting Streak widget | Students set unit completion deadlines; the streak counts consecutive deadlines met, not login frequency | Decided | Team / Kris / Eddie | Gamifies commitment; more meaningful engagement metric than a login streak; reduces unnecessary server load |
+| 2026-07-09 | Exam Readiness widget | The Exam Readiness widget is tied to dedicated high-stakes readiness assessments, not content consumption percentage | Decided | Team / Kris / Eddie | Readiness cannot be meaningfully inferred from content consumption alone |
+| 2026-07-09 | Unit content view principle | Non-essential elements (notes, assignments) are moved to separate tabs; the main unit view minimises distractions | Decided | Team / Kris / Eddie | Keeps students focused on learning content |
+| 2026-07-13 | Payload CMS abandoned | Payload CMS is removed from the Student Hub and Learning Platform; replaced by a custom backend (Postgres) | Decided | Team / Kris / Bichesq | Avoids framework lock-in; enables a unified database architecture; AI tools now make a custom CMS significantly faster to build |
+| 2026-07-13 | MFA method | Email is not acceptable as an MFA factor when it is also the login method; MFA must use a different factor (phone, authenticator app, or passkey) | Decided | Team / Kris / Herman / Allen | A compromised email granting full account access is a critical security risk |
+| 2026-07-13 | Profile completion hard gate | Students must fully complete their profile before accessing any part of the platform | Decided | Team / Kris / Bichesq | Replaces the May 18 decision; required to enforce data collection (e.g., phone number for MFA) |
+| 2026-07-13 | Preferred name moderation | All preferred name changes must pass a human or AI review before becoming visible to the community | Decided | Team / Kris / Bichesq | Prevents vulgar names and community harm |
 
 ***
 
@@ -133,7 +167,16 @@ These are currently useful assumptions that let the team move forward, but they 
 | 2026-06-08 | Service Desk recovery path | Account recovery may use account migration to a new email identity, supported by a unique student ID and strict manual verification | Working Assumption | Team / Kris | The meeting leaned this way strongly, but did not finalize the exact operational procedure |
 | 2026-06-08 | Learning Management assignment model | Learning Management may need flexible support for assignments and materials beyond fixed quiz-style tasks, including uploads, presentations, interviews, or document submissions | Working Assumption | Team / Kris / Bichesq | The meeting explored multiple assignment formats, but did not lock the exact data model or workflow |
 | 2026-06-08 | Global admin creation control | Creation of new administrators should likely be handled above the normal Administration module rather than delegated broadly to administrators/volunteers | Working Assumption | Team / Kris | Kris explicitly expressed concern that normal admins should not be able to create other volunteers without a stronger governance process |
-| 2026-06-11 | UI library for Student Hub | HeroUI V3 (formerly NextUI) is the leading candidate for the Student Hub dashboard UI library; ShadCN was also raised as an alternative | Working Assumption | Team / Kris / Bichesq | Kris pointed to HeroUI V3 as the leading option seen in multiple searches; final selection should be confirmed before screen-level requirements are written |
+| 2026-06-11 | UI library for Student Hub | HeroUI V3 (formerly NextUI) is the leading candidate for the Student Hub dashboard UI library; ShadCN was also raised as an alternative | Replaced | Team / Kris / Bichesq | Hero UI confirmed as the component library choice in the June 15 session |
+| 2026-06-15 | Database architecture | Database options including DocumentDB and Postgres JSON should be researched before the final architecture is committed | Working Assumption | Team / Kris / Bichesq | Raised in June 15 session; Kris questioned whether RDS/Postgres is the right choice |
+| 2026-06-18 | Component library developer confirmation | Hero UI Figma kit is in use for design; lead developer Bashek needs to confirm the component library choice before implementation begins | Working Assumption | Team / Eddie / Bashek | Eddie to confirm with Bashek before presenting designs to the team |
+| 2026-06-22 | Anthropic Partner Network application | Kris submitted the team's application to the Anthropic Partner Network for access to certifications and resources | Working Assumption | Team / Kris | Awaiting response; outcome not yet known |
+| 2026-07-02 | Interactive terminals for hands-on practice | A cloud shell or terminal (e.g., CoCloud, restricted SSH server) for Linux/database practice should be explored; costs and infrastructure complexity must be assessed | Working Assumption | Team / Bichesq | Raised in July 2 session; technical and financial feasibility not yet determined |
+| 2026-07-02 | Formal prompt documentation | Formal documentation of the Claude prompts used in the development workflow is needed to ensure consistency and reproducibility | Working Assumption | Team / Bichesq | Identified as a gap in the July 2 session; not yet completed |
+| 2026-07-06 | Program-level support channel | A separate, program-level support channel (e.g., WhatsApp integration) is needed to handle student questions without burdening course creators | Working Assumption | Team / Kris | Direction agreed in July 6 session; specific tool and workflow not yet finalized |
+| 2026-07-09 | Database: NoSQL vs Postgres | A NoSQL database (e.g., MongoDB) is being considered over Postgres for the complex, nested student data required for progress tracking, goals, and points | Working Assumption | Team / Kris / Bichesq | Raised in July 9 session; replaces earlier Postgres assumption; final decision pending |
+| 2026-07-13 | MFA: passkeys as candidate solution | Herman and Allen to research passkeys as a potential MFA solution and present findings to the team | Working Assumption | Team / Herman / Allen | Passkeys raised in July 13 session; feasibility not yet assessed |
+| 2026-07-13 | Team AI certification program | Jones to lead a structured 6-week Anthropic certification roadmap for the team; study plan to be proposed at the next meeting | Working Assumption | Team / Jones | Jones to research and propose; plan not yet finalized |
 
 ***
 
@@ -143,19 +186,19 @@ These decisions are important and should be resolved as early as possible.
 
 | Date Logged | Area | Question | Status | Owner | Why It Matters |
 |---|---|---|---|---|---|
-| 2026-05-18 | Repo structure | If there are multiple application surfaces, should this be a monorepo? | Open | Bichesq / Team | Affects development workflow and implementation boundaries |
+| 2026-05-18 | Repo structure | If there are multiple application surfaces, should this be a monorepo? | Decided | Bichesq / Team | Resolved June 15: monorepo confirmed; all five sub-applications will share a single repo for a consistent data model |
 | 2026-05-18 | Assessment design | What questions will the assessment ask, and how should answers be stored? | Open | Team | Explicitly raised in the meeting |
 | 2026-05-18 | Demo scope | What exactly must work live in the first stakeholder demo, and what can be mocked? | Open | Team | Critical for scoping the first build |
-| 2026-05-18 | Design system | What UI/design system direction should the app follow? | Open | Team | HeroUI V3 is the leading candidate (June 11) but not yet locked; needs final confirmation before detailed screen specs are written |
+| 2026-05-18 | Design system | What UI/design system direction should the app follow? | Decided | Team | Resolved June 15: Hero UI confirmed as the component library for the POC |
 | 2026-05-18 | API structure | What API style and conventions should be standardized? | Open | Team | Affects Claude prompt quality and implementation consistency |
 | 2026-05-18 | Infrastructure | What minimum infrastructure is required for the first demo? | Open | Team | Needed to avoid overbuilding too early |
 | 2026-05-18 | Board interaction | Should the board be brought in before implementation starts, or after a first internal build exists? | Open | Team | Strategic sequencing question |
 | 2026-05-18 | Invite code entry UX | Should the invite code be entered manually (copy-paste) or auto-populated via a link in the email? | Replaced | Team / Allen | Resolved by the June 11 decision to eliminate invite codes entirely; no longer applicable |
 | 2026-05-18 | Advanced student bypass | How should advanced students bypass lower-level modules — admin-granted exception or a separate self-assessment? | Open | Team / Kris | Needs a controlled and fair mechanism |
 | 2026-05-18 | Placement assessment | Should a placement/level assessment be included during onboarding registration, or handled entirely within the learning platform? | Open | Team / Bichesq | Affects placement accuracy and onboarding flow |
-| 2026-05-21 | Assessments as a separate module | Should assessments be their own standalone module, separate from the learning platform, or remain integrated within it? | Open | Team / Kris | Architectural flexibility vs complexity trade-off |
+| 2026-05-21 | Assessments as a separate module | Should assessments be their own standalone module, separate from the learning platform, or remain integrated within it? | Decided | Team / Kris | Resolved July 2: assessments remain in the learning platform but are separated from unit content to allow independent updates |
 | 2026-05-21 | Student presentations / assignments | Should practical presentations or assignments be required at the module level or only at the program level? | Open | Team / Kris | This affects scale, workload, and assessment design |
-| 2026-05-21 | Payload CMS for learning platform | Is Payload CMS the right tool for the learning portal given the dynamic assessment and progress-tracking requirements, or does it need to be reconsidered? | Open | Team / Bichesq | This affects content modeling, assessments, and long-term implementation flexibility |
+| 2026-05-21 | Payload CMS for learning platform | Is Payload CMS the right tool for the learning portal given the dynamic assessment and progress-tracking requirements, or does it need to be reconsidered? | Decided | Team / Bichesq | Resolved July 13: Payload CMS abandoned in favour of a custom backend (Postgres) |
 | 2026-05-28 | Help Desk submission UX | Should the student submission flow explicitly offer branching choices such as community-first, Help Desk-first, or live-session intent at the moment of intake, or should all requests default into the same threaded workflow first? | Open | Team / Kris / Bichesq | Intake branching and routing are still not fully settled |
 | 2026-05-28 | Immediate-help classification | What should count as an "immediate help" case versus a standard asynchronous support case, and how should those categories affect routing and expectations? | Open | Team / Flora / Vin | Affects promises, routing, and expectations |
 | 2026-05-28 | Service Desk intake and recovery process | How should Service Desk handle technical issues such as lost email access, account recovery, identity verification, and migration to a new email when the user cannot access their normal account? | Open | Team / Kris | June 8 added clarity that recovery may require unique student IDs, strict verification, and account migration, but the full process is still unresolved |
@@ -167,38 +210,44 @@ These decisions are important and should be resolved as early as possible.
 | 2026-06-11 | Student Hub login page — admin/volunteer sign-in path | Should the Student Hub login page also surface a Microsoft SSO path for admin/volunteers (and a Donor Hub login), or should those remain on separate entry pages? | Open | Team / Kris | Kris raised the idea of putting multiple sign-in options on one page but the team did not finalize whether to co-locate them |
 | 2026-06-11 | Calendar RSVP / attendance feature | Should the calendar widget on the Student Hub dashboard allow students to indicate attendance or RSVP for events? | Open | Team / Kris / Flora | Raised during the June 11 discussion but not resolved; affects event management complexity |
 | 2026-06-11 | Student vetting process design | What is the formal structure of the student vetting process — individual interviews, group welcome sessions, behavioural scoring, or a simpler form-only review — and how does it feed the approved-email list? | Open | Team / Kris | Kris explicitly said this needs to be figured out separately; the approved-email list gates access but the upstream vetting workflow is undefined |
+| 2026-06-29 | Pre-login page necessity | Is a separate pre-login information/recruitment page needed, or should the platform land directly on the sign-in screen? | Open | Team / Kris | Raised in June 29 session; purpose and necessity flagged for re-evaluation |
+| 2026-07-02 | Badges and gamification scope | Should students earn badges at unit, module, and/or program completion, and how are they displayed? | Open | Team / Kris / Bichesq | Raised in July 2 session; exact scope and display not finalised |
+| 2026-07-09 | Database final selection | Should the platform use Postgres (relational) or a NoSQL database (e.g., MongoDB) for the complex nested student data model? | Open | Team / Kris / Bichesq | Raised in July 9 session; Bichesq to discuss with Kris before implementation |
+| 2026-07-13 | MFA passkey feasibility | Is a passkey a viable MFA option for the platform, and how would it integrate with the current authentication flow? | Open | Team / Herman / Allen | Herman and Allen tasked with researching and presenting findings |
 
 ## 5. Decision Candidates for Next Session
 
 These should be explicitly reviewed and either marked **Decided** or kept **Open** with blockers.
 
 ### Highest-priority decisions
-1. Monorepo vs separate repos (repo structure)
-2. Assessments as a separate module vs integrated in the learning platform
-3. Payload CMS suitability for the learning portal
-4. Student presentation / assignment level (module vs program)
-5. UI library final selection for Student Hub (HeroUI V3 vs ShadCN vs other)
-6. Assessment question design and storage
-7. Placement assessment — onboarding vs learning platform
-8. Advanced student bypass mechanism
-9. Home screen detailed data wiring and API dependencies
-10. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
-11. Service Desk approval workflow and responsible parties
-12. First demo flow and scope
-13. Minimal dashboard definition for the first POC
-14. Jira board starting epic order
-15. Help Desk submission UX: single threaded intake vs explicit branching choices
-16. Help Desk queue structure: general queue vs expertise-based queues
-17. Service Desk intake, identity verification, and lost-email recovery process
-18. Immediate-help classification and routing criteria
-19. Service Desk intake channel: support email vs web form vs Student Hub-linked form vs direct queue integration
-20. Incident escalation thresholds and triage rules
-21. Student visible-name / display-name policy
+1. ~~Monorepo vs separate repos~~ — Decided (June 15)
+2. ~~Assessments as a separate module vs integrated~~ — Decided (July 2)
+3. ~~Payload CMS suitability~~ — Decided (July 13)
+4. ~~UI library final selection~~ — Decided (June 15)
+5. Database final selection: Postgres vs NoSQL (MongoDB) — urgent before data model is locked
+6. MFA passkey feasibility (Herman / Allen research pending)
+7. Pre-login page: keep or redirect directly to sign-in
+8. Badges and gamification scope (unit vs module vs program)
+9. Student presentation / assignment level (module vs program)
+10. Assessment question design and storage
+11. Placement assessment — onboarding vs learning platform
+12. Advanced student bypass mechanism
+13. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
+14. Service Desk approval workflow and responsible parties
+15. First demo flow and scope (board meeting: July 18)
+16. Help Desk submission UX: single threaded intake vs explicit branching choices
+17. Help Desk queue structure: general queue vs expertise-based queues
+18. Service Desk intake, identity verification, and lost-email recovery process
+19. Immediate-help classification and routing criteria
+20. Service Desk intake channel
+21. Incident escalation thresholds and triage rules
 22. Assignment delivery workflow and submission model
 23. Learning Management content-sharing model for reusing units/modules across programs
 24. Student Hub login page — co-location of admin/volunteer and donor sign-in paths
 25. Calendar RSVP / attendance feature on Student Hub dashboard
 26. Student vetting process design and how it feeds the approved-email list
+27. Program-level support channel: tool selection and workflow
+28. Interactive terminal / cloud shell feasibility and cost model
 
 ***
 
@@ -231,3 +280,10 @@ These entries track how the team works, not just what the product does.
 | 2026-06-08 | External website as student-facing entry point | The Cloud Heroes Africa website acts as the public-facing welcome layer, while Student Hub handles authenticated student entry and post-invite flows | Decided | Team / Kris / Bichesq | The June 8 discussion treated the website as the main welcome page rather than creating a separate redundant welcome surface |
 | 2026-06-11 | Screen-by-screen requirements writing | The team will write Student Hub requirements screen by screen, producing one MD file per screen, before handing off to Claude for implementation | Decided | Team / Kris / Bichesq / Eddie | Kris and the team agreed in the June 11 session that screen-by-screen design and documentation is the correct sequencing before any build work |
 | 2026-06-11 | Design-before-build approach | The team will design screens visually (or descriptively with screenshot references) before writing requirements MD files, so that Claude receives a precise design target rather than guessing | Decided | Team / Kris / Eddie / Bichesq | Kris outlined two paths and the team leaned toward designing screens ahead of time to get exactly what is envisioned |
+| 2026-06-18 | Design–developer pre-review requirement | Eddie must review all designs with lead developer Bashek for technical feasibility before presenting them to the wider team | Decided | Team / Kris / Eddie | Prevents rework on elements that are visually appealing but technically complex or infeasible |
+| 2026-06-22 | Development paused pending designs | Active coding is paused until Eddie delivers finalised Figma designs; the design engine cannot generate code without a confirmed design reference | Decided | Team / Kris / Bichesq | Design-first approach confirmed; avoids building against provisional designs |
+| 2026-06-29 | Mobile responsive design via Claude | Claude AI will be used to generate responsive mobile designs (phone, tablet, portrait/landscape) from desktop mockups as a starting point | Decided | Team / Kris / Bichesq | Accelerates development; offloads the time-consuming manual responsive design process |
+| 2026-07-02 | Rapid prototyping workflow | Bichesq's established workflow: analyse Figma design → build design system → Claude generates Next.js/Tailwind code using Hero UI → Bichesq refines and integrates | Decided | Team / Kris / Bichesq | Demonstrated in July 2 session as highly efficient; to be formalised with prompt documentation |
+| 2026-07-06 | UI design state documentation required | All UI designs must define and show distinct states for each component: "not started", "in progress", and "completed" before implementation begins | Decided | Team / Kris / Eddie | Required for Bichesq to build the correct backend logic for each component state |
+| 2026-07-13 | Team AI certification roadmap | The team will pursue Anthropic certifications; Jones to lead a structured 6-week roadmap with weekly syncs | Decided | Team / Kris / Jones | Builds in-demand AI skills across the team |
+| 2026-07-13 | Board/stakeholder presentation | Team to present platform progress to Samoa (and potentially Yannick) on Saturday 18 July 2026 | Decided | Team / Kris | Kris to confirm attendance via WhatsApp; Eddie to prepare learning platform visuals |
