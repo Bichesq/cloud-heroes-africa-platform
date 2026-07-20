@@ -136,6 +136,14 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-07-13 | MFA method | Email is not acceptable as an MFA factor when it is also the login method; MFA must use a different factor (phone, authenticator app, or passkey) | Decided | Team / Kris / Herman / Allen | A compromised email granting full account access is a critical security risk |
 | 2026-07-13 | Profile completion hard gate | Students must fully complete their profile before accessing any part of the platform | Decided | Team / Kris / Bichesq | Replaces the May 18 decision; required to enforce data collection (e.g., phone number for MFA) |
 | 2026-07-13 | Preferred name moderation | All preferred name changes must pass a human or AI review before becoming visible to the community | Decided | Team / Kris / Bichesq | Prevents vulgar names and community harm |
+| 2026-07-16 | V1 scope | V1 release scope is fixed at: student login and profile management, learning dashboard access, and course consumption (written content first); calendar view and video content are excluded from V1 | Decided | Team / Kris / Bichesq | Defined for the Saturday board presentation; video is a fast follow |
+| 2026-07-16 | Learning Platform UI | Unit view removes the "Learning Material" heading (redundant, conflicts with long course titles), author info (already on course overview page), and navigation arrows (redundant with the "Go to next item" button) | Decided | Team / Kris / Eddie | Streamlines the unit view and prevents layout conflicts |
+| 2026-07-16 | Learning Platform UI | The sidebar toggle icon uses the existing student hub icon (line with arrow), not a hamburger icon | Decided | Team / Kris / Eddie | Hamburger icon is mobile-centric and not intuitive for toggling a desktop sidebar |
+| 2026-07-16 | Learning Platform UI | Knowledge Check design is modernized with a progress bar and a "skip question" option | Decided | Team / Kris / Eddie | Improves the student assessment experience |
+| 2026-07-16 | Content strategy | Video content is added as a secondary delivery option (fast follow after V1); students can choose between written content (TTS) and video based on network constraints | Decided | Team / Kris / Bichesq | Complements the July 6 data-light strategy; video availability will depend on connectivity |
+| 2026-07-16 | Localization | Platform is English-only for V1; French and other African languages are a future consideration | Decided | Team / Kris | All human interaction (community, support) is in English; multilingual support adds complexity not needed at launch |
+| 2026-07-16 | Security | Passkey changes use a 24–48 hour provisional delay before activation, with email notifications to both primary and secondary emails, a one-click revoke link in the notification email, and an admin reset capability for emergency account recovery | Decided | Team / Kris / Bichesq | Protects against account lockout if a student's primary email is compromised |
+| 2026-07-16 | Profile page UI | The profile page separates authentication options into distinct categories: "Email MFA", "SMS MFA", and "Passkeys" | Decided | Team / Kris / Eddie | Prevents user confusion about available authentication methods |
 
 ***
 
@@ -175,7 +183,7 @@ These are currently useful assumptions that let the team move forward, but they 
 | 2026-07-02 | Formal prompt documentation | Formal documentation of the Claude prompts used in the development workflow is needed to ensure consistency and reproducibility | Working Assumption | Team / Bichesq | Identified as a gap in the July 2 session; not yet completed |
 | 2026-07-06 | Program-level support channel | A separate, program-level support channel (e.g., WhatsApp integration) is needed to handle student questions without burdening course creators | Working Assumption | Team / Kris | Direction agreed in July 6 session; specific tool and workflow not yet finalized |
 | 2026-07-09 | Database: NoSQL vs Postgres | A NoSQL database (e.g., MongoDB) is being considered over Postgres for the complex, nested student data required for progress tracking, goals, and points | Working Assumption | Team / Kris / Bichesq | Raised in July 9 session; replaces earlier Postgres assumption; final decision pending |
-| 2026-07-13 | MFA: passkeys as candidate solution | Herman and Allen to research passkeys as a potential MFA solution and present findings to the team | Working Assumption | Team / Herman / Allen | Passkeys raised in July 13 session; feasibility not yet assessed |
+| 2026-07-13 | MFA: passkeys as candidate solution | Herman and Allen to research passkeys as a potential MFA solution and present findings to the team | Replaced | Team / Herman / Allen | Replaced by the July 16 decision confirming the passkey strategy with provisional 24-48hr delay, dual-email notifications, one-click revoke, and admin reset capability |
 | 2026-07-13 | Team AI certification program | Jones to lead a structured 6-week Anthropic certification roadmap for the team; study plan to be proposed at the next meeting | Working Assumption | Team / Jones | Jones to research and propose; plan not yet finalized |
 
 ***
@@ -213,7 +221,7 @@ These decisions are important and should be resolved as early as possible.
 | 2026-06-29 | Pre-login page necessity | Is a separate pre-login information/recruitment page needed, or should the platform land directly on the sign-in screen? | Open | Team / Kris | Raised in June 29 session; purpose and necessity flagged for re-evaluation |
 | 2026-07-02 | Badges and gamification scope | Should students earn badges at unit, module, and/or program completion, and how are they displayed? | Open | Team / Kris / Bichesq | Raised in July 2 session; exact scope and display not finalised |
 | 2026-07-09 | Database final selection | Should the platform use Postgres (relational) or a NoSQL database (e.g., MongoDB) for the complex nested student data model? | Open | Team / Kris / Bichesq | Raised in July 9 session; Bichesq to discuss with Kris before implementation |
-| 2026-07-13 | MFA passkey feasibility | Is a passkey a viable MFA option for the platform, and how would it integrate with the current authentication flow? | Open | Team / Herman / Allen | Herman and Allen tasked with researching and presenting findings |
+| 2026-07-13 | MFA passkey feasibility | Is a passkey a viable MFA option for the platform, and how would it integrate with the current authentication flow? | Decided | Team / Herman / Allen | Resolved July 16: passkey strategy confirmed with provisional 24-48hr delay, dual-email notifications, one-click revoke link, and admin reset capability |
 
 ## 5. Decision Candidates for Next Session
 
@@ -225,7 +233,7 @@ These should be explicitly reviewed and either marked **Decided** or kept **Open
 3. ~~Payload CMS suitability~~ — Decided (July 13)
 4. ~~UI library final selection~~ — Decided (June 15)
 5. Database final selection: Postgres vs NoSQL (MongoDB) — urgent before data model is locked
-6. MFA passkey feasibility (Herman / Allen research pending)
+6. ~~MFA passkey feasibility~~ — Decided (July 16)
 7. Pre-login page: keep or redirect directly to sign-in
 8. Badges and gamification scope (unit vs module vs program)
 9. Student presentation / assignment level (module vs program)
