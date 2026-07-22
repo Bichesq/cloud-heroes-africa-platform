@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { Avatar, Button } from "@heroui/react";
 import {
@@ -12,6 +12,7 @@ import {
   PieChart,
   StickyNote,
   LifeBuoy,
+  ShieldAlert,
   User,
   Settings,
   LogOut,
@@ -40,6 +41,7 @@ const MAIN: NavLink[] = [
 const ACCOUNT: NavLink[] = [
   { href: "/notes", label: "Notes", icon: StickyNote, chevron: true },
   { href: "/support", label: "Helpdesk", icon: LifeBuoy },
+  { href: "/service-desk", label: "Service Desk", icon: ShieldAlert },
   { href: "/profile", label: "My Profile", icon: User },
 ];
 
@@ -57,6 +59,7 @@ export default function Sidebar({
   avatarUrl,
 }: Props) {
   const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -148,6 +151,7 @@ export default function Sidebar({
           </p>
           <Button
             variant="primary"
+            onPress={() => router.push("/support")}
             className="w-full rounded-full bg-cha-orange font-semibold text-white hover:bg-cha-orange-strong"
           >
             Contact Support

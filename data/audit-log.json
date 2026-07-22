@@ -1,0 +1,243 @@
+[
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "mfa.enable",
+    "changes": [
+      {
+        "field": "mfaMethods",
+        "from": [],
+        "to": [
+          "email (MFA-64F2)"
+        ]
+      }
+    ],
+    "id": "d4cd54fb-589a-4bfa-84f4-4cfc8f344c95",
+    "timestamp": "2026-07-06T09:40:44.997Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "mfa.disable",
+    "changes": [
+      {
+        "field": "mfaMethods",
+        "from": [
+          "email (MFA-64F2)"
+        ],
+        "to": []
+      }
+    ],
+    "id": "2edc9713-37b4-413c-a0aa-3724d2faa418",
+    "timestamp": "2026-07-06T09:40:54.629Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "profile.avatar",
+    "changes": [
+      {
+        "field": "avatarUrl",
+        "from": null,
+        "to": "/uploads/avatars/9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41-1783330929766.jpg"
+      }
+    ],
+    "id": "26f90fe7-0e66-495f-8b0d-8661413e4d8a",
+    "timestamp": "2026-07-06T09:42:09.787Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "profile.avatar",
+    "changes": [
+      {
+        "field": "avatarUrl",
+        "from": "/uploads/avatars/9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41-1783330929766.jpg",
+        "to": "/uploads/avatars/9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41-1783331073696.jpg"
+      }
+    ],
+    "id": "2ee6f090-5f9f-4b63-ac41-44d8e7ee8a3a",
+    "timestamp": "2026-07-06T09:44:33.721Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "todo.complete",
+    "changes": [
+      {
+        "field": "completedAt",
+        "from": null,
+        "to": "2026-07-09T10:09:38.960Z"
+      }
+    ],
+    "id": "44e84456-4653-410d-974e-ef1305f990c7",
+    "timestamp": "2026-07-09T10:09:39.019Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "todo.complete",
+    "changes": [
+      {
+        "field": "completedAt",
+        "from": null,
+        "to": "2026-07-09T10:10:13.725Z"
+      }
+    ],
+    "id": "37aa3ccc-a682-45bb-9818-3740b3d02ec0",
+    "timestamp": "2026-07-09T10:10:13.738Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "todo.incomplete",
+    "changes": [
+      {
+        "field": "completedAt",
+        "from": "2026-07-09T10:10:13.725Z",
+        "to": null
+      }
+    ],
+    "id": "2dd9eff8-8019-42f4-b9cf-cc3e0f16d7f9",
+    "timestamp": "2026-07-09T10:10:16.054Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "mfa.enable",
+    "changes": [
+      {
+        "field": "mfaMethods",
+        "from": [],
+        "to": [
+          "email (MFA-6D9D)"
+        ]
+      }
+    ],
+    "id": "62333192-cd64-42cd-81c2-c2553100df8a",
+    "timestamp": "2026-07-13T09:58:27.555Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "passkey.add",
+    "changes": [
+      {
+        "field": "passkeys",
+        "from": [],
+        "to": [
+          "Chrome on Windows"
+        ]
+      }
+    ],
+    "id": "5b5424f8-d04b-4288-9620-a71a30ca9a4a",
+    "timestamp": "2026-07-13T09:58:52.103Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "passkey.remove",
+    "changes": [
+      {
+        "field": "passkeys",
+        "from": [
+          "Chrome on Windows"
+        ],
+        "to": []
+      }
+    ],
+    "id": "6b19b029-7b2b-45c5-81dd-ca264b963e6b",
+    "timestamp": "2026-07-13T09:59:06.721Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "mfa.disable",
+    "changes": [
+      {
+        "field": "mfaMethods",
+        "from": [
+          "email (MFA-6D9D)"
+        ],
+        "to": []
+      }
+    ],
+    "id": "4e65c381-1373-4b2f-a7e8-e6f5cd66190f",
+    "timestamp": "2026-07-13T09:59:40.287Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "mfa.enable",
+    "changes": [
+      {
+        "field": "mfaMethods",
+        "from": [],
+        "to": [
+          "email (MFA-5C90)"
+        ]
+      }
+    ],
+    "id": "5f64ee57-2137-483f-be53-275384c76c5d",
+    "timestamp": "2026-07-13T10:22:54.985Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "passkey.add",
+    "changes": [
+      {
+        "field": "passkeys",
+        "from": [],
+        "to": [
+          "Chrome on Windows"
+        ]
+      }
+    ],
+    "id": "a9d35cea-752d-46ca-8b12-272b93ed2153",
+    "timestamp": "2026-07-13T10:23:37.381Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "todo.complete",
+    "changes": [
+      {
+        "field": "completedAt",
+        "from": null,
+        "to": "2026-07-13T10:43:26.633Z"
+      }
+    ],
+    "id": "7757a9ec-845c-4320-a089-894527706b40",
+    "timestamp": "2026-07-13T10:43:26.642Z"
+  },
+  {
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "actor": "bichesq@gmail.com",
+    "actorRole": "student",
+    "action": "todo.incomplete",
+    "changes": [
+      {
+        "field": "completedAt",
+        "from": "2026-07-13T10:43:26.633Z",
+        "to": null
+      }
+    ],
+    "id": "2e4f83a4-5780-4484-8053-ca213dff00ad",
+    "timestamp": "2026-07-13T10:43:28.294Z"
+  }
+]

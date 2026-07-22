@@ -1,0 +1,21 @@
+<!-- @dsCard group="Colors" viewport="700x150" name="Semantic & Surfaces" subtitle="Status colors + page/card/canvas fills" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><link rel="stylesheet" href="../styles.css" />
+<style>
+  body{margin:0;font-family:var(--font-body);background:var(--cha-white);}
+  .row{display:flex;height:150px;}
+  .sw{flex:1;display:flex;flex-direction:column;justify-content:flex-end;padding:12px;}
+  .sw small{font-size:10px;}
+  .sw b{font-size:13px;font-weight:600;}
+  .lt{color:#fff;}.lt small{opacity:.85;}
+  .dk{color:var(--cha-ink);}.dk small{color:var(--cha-zinc-500);}
+</style></head>
+<body>
+<div class="row">
+  <div class="sw lt" style="background:var(--cha-success)"><b>success</b><small>#17C964</small></div>
+  <div class="sw dk" style="background:var(--cha-warning);color:var(--cha-ink)"><b>warning</b><small>#F5A524</small></div>
+  <div class="sw lt" style="background:var(--cha-danger)"><b>danger</b><small>#FF383C</small></div>
+  <div class="sw dk" style="background:var(--cha-canvas)"><b>canvas</b><small>#F2F4FB · page</small></div>
+  <div class="sw dk" style="background:var(--cha-white);border-right:1px solid var(--cha-zinc-150)"><b>card</b><small>#FFFFFF</small></div>
+</div>
+</body></html>

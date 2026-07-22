@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Cloud Security Essentials">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a3d62"/>
+      <stop offset="0.55" stop-color="#0485f7"/>
+      <stop offset="1" stop-color="#32a7d4"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="shield" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f28a55"/>
+      <stop offset="1" stop-color="#e8541a"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <ellipse cx="400" cy="-50" rx="580" ry="230" fill="url(#glow)"/>
+  <!-- back clouds -->
+  <g fill="#ffffff" opacity="0.35">
+    <ellipse cx="140" cy="150" rx="90" ry="30"/>
+    <circle cx="108" cy="130" r="30"/>
+    <circle cx="150" cy="118" r="38"/>
+    <circle cx="190" cy="136" r="24"/>
+  </g>
+  <g fill="#ffffff" opacity="0.45">
+    <ellipse cx="670" cy="180" rx="95" ry="32"/>
+    <circle cx="636" cy="158" r="32"/>
+    <circle cx="680" cy="144" r="40"/>
+    <circle cx="720" cy="164" r="26"/>
+  </g>
+  <!-- main cloud -->
+  <g fill="#ffffff" opacity="0.97">
+    <ellipse cx="400" cy="250" rx="175" ry="58"/>
+    <circle cx="328" cy="212" r="58"/>
+    <circle cx="404" cy="182" r="74"/>
+    <circle cx="484" cy="216" r="50"/>
+  </g>
+  <!-- shield with lock on the cloud -->
+  <g transform="translate(400 240)">
+    <path d="M0 -66 L52 -46 V6 C52 44 26 66 0 76 C-26 66 -52 44 -52 6 V-46 Z" fill="url(#shield)"/>
+    <path d="M0 -54 L40 -38 V4 C40 34 20 52 0 61 C-20 52 -40 34 -40 4 V-38 Z" fill="#ffffff" opacity="0.15"/>
+    <rect x="-18" y="-6" width="36" height="30" rx="6" fill="#ffffff"/>
+    <path d="M-11 -6 V-16 a11 11 0 0 1 22 0 V-6" fill="none" stroke="#ffffff" stroke-width="7"/>
+    <circle cx="0" cy="8" r="5" fill="#e8541a"/>
+    <rect x="-2.5" y="8" width="5" height="9" rx="2" fill="#e8541a"/>
+  </g>
+  <!-- key accents -->
+  <g stroke="#f2f4fb" stroke-width="3" opacity="0.5" fill="none">
+    <path d="M110 330 H250"/>
+    <path d="M550 340 H700"/>
+    <circle cx="110" cy="330" r="5" fill="#f2f4fb" stroke="none"/>
+    <circle cx="700" cy="340" r="5" fill="#f2f4fb" stroke="none"/>
+  </g>
+  <text x="400" y="70" text-anchor="middle" font-family="'Segoe UI', Arial, sans-serif" font-size="36" font-weight="700" fill="#ffffff">Cloud Security Essentials</text>
+</svg>

@@ -1,3 +1,18 @@
+## Skill: Build Page From Screenshot
+
+**IMPORTANT: Whenever creating, building, or reproducing any page, screen, or
+UI component in this project — from a screenshot, mockup, Figma export, or
+other reference image — you MUST invoke the `build-page-from-screenshot`
+skill FIRST, before writing any component code.** This applies to every app
+in this repo (`student-hub/`, `learning-platform/`, and any added later).
+
+Do not implement pages from images ad hoc or from memory of HeroUI/CHA
+conventions. The skill enforces reading the CHA design system tokens
+(`docs/Cloud Heroes Africa Design System/`) and querying live HeroUI v3 docs
+via the `heroui-react` MCP tools before any code is written — skipping it
+risks off-brand styling or HeroUI v2 patterns that don't exist in this
+codebase's v3 dependency.
+
 <!-- code-review-graph MCP tools -->
 ## MCP Tools: code-review-graph
 

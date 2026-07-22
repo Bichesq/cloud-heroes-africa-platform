@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450" role="img" aria-label="Linux Foundations program cover">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a3d62"/>
+      <stop offset="0.55" stop-color="#0485f7"/>
+      <stop offset="1" stop-color="#32a7d4"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.25"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#bg)"/>
+  <ellipse cx="400" cy="-60" rx="580" ry="230" fill="url(#glow)"/>
+  <!-- back cloud -->
+  <g fill="#ffffff" opacity="0.35">
+    <ellipse cx="170" cy="130" rx="95" ry="32"/>
+    <circle cx="136" cy="110" r="32"/>
+    <circle cx="180" cy="96" r="42"/>
+    <circle cx="224" cy="116" r="26"/>
+  </g>
+  <!-- mid cloud -->
+  <g fill="#ffffff" opacity="0.55">
+    <ellipse cx="650" cy="200" rx="105" ry="36"/>
+    <circle cx="612" cy="176" r="36"/>
+    <circle cx="662" cy="160" r="46"/>
+    <circle cx="708" cy="182" r="30"/>
+  </g>
+  <!-- terminal window -->
+  <g opacity="0.96">
+    <rect x="220" y="140" width="360" height="210" rx="14" fill="#0d2b45"/>
+    <rect x="220" y="140" width="360" height="38" rx="14" fill="#123c5e"/>
+    <rect x="220" y="164" width="360" height="14" fill="#123c5e"/>
+    <circle cx="248" cy="159" r="7" fill="#e8541a"/>
+    <circle cx="272" cy="159" r="7" fill="#f2b705"/>
+    <circle cx="296" cy="159" r="7" fill="#3ec46d"/>
+    <text x="244" y="216" font-family="Consolas, monospace" font-size="22" fill="#f2f4fb">$ pwd</text>
+    <text x="244" y="248" font-family="Consolas, monospace" font-size="22" fill="#7fd4f5">/home/hero</text>
+    <text x="244" y="280" font-family="Consolas, monospace" font-size="22" fill="#f2f4fb">$ ls -l</text>
+    <text x="244" y="312" font-family="Consolas, monospace" font-size="22" fill="#7fd4f5">rwxr-x--- notes.txt</text>
+  </g>
+  <circle cx="680" cy="330" r="26" fill="#e8541a" opacity="0.9"/>
+  <text x="60" y="416" font-family="'Segoe UI', Arial, sans-serif" font-size="44" font-weight="700" fill="#ffffff">Linux Foundations</text>
+</svg>

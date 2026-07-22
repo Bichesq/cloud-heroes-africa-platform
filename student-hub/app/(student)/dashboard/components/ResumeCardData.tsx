@@ -11,5 +11,10 @@ export default async function ResumeCardData({
 }) {
   const program = await getProgram(activeProgramId);
   const completions = studentId ? await getCompletions(studentId) : [];
-  return <ResumeCard state={resumeState(program, completions)} />;
+  return (
+    <ResumeCard
+      state={resumeState(program, completions)}
+      programId={activeProgramId}
+    />
+  );
 }

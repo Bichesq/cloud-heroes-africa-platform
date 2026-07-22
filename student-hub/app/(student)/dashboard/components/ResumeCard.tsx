@@ -2,12 +2,24 @@ import Link from "next/link";
 import { ArrowRight, PartyPopper, Rocket } from "lucide-react";
 import type { ResumeState } from "@/lib/curriculum-utils";
 
+/** Learning happens in the Learning Platform app — the resume CTA hands the
+ * student over to LP's resume route, which resolves their current unit from
+ * LP's own progress (the "handshake" per decision 2026-07-06). */
+const LEARNING_PLATFORM_URL =
+  process.env.NEXT_PUBLIC_LEARNING_PLATFORM_URL ?? "http://localhost:3001";
+
 /**
  * Orange "Resume Where You Left Off" feature card. Real progress/next-unit
  * data drives the in-progress state; track-complete and no-active-program
  * are separate empty states per the requirements.
  */
-export default function ResumeCard({ state }: { state: ResumeState }) {
+export default function ResumeCard({
+  state,
+  programId,
+}: {
+  state: ResumeState;
+  programId: string;
+}) {
   if (state.kind === "no-program") {
     return (
       <Link
@@ -43,8 +55,8 @@ export default function ResumeCard({ state }: { state: ResumeState }) {
   }
 
   return (
-    <Link
-      href={`/my-program#module-${state.moduleId}`}
+    <a
+      href={`${LEARNING_PLATFORM_URL}/programs/${programId}/resume`}
       className="flex min-h-[196px] gap-5 rounded-3xl bg-cha-orange p-[26px] text-white shadow-[0_8px_24px_rgba(232,84,26,0.18)] transition-opacity hover:opacity-95"
     >
       <div className="flex min-w-0 flex-1 flex-col justify-center">
@@ -70,6 +82,6 @@ export default function ResumeCard({ state }: { state: ResumeState }) {
           <div className="text-[13px] text-cha-muted">{state.moduleTitle}</div>
         </div>
       </div>
-    </Link>
+    </a>
   );
 }

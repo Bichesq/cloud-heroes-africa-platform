@@ -1,0 +1,22 @@
+<!-- @dsCard group="Spacing" viewport="700x150" name="Radii & Shadows" subtitle="Generous rounding, soft low-alpha shadows" -->
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8" /><link rel="stylesheet" href="../styles.css" />
+<style>
+  body{margin:0;font-family:var(--font-body);background:var(--cha-canvas);color:var(--cha-ink);}
+  .wrap{padding:22px 26px;display:flex;align-items:center;gap:22px;}
+  .box{background:#fff;display:flex;align-items:flex-end;justify-content:center;padding:8px;}
+  .box small{font-size:10px;color:var(--cha-zinc-500);}
+  .r{width:70px;height:70px;border:1.5px solid var(--cha-zinc-200);}
+  .sh{width:80px;height:70px;border-radius:16px;}
+</style></head>
+<body>
+<div class="wrap">
+  <div class="box r" style="border-radius:8px"><small>lg 8</small></div>
+  <div class="box r" style="border-radius:16px"><small>2xl 16</small></div>
+  <div class="box r" style="border-radius:24px"><small>3xl 24</small></div>
+  <div class="box r" style="border-radius:999px;width:100px"><small>pill</small></div>
+  <div class="box sh" style="box-shadow:var(--shadow-sm)"><small>sm</small></div>
+  <div class="box sh" style="box-shadow:var(--shadow-md)"><small>md</small></div>
+  <div class="box sh" style="box-shadow:var(--shadow-lg)"><small>lg</small></div>
+</div>
+</body></html>

@@ -1,0 +1,55 @@
+/* ============================================================
+   CHA PLATFORM — TYPOGRAPHY
+   Host Grotesk = display / headings (big bold titles)
+   Inter        = UI + body text
+   DM Sans      = secondary UI / numeric labels
+   ============================================================ */
+
+:root {
+  --font-display: 'Host Grotesk', 'Inter', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-ui: 'DM Sans', 'Inter', system-ui, sans-serif;
+
+  /* Weights */
+  --fw-regular: 400; /* @kind other */
+  --fw-medium: 500; /* @kind other */
+  --fw-semibold: 600; /* @kind other */
+  --fw-bold: 700; /* @kind other */
+  --fw-extrabold: 800; /* @kind other */
+
+  /* Type scale (px values verbatim from the file) */
+  --fs-display-xl: 50px;   /* hero numerals / big % */
+  --fs-display-lg: 46px;   /* page titles — "My Learning Path" */
+  --fs-display-md: 38px;   /* section display */
+  --fs-h1: 32px;
+  --fs-h2: 28px;
+  --fs-h3: 23px;           /* card / module headings */
+  --fs-h4: 20px;
+  --fs-lg: 18px;
+  --fs-base: 16px;
+  --fs-md: 15px;
+  --fs-sm: 14px;
+  --fs-xs: 12px;
+  --fs-2xs: 11px;
+  --fs-3xs: 10px;
+
+  /* Line heights */
+  --lh-tight: 1.05; /* @kind other */
+  --lh-snug: 1.2; /* @kind other */
+  --lh-normal: 1.4; /* @kind other */
+  --lh-relaxed: 1.5; /* @kind other */
+
+  /* Leading tokens from Figma dimensions */
+  --leading-base: 24px;
+  --leading-sm: 20px;
+  --leading-xs: 16px;
+
+  /* ---- Semantic text roles ---- */
+  --type-page-title: var(--fw-extrabold) var(--fs-display-lg)/var(--lh-tight) var(--font-display);
+  --type-section-title: var(--fw-bold) var(--fs-h2)/var(--lh-snug) var(--font-display);
+  --type-card-title: var(--fw-semibold) var(--fs-h3)/var(--lh-snug) var(--font-display);
+  --type-body: var(--fw-regular) var(--fs-base)/var(--lh-relaxed) var(--font-body);
+  --type-body-sm: var(--fw-regular) var(--fs-sm)/var(--lh-normal) var(--font-body);
+  --type-label: var(--fw-medium) var(--fs-sm)/var(--lh-normal) var(--font-body);
+  --type-caption: var(--fw-regular) var(--fs-xs)/var(--lh-normal) var(--font-body);
+}

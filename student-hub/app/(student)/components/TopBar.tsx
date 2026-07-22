@@ -29,6 +29,7 @@ const PAGE_TITLES = [
   { href: "/analytics", label: "Analytics" },
   { href: "/notes", label: "Notes" },
   { href: "/support", label: "Helpdesk" },
+  { href: "/service-desk", label: "Service Desk" },
   { href: "/profile", label: "My Profile" },
   { href: "/settings", label: "Settings" },
 ];

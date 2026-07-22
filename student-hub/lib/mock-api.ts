@@ -4,7 +4,11 @@ import { randomUUID } from "crypto";
 import type { Student } from "@/types";
 import { DEFAULT_PROGRAM_ID } from "./curriculum";
 
-const FILE = path.join(process.cwd(), "data", "students.json");
+/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
+ * repo-root data/ directory, not the app-local one. */
+const SHARED_DIR =
+  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
+const FILE = path.join(SHARED_DIR, "students.json");
 
 /** Fill defaults for fields added after a record was written. */
 function normalize(s: Student): Student {

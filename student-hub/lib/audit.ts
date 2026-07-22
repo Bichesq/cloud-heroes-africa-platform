@@ -6,7 +6,11 @@ import { randomUUID } from "crypto";
  * "Audit & Logging" section: student, fields changed, old/new values,
  * timestamp, actor. JSON-file store to match the rest of the POC. */
 
-const FILE = path.join(process.cwd(), "data", "audit-log.json");
+/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
+ * repo-root data/ directory, not the app-local one. */
+const SHARED_DIR =
+  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
+const FILE = path.join(SHARED_DIR, "audit-log.json");
 
 export type AuditChange = { field: string; from: unknown; to: unknown };
 

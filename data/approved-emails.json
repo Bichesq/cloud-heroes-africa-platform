@@ -1,0 +1,24 @@
+[
+  {
+    "id": "ae-001",
+    "email": "student@gmail.com",
+    "status": "approved",
+    "source": "form",
+    "notes": "Cohort 4 — strong motivation, 10+ hrs/week",
+    "createdBy": "kris",
+    "createdAt": "2025-06-15",
+    "updatedBy": null,
+    "updatedAt": null
+  },
+  {
+  "id": "ae-002",
+  "email": "bichesq@gmail.com",
+  "status": "approved",
+  "source": "form",
+  "notes": "Cohort 4 — Full-stack developer and EdTech founder (KiddyKode). Strong motivation answer, concrete goals around AWS and African EdTech. 10–20 hrs/week committed. Stable schedule. Own laptop. Reliable internet. English fluent. Yaoundé, Cameroon (WAT).",
+  "createdBy": "kris",
+  "createdAt": "2025-06-15",
+  "updatedBy": null,
+  "updatedAt": null
+}
+]

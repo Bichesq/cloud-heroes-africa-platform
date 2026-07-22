@@ -1,0 +1,246 @@
+[
+  {
+    "id": "kc-lp-m1-u1",
+    "unitId": "lp-m1-u1",
+    "title": "Introduction to the Cloud",
+    "passThreshold": 0.7,
+    "questions": [
+      {
+        "id": "kc-lp-m1-u1-q1",
+        "prompt": "Which cloud service model provides users with a complete, fully functioning end-user application directly over the internet without requiring them to manage any underlying infrastructure or development tools?",
+        "options": [
+          { "id": "a", "label": "Software as a Service (SaaS)" },
+          { "id": "b", "label": "Platform as a Service (PaaS)" },
+          { "id": "c", "label": "Infrastructure as a Service (IaaS)" },
+          { "id": "d", "label": "Hardware as a Service (HaaS)" }
+        ],
+        "correctOptionId": "a",
+        "explanation": "SaaS delivers fully built applications directly to end-users via a web browser or app (like Gmail or Microsoft 365), removing the need to manage hardware or code."
+      },
+      {
+        "id": "kc-lp-m1-u1-q2",
+        "prompt": "A developer wants to build and deploy a web application without installing servers, patching operating systems, or managing the underlying infrastructure. Which service model fits this need best?",
+        "options": [
+          { "id": "a", "label": "Infrastructure as a Service (IaaS)" },
+          { "id": "b", "label": "Platform as a Service (PaaS)" },
+          { "id": "c", "label": "Software as a Service (SaaS)" },
+          { "id": "d", "label": "On-premises hosting" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "PaaS provides ready-made tools and environments so developers can focus on writing and deploying code while the provider manages servers, patching, and scaling underneath."
+      },
+      {
+        "id": "kc-lp-m1-u1-q3",
+        "prompt": "Which of the following best describes what \"the cloud\" actually is?",
+        "options": [
+          { "id": "a", "label": "A single powerful supercomputer owned by the government" },
+          { "id": "b", "label": "Wireless internet access delivered by satellites" },
+          { "id": "c", "label": "Computing power and storage rented over the internet from providers' data centres, paid for as you use it" },
+          { "id": "d", "label": "Software that must be installed locally on every device" }
+        ],
+        "correctOptionId": "c",
+        "explanation": "The cloud is computing resources — compute, storage, and networking — that you rent over the internet from provider data centres on a pay-as-you-go basis, instead of owning the hardware yourself."
+      },
+      {
+        "id": "kc-lp-m1-u1-q4",
+        "prompt": "According to the shared evidence on cloud security, what is the most common cause of real-world cloud data breaches?",
+        "options": [
+          { "id": "a", "label": "Cloud providers' physical data centres being broken into" },
+          { "id": "b", "label": "Customer misconfiguration, such as a storage bucket left open to the public" },
+          { "id": "c", "label": "Undersea cables being tapped by attackers" },
+          { "id": "d", "label": "Cloud providers selling customer data" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "Major providers invest heavily in securing their infrastructure; most publicised cloud breaches come from mistakes on the customer's side of the line, like publicly exposed storage or leaked access keys."
+      },
+      {
+        "id": "kc-lp-m1-u1-q5",
+        "prompt": "Amazon EC2 and Azure Virtual Machines are examples of which service model?",
+        "options": [
+          { "id": "a", "label": "Software as a Service (SaaS)" },
+          { "id": "b", "label": "Platform as a Service (PaaS)" },
+          { "id": "c", "label": "Desktop as a Service (DaaS)" },
+          { "id": "d", "label": "Infrastructure as a Service (IaaS)" }
+        ],
+        "correctOptionId": "d",
+        "explanation": "EC2 and Azure VMs rent you raw building blocks — virtual servers, storage, and networking — and leave everything above that layer for you to install and manage, which is the definition of IaaS."
+      }
+    ]
+  },
+  {
+    "id": "kc-lp-m1-u2",
+    "unitId": "lp-m1-u2",
+    "title": "Deployment Models in Practice",
+    "passThreshold": 0.7,
+    "questions": [
+      {
+        "id": "kc-lp-m1-u2-q1",
+        "prompt": "A retailer keeps its inventory system in its own data centre but adds public cloud capacity to handle its web shop's holiday traffic spikes. Which deployment model is this?",
+        "options": [
+          { "id": "a", "label": "Public cloud" },
+          { "id": "b", "label": "Private cloud" },
+          { "id": "c", "label": "Hybrid cloud" },
+          { "id": "d", "label": "Community cloud" }
+        ],
+        "correctOptionId": "c",
+        "explanation": "Combining on-premises (private) infrastructure with public cloud capacity in a connected, coordinated way — here through cloud bursting — is the textbook hybrid cloud pattern."
+      },
+      {
+        "id": "kc-lp-m1-u2-q2",
+        "prompt": "What must be true for a setup to genuinely qualify as a hybrid cloud rather than just two separate environments?",
+        "options": [
+          { "id": "a", "label": "The environments must be connected and coordinated, e.g. via VPN or a private link with shared identity" },
+          { "id": "b", "label": "Both environments must run the same operating system" },
+          { "id": "c", "label": "At least three cloud providers must be involved" },
+          { "id": "d", "label": "All data must be stored in the public cloud" }
+        ],
+        "correctOptionId": "a",
+        "explanation": "Without connective tissue — a network link and coordinated identity spanning both sides — you do not have a hybrid cloud, just two separate estates and twice the operational work."
+      },
+      {
+        "id": "kc-lp-m1-u2-q3",
+        "prompt": "A group of universities pools funding to run a shared research computing platform that meets their common governance requirements. Which deployment model does this describe?",
+        "options": [
+          { "id": "a", "label": "Multi-cloud" },
+          { "id": "b", "label": "Community cloud" },
+          { "id": "c", "label": "Public cloud" },
+          { "id": "d", "label": "Hybrid cloud" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "A community cloud is infrastructure shared by organisations with common requirements — like universities or government agencies — who share its costs and governance among themselves."
+      }
+    ]
+  },
+  {
+    "id": "kc-lp-m1-u3",
+    "unitId": "lp-m1-u3",
+    "title": "Choosing the Right Cloud Services",
+    "passThreshold": 0.7,
+    "questions": [
+      {
+        "id": "kc-lp-m1-u3-q1",
+        "prompt": "A workload runs only when events arrive, sits idle most of the day, and the team wants to pay nothing while it is idle. Which compute choice fits best?",
+        "options": [
+          { "id": "a", "label": "A large always-on virtual machine" },
+          { "id": "b", "label": "Serverless functions" },
+          { "id": "c", "label": "A dedicated physical server" },
+          { "id": "d", "label": "A desktop computer left running in the office" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "Serverless functions run on demand and cost nothing while idle, which makes them ideal for spiky or event-driven workloads — especially on a tight budget."
+      },
+      {
+        "id": "kc-lp-m1-u3-q2",
+        "prompt": "Which storage family is the cheapest per gigabyte and the natural home for backups, media files, and static websites accessed over HTTP?",
+        "options": [
+          { "id": "a", "label": "Block storage" },
+          { "id": "b", "label": "File storage" },
+          { "id": "c", "label": "Object storage" },
+          { "id": "d", "label": "RAM disk" }
+        ],
+        "correctOptionId": "c",
+        "explanation": "Object storage keeps each file as a self-contained object in a bucket, fetched over HTTP, and is the lowest-cost option per gigabyte — perfect for backups, media, and static sites."
+      },
+      {
+        "id": "kc-lp-m1-u3-q3",
+        "prompt": "Which cloud cost factor most often surprises teams because it is billed per gigabyte when data leaves the provider's network?",
+        "options": [
+          { "id": "a", "label": "Data ingress (uploading data into the cloud)" },
+          { "id": "b", "label": "Data egress (transferring data out of the cloud)" },
+          { "id": "c", "label": "Creating IAM users" },
+          { "id": "d", "label": "Opening the web console" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "Moving data into a cloud is usually free, but egress — data transferred out to users or other networks — is billed per gigabyte and can dominate the bill for apps serving large files."
+      }
+    ]
+  },
+  {
+    "id": "kc-lp-m2-u1",
+    "unitId": "lp-m2-u1",
+    "title": "Identity & Access Fundamentals",
+    "passThreshold": 0.7,
+    "questions": [
+      {
+        "id": "kc-lp-m2-u1-q1",
+        "prompt": "What is the professionally recommended way to handle a cloud account's root user?",
+        "options": [
+          { "id": "a", "label": "Use it for all daily work since it has every permission you could need" },
+          { "id": "b", "label": "Share its password with the whole team for convenience" },
+          { "id": "c", "label": "Enable MFA on it, create an everyday admin user, then lock the root credentials away" },
+          { "id": "d", "label": "Delete the root user immediately after signup" }
+        ],
+        "correctOptionId": "c",
+        "explanation": "The root user can do anything, including destroy the account, so best practice is to secure it with MFA, create a separate admin user for daily work, and stop using root entirely."
+      },
+      {
+        "id": "kc-lp-m2-u1-q2",
+        "prompt": "What does the principle of least privilege require when granting permissions?",
+        "options": [
+          { "id": "a", "label": "Grant the minimum permissions a task needs, and widen only when a real task fails for lack of access" },
+          { "id": "b", "label": "Grant administrator access to everyone to avoid blocking work" },
+          { "id": "c", "label": "Grant permissions based on seniority in the company" },
+          { "id": "d", "label": "Remove all permissions from all users by default and never grant any" }
+        ],
+        "correctOptionId": "a",
+        "explanation": "Least privilege means starting narrow — only the access a task actually requires — and expanding deliberately when needed, which limits the damage any one mistake or stolen credential can cause."
+      },
+      {
+        "id": "kc-lp-m2-u1-q3",
+        "prompt": "Why are roles with temporary credentials preferred over long-lived access keys for applications?",
+        "options": [
+          { "id": "a", "label": "Roles are cheaper to create than access keys" },
+          { "id": "b", "label": "Temporary credentials expire on their own, so a leaked credential stops working instead of granting indefinite access" },
+          { "id": "c", "label": "Roles make applications run faster" },
+          { "id": "d", "label": "Access keys only work from a web browser" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "A role issues short-lived credentials that expire automatically, so even if they leak, the window of exposure is small — unlike long-lived keys, which stay dangerous until someone notices and rotates them."
+      }
+    ]
+  },
+  {
+    "id": "kc-lp-m2-u2",
+    "unitId": "lp-m2-u2",
+    "title": "Storage & Networking Basics",
+    "passThreshold": 0.7,
+    "questions": [
+      {
+        "id": "kc-lp-m2-u2-q1",
+        "prompt": "A database server needs a low-latency virtual disk attached directly to a single virtual machine. Which storage family should you choose?",
+        "options": [
+          { "id": "a", "label": "Object storage" },
+          { "id": "b", "label": "Block storage" },
+          { "id": "c", "label": "File storage" },
+          { "id": "d", "label": "A content delivery network" }
+        ],
+        "correctOptionId": "b",
+        "explanation": "Block storage behaves like a raw virtual hard disk attached to one server, giving the low-latency disk access that operating systems and databases require."
+      },
+      {
+        "id": "kc-lp-m2-u2-q2",
+        "prompt": "In the classic virtual network pattern, where should a database that must not be reachable from the internet be placed?",
+        "options": [
+          { "id": "a", "label": "In a public subnet with a public IP address" },
+          { "id": "b", "label": "Outside the virtual network entirely" },
+          { "id": "c", "label": "In a private subnet, with security group rules controlling which resources may reach it" },
+          { "id": "d", "label": "On the same server as the web application" }
+        ],
+        "correctOptionId": "c",
+        "explanation": "Databases belong in private subnets that the internet cannot reach directly, with security groups allowing only deliberate traffic — for example, from the application servers in the public subnet."
+      },
+      {
+        "id": "kc-lp-m2-u2-q3",
+        "prompt": "Deploying an application across two availability zones in the same region primarily protects you against what?",
+        "options": [
+          { "id": "a", "label": "A single data centre facility failing, e.g. through power loss or flooding" },
+          { "id": "b", "label": "Users forgetting their passwords" },
+          { "id": "c", "label": "The application's code containing bugs" },
+          { "id": "d", "label": "High data egress charges" }
+        ],
+        "correctOptionId": "a",
+        "explanation": "Availability zones are isolated facilities within a region; spreading a deployment across two of them means the failure of one physical facility does not take the whole application offline."
+      }
+    ]
+  }
+]

@@ -2,7 +2,11 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { ApprovedEmail } from "@/types";
 
-const FILE = path.join(process.cwd(), "data", "approved-emails.json");
+/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
+ * repo-root data/ directory, not the app-local one. */
+const SHARED_DIR =
+  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
+const FILE = path.join(SHARED_DIR, "approved-emails.json");
 
 async function read(): Promise<ApprovedEmail[]> {
   try {

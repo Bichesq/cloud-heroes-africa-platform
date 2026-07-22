@@ -24,7 +24,11 @@ export default function NotApprovedPage() {
         </a>
         <p className="text-xs text-gray-400 mt-6">
           Already applied? Contact your programme coordinator to check your
-          status.
+          status, or{" "}
+          <Link href="/service-desk" className="text-blue-600 hover:underline">
+            get help from the Service Desk
+          </Link>
+          .
         </p>
         <Link
           href="/"

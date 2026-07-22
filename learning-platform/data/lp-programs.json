@@ -1,0 +1,1481 @@
+[
+  {
+    "id": "cloud-practitioner",
+    "title": "Cloud Practitioner",
+    "slug": "cloud-practitioner",
+    "blurb": "Learn the core components of cloud computing and how they power global digital networks.",
+    "heroImage": "/images/program-cloud-practitioner.svg",
+    "language": "en",
+    "delivery": "self-paced",
+    "creators": [
+      { "name": "Kris Fernando", "role": "Lead Instructor" },
+      { "name": "Eddie Patrick", "role": "Content Designer" }
+    ],
+    "published": true,
+    "modules": [
+      {
+        "id": "lp-m1",
+        "title": "Cloud For Beginners",
+        "order": 1,
+        "description": "Build a solid mental model of cloud fundamentals: what the cloud actually is, how it is deployed, which service models exist, and what to check before you migrate anything.",
+        "units": [
+          {
+            "id": "lp-m1-u1",
+            "title": "What is the Cloud?",
+            "order": 1,
+            "description": "Learn about the core building blocks of the cloud and how it works.",
+            "durationMin": 55,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Kris Fernando" }],
+            "sections": [
+              {
+                "id": "lp-m1-u1-s1",
+                "title": "Introduction to the Cloud",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lp-m1-u1-s1-i1",
+                    "title": "What is the Cloud Actually?",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 10,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "What is the Cloud Actually?", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The **cloud** is simply computing power and storage that you rent over the internet instead of owning yourself. Rather than buying an expensive server and keeping it in your office, you use machines that companies like Amazon, Microsoft, and Google run inside massive data centres around the world. You pay only for what you use, the same way you buy airtime or data bundles — no bundle, no bill."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "When you stream a song, send money with a mobile wallet, or back up your photos, you are already using the cloud. Behind each of those apps sit thousands of servers that someone else maintains, cools, powers, and secures. As a cloud practitioner, your job is to learn how to **use** that shared infrastructure well:\n\n- **Compute** — the processors that run applications\n- **Storage** — where files and databases live\n- **Networking** — the connections that move data between users and servers"
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i1-b4",
+                        "order": 4,
+                        "type": "image",
+                        "payload": {
+                          "src": "/images/hero-cloud-basics.svg",
+                          "alt": "Illustration of devices connecting to cloud servers over the internet",
+                          "caption": "Your phone or laptop talks to data centres far away — that connection is the cloud."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i1-b5",
+                        "order": 5,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "tip",
+                          "md": "**Think of the cloud like electricity.** You do not build a power station to charge your phone — you plug into the grid and pay for what you consume. Cloud computing is the same idea applied to servers, storage, and software."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s1-i2",
+                    "title": "Basics of Cloud Computing",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 10,
+                    "heroImage": "/images/hero-cloud-basics.svg",
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Basics of Cloud Computing", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Cloud providers do not sell one single thing — they sell **layers of service**, and you choose how much of the stack you want to manage yourself. The three classic service models are IaaS, PaaS, and SaaS. Understanding the difference between them is the single most examined topic in every entry-level cloud certification, so take your time here."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Here is how the three models compare:\n\n- **IaaS (Infrastructure as a Service)** — you rent raw building blocks: virtual servers, storage, and networking. You install and manage everything on top yourself. Examples: **Amazon EC2** and **Azure Virtual Machines**.\n- **PaaS (Platform as a Service)** — you rent ready-made tools and environments so developers can build and deploy apps **without managing the underlying infrastructure**. The provider handles servers, patching, and scaling.\n- **SaaS (Software as a Service)** — you use fully built applications delivered through your browser or phone. Examples: **Gmail** and **Microsoft 365**. There is nothing to install or maintain — you just sign in."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i2-b4",
+                        "order": 4,
+                        "type": "code",
+                        "payload": {
+                          "lang": "bash",
+                          "code": "# With IaaS-style tooling you talk to raw building blocks yourself.\n# Example: list the storage buckets in an AWS account with the CLI.\naws s3 ls\n\n# 2026-07-18 09:14:03 cha-student-projects\n# 2026-07-18 09:15:41 cha-lab-backups"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s1-i3",
+                    "title": "Debunking Cloud Myths",
+                    "type": "reading",
+                    "order": 3,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s1-i3-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Debunking Cloud Myths", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i3-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Myth 1: \"The cloud is just someone else's computer.\"** Technically the cloud does run on physical machines, but the phrase misses the point. What you are really buying is *automation at scale*: self-service provisioning, elastic capacity, global reach, and pay-as-you-go billing. No single computer — yours or anyone else's — can give you a new server in ninety seconds and take it away the moment you stop paying."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i3-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Myth 2: \"The cloud is always cheaper.\"** It *can* be, especially for workloads that start small or spike unpredictably — but a badly sized, always-on deployment can cost more than owned hardware. Cost discipline is a skill you will practise throughout this program.\n\n**Myth 3: \"The cloud is insecure.\"** Major providers invest more in physical security, encryption, and compliance audits than almost any single company could. Most cloud breaches come from **customer misconfiguration** — like a storage bucket left open to the public — not from the provider being hacked."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i3-b4",
+                        "order": 4,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "info",
+                          "md": "When you hear a sweeping claim about the cloud — always cheaper, always safer, always better — ask **\"compared to what, and for which workload?\"** Good cloud practitioners reason case by case."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s1-i4",
+                    "title": "This architectural shift is enough to eliminate traditional local storage — is it?",
+                    "type": "reading",
+                    "order": 4,
+                    "durationMin": 5,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s1-i4-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": {
+                          "text": "This architectural shift is enough to eliminate traditional local storage — is it?",
+                          "level": 2
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i4-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "It is tempting to conclude that once everything lives in the cloud, hard drives and local servers become museum pieces. In reality, **local storage still matters** — and in many African contexts it matters a lot. Cloud access depends on connectivity and data costs; when your link is slow, metered, or down, a local copy is what keeps you working."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i4-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The mature answer is a **hybrid mindset**: keep hot, shareable, backed-up data in the cloud, and keep latency-sensitive or offline-critical data close to where it is used. Techniques like edge caching, offline-first apps, and periodic sync give you the durability of the cloud *and* the resilience of local storage. The shift is real — but it is a rebalancing, not an elimination."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s1-i4-b4",
+                        "order": 4,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "warning",
+                          "md": "Never make the cloud your **only** copy of critical data, and never make a laptop your only copy either. The rule of thumb is **3-2-1**: three copies, on two different types of storage, with one off-site (the cloud is a great off-site)."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s1-i5",
+                    "title": "Knowledge Check: Introduction to the Cloud",
+                    "type": "knowledge_check",
+                    "order": 5,
+                    "durationMin": 5,
+                    "kcId": "kc-lp-m1-u1"
+                  }
+                ]
+              },
+              {
+                "id": "lp-m1-u1-s2",
+                "title": "Demystifying Cloud Deployment Models",
+                "order": 2,
+                "items": [
+                  {
+                    "id": "lp-m1-u1-s2-i1",
+                    "title": "Public, Private, and Hybrid Clouds",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s2-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Public, Private, and Hybrid Clouds", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s2-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "A **deployment model** describes *who owns and operates* the infrastructure your workloads run on:\n\n- **Public cloud** — shared infrastructure operated by a provider such as AWS, Azure, or Google Cloud. You get instant scale and pay-as-you-go pricing.\n- **Private cloud** — infrastructure dedicated to one organisation, either on-premises or hosted. You get control and isolation, but you carry more of the operational burden.\n- **Hybrid cloud** — a deliberate combination of both, connected so that data and applications can move between them."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s2-i1-b3",
+                        "order": 3,
+                        "type": "image",
+                        "payload": {
+                          "src": "/images/hero-deployment.svg",
+                          "alt": "Diagram contrasting public, private, and hybrid cloud deployment models",
+                          "caption": "Public, private, and hybrid clouds differ in who owns the hardware and who can use it."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s2-i2",
+                    "title": "Choosing a Deployment Model",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s2-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Choosing a Deployment Model", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s2-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "There is no universally \"best\" model — the right choice follows from your **constraints**. Startups and student projects almost always begin in the public cloud because there is nothing to buy up front. Banks, telecoms, and government agencies often need private or hybrid setups because regulations require certain data to stay within national borders or on infrastructure they control."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s2-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "When you evaluate a deployment model, weigh four factors:\n\n- **Cost profile** — upfront capital vs ongoing operational spend\n- **Compliance** — data residency laws and industry rules\n- **Control** — how much you need to customise hardware and networks\n- **Connectivity** — whether your users can reliably reach a distant region\n\nMany organisations land on hybrid not by grand design but by pragmatism: they keep sensitive systems close and burst everything else to the public cloud."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "lp-m1-u1-s3",
+                "title": "Step-by-Step Guide to Cloud Service Models (IaaS, PaaS, SaaS)",
+                "order": 3,
+                "items": [
+                  {
+                    "id": "lp-m1-u1-s3-i1",
+                    "title": "Walking Up the Stack: IaaS to SaaS",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s3-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Walking Up the Stack: IaaS to SaaS", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s3-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Picture the service models as floors of a building you can enter at any level. On the **IaaS** floor you receive empty rooms — virtual machines, disks, and network cables — and furnish everything yourself. One floor up, **PaaS** hands you a furnished workshop: runtimes, databases, and deployment pipelines are ready, so you only bring your code. At the top, **SaaS** is a finished apartment — you simply move in and use the application."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s3-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The trade-off at every floor is the same: **control versus convenience**. Moving up the stack means less to manage, faster delivery, and fewer skills required — but also less flexibility and more dependence on the provider's choices. A practical team rarely lives on one floor; a single product might run its database on PaaS, a legacy service on IaaS, and its email on SaaS."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s3-i2",
+                    "title": "Trying a Service Model Yourself",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s3-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Trying a Service Model Yourself", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s3-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The fastest way to feel the difference between the models is to perform the *same task* at two levels. Suppose you want a web page online. At the **SaaS/PaaS end**, a hosted platform gives you a URL in minutes. At the **IaaS end**, you create a virtual machine, install a web server, open firewall ports, and copy your files — every step is yours to make (and to secure). Free tiers on the major providers let you practise both without spending money, which matters when every megabyte of data counts."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s3-i2-b3",
+                        "order": 3,
+                        "type": "code",
+                        "payload": {
+                          "lang": "bash",
+                          "code": "# The IaaS way: you own every step on the server.\nsudo apt update && sudo apt install -y nginx   # install a web server\nsudo systemctl enable --now nginx              # start it on boot\ncurl -I http://localhost                       # verify: HTTP/1.1 200 OK\n\n# The PaaS way: the platform owns the server, you own the code.\n# e.g. `git push` to a hosted platform and it builds and serves your app."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "lp-m1-u1-s4",
+                "title": "Before Migrating: Security & Essential Prerequisites",
+                "order": 4,
+                "items": [
+                  {
+                    "id": "lp-m1-u1-s4-i1",
+                    "title": "The Shared Responsibility Model",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s4-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "The Shared Responsibility Model", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s4-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every major provider draws the same line: they secure the cloud **itself** — data centres, physical servers, and the core network — while you secure what you put **in** it. Your side of the line includes user accounts and passwords, access permissions, data encryption choices, and the configuration of every service you switch on. The line moves with the service model: with SaaS the provider carries most of the load, while with IaaS almost everything above the hypervisor is yours."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s4-i1-b3",
+                        "order": 3,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "warning",
+                          "md": "**Shared responsibility is the #1 source of real-world cloud incidents.** A provider will keep the building standing, but if *you* leave a storage bucket public or reuse a weak password on an admin account, that breach is on your side of the line. Before any migration, write down — service by service — exactly what the provider secures and what your team must secure."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u1-s4-i2",
+                    "title": "A Pre-Migration Checklist",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u1-s4-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "A Pre-Migration Checklist", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u1-s4-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Successful migrations are boring because the thinking happened first. Before moving any workload, confirm you can answer these:\n\n- **Inventory** — what exactly runs today, and what depends on it?\n- **Data classification** — which data is sensitive, and where is it legally allowed to live?\n- **Identity** — who gets access, and is multi-factor authentication enforced for every admin?\n- **Cost estimate** — what will this workload cost per month at realistic usage?\n- **Rollback plan** — if the migration fails at 2 a.m., how do you get back?"
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u1-s4-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Two prerequisites deserve special attention in bandwidth-constrained environments. First, **measure your data transfer**: moving 500 GB over a metered connection has a real cost and a real timeline, so plan bulk transfers for off-peak windows or use provider import services. Second, **set up billing alerts on day one** — a forgotten test server should send you an email, not a surprise invoice."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lp-m1-u2",
+            "title": "Demystifying Cloud Deployment Models in Practice",
+            "order": 2,
+            "description": "Move from definitions to decisions: apply public, private, hybrid, and multi-cloud thinking to realistic scenarios and learn to defend your choice.",
+            "durationMin": 40,
+            "pointsAward": 10,
+            "pointsRequired": 10,
+            "creators": [{ "name": "Kris Fernando" }],
+            "sections": [
+              {
+                "id": "lp-m1-u2-s1",
+                "title": "Deployment Models in the Real World",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lp-m1-u2-s1-i1",
+                    "title": "Scenario Thinking: Matching Workloads to Models",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 10,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u2-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Scenario Thinking: Matching Workloads to Models", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Exams and real projects both test the same skill: reading a scenario and picking the deployment model its constraints demand. A mobile-money startup with unpredictable growth points to **public cloud** — zero upfront cost and instant scale. A hospital group required by law to keep patient records in-country on infrastructure it controls points to **private cloud**. A retailer that keeps its inventory system on-premises but bursts its web shop to the public cloud during holiday sales is the textbook **hybrid** case. Highlight the constraint words — *unpredictable*, *regulated*, *existing data centre* — and the model usually names itself."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Notice that the deciding factors are rarely technical. **Money, law, and existing investments** drive most deployment decisions; the technology follows. When you practise scenarios, always name the constraint before you name the model — that habit is exactly what interviewers and certification questions reward."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u2-s1-i2",
+                    "title": "Hybrid Cloud Without the Buzzwords",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u2-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Hybrid Cloud Without the Buzzwords", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "A hybrid cloud is only real when the two environments are **connected and coordinated** — typically through a site-to-site VPN or a dedicated private link, with a single identity system spanning both sides. Without that connective tissue you do not have hybrid cloud; you have two separate estates and twice the operational work. The connection is also where hybrid projects succeed or fail: latency, bandwidth, and link reliability decide whether an application can honestly straddle both worlds."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Common, genuinely useful hybrid patterns include:\n\n- **Cloud bursting** — run steady load on-premises, overflow peaks to the public cloud\n- **Cloud backup and disaster recovery** — keep production local, replicate to the cloud for the bad day\n- **Staged migration** — move workloads one at a time while old and new systems keep talking\n\nEach pattern earns its complexity by solving a specific problem; adopt hybrid for a reason, never for the label."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u2-s1-i3",
+                    "title": "Multi-Cloud and Community Cloud: The Edge Cases",
+                    "type": "reading",
+                    "order": 3,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u2-s1-i3-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Multi-Cloud and Community Cloud: The Edge Cases", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i3-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Multi-cloud** means using two or more public providers — for example, running analytics on one cloud because of a better data toolset while your main application lives on another. Its benefits are negotiating power and resilience against a single provider's outage; its price is duplicated skills, tooling, and security controls. Most small teams get more value from mastering one provider deeply than from spreading thin across two."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u2-s1-i3-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Community cloud** is the least common model: infrastructure shared by organisations with common requirements, such as a group of universities or government agencies pooling a research platform. Costs and governance are shared among members, which suits sectors where no single institution can justify the spend alone. You will meet it mostly in exam questions and public-sector projects — recognise it by the phrase *\"organisations with shared concerns.\"*"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u2-s1-i4",
+                    "title": "Knowledge Check: Deployment Models in Practice",
+                    "type": "knowledge_check",
+                    "order": 4,
+                    "durationMin": 5,
+                    "kcId": "kc-lp-m1-u2"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lp-m1-u3",
+            "title": "Choosing the Right Cloud Services",
+            "order": 3,
+            "description": "Learn a practical method for selecting compute, storage, and database services that fit a workload's needs and budget instead of chasing feature lists.",
+            "durationMin": 40,
+            "pointsAward": 10,
+            "pointsRequired": 20,
+            "creators": [{ "name": "Kris Fernando" }, { "name": "Eddie Patrick" }],
+            "sections": [
+              {
+                "id": "lp-m1-u3-s1",
+                "title": "A Method for Picking Services",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lp-m1-u3-s1-i1",
+                    "title": "Start from the Workload, Not the Catalogue",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u3-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Start from the Workload, Not the Catalogue", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Cloud catalogues list hundreds of services, and browsing them first is how projects drown. Flip the order: describe your **workload** precisely, then let its needs eliminate options. Four questions do most of the work:\n\n- **Shape of demand** — steady, spiky, or scheduled?\n- **State** — does the app remember things between requests, or is it stateless?\n- **Latency** — do users need answers in milliseconds or minutes?\n- **Team skills** — who will actually run this at 2 a.m.?"
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Those answers map cleanly to compute choices. Steady, stateful, lift-and-shift workloads suit **virtual machines**. Spiky or event-driven work suits **serverless functions**, which cost nothing while idle — a real advantage on a tight budget. Teams shipping containers with some operations capacity land on **managed container services** in between. The \"right\" service is simply the cheapest one your workload's constraints leave standing."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u3-s1-i2",
+                    "title": "Choosing Storage and Databases",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u3-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Choosing Storage and Databases", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Storage services split into three families, each built for a different job. **Object storage** holds files of any size behind a URL — photos, backups, reports — and is the cheapest per gigabyte. **Block storage** is the virtual hard disk attached to a server, for operating systems and databases that need fast raw disk. **File storage** provides shared folders that many servers mount at once, for teams and legacy apps that expect a traditional file system."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "For databases, the first fork in the road is **relational vs non-relational**. Choose a managed relational database when your data has clear structure and transactions matter — payments, enrolments, inventory. Choose a NoSQL service when you need flexible schemas or massive horizontal scale — user sessions, product catalogues, sensor feeds. In both cases prefer the **managed** option as a beginner: automatic backups, patching, and failover are exactly the chores you do not want to learn about during an outage."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u3-s1-i3",
+                    "title": "Cost Awareness: The Skill That Pays for Itself",
+                    "type": "reading",
+                    "order": 3,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m1-u3-s1-i3-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Cost Awareness: The Skill That Pays for Itself", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i3-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Cloud pricing has three big levers: **compute time**, **storage volume**, and **data transfer** — and the third one surprises everyone. Moving data *into* a cloud is usually free, but moving it *out* (\"egress\") is billed per gigabyte, which changes the economics of apps serving large files to users on the continent. Always sketch the monthly cost of a design before building it; every provider offers a free pricing calculator."
+                        }
+                      },
+                      {
+                        "id": "lp-m1-u3-s1-i3-b3",
+                        "order": 3,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "tip",
+                          "md": "Three habits keep student and startup bills near zero: **stay inside free tiers**, **stop or schedule anything you are not using tonight**, and **set a billing alarm** at a small threshold like $5. The alarm costs nothing and has saved more careers than any certification."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m1-u3-s1-i4",
+                    "title": "Knowledge Check: Choosing the Right Cloud Services",
+                    "type": "knowledge_check",
+                    "order": 4,
+                    "durationMin": 5,
+                    "kcId": "kc-lp-m1-u3"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "id": "lp-m2",
+        "title": "Cloud Practitioner Essentials",
+        "order": 2,
+        "description": "Go one level deeper into the services every practitioner touches daily: identity and access management, core storage, and the networking that connects it all.",
+        "units": [
+          {
+            "id": "lp-m2-u1",
+            "title": "Identity & Access Fundamentals",
+            "order": 1,
+            "description": "Understand accounts, users, roles, and policies — the security layer that decides who can do what in a cloud environment.",
+            "durationMin": 45,
+            "pointsAward": 15,
+            "pointsRequired": 30,
+            "creators": [{ "name": "Kris Fernando" }],
+            "sections": [
+              {
+                "id": "lp-m2-u1-s1",
+                "title": "Who Can Do What: IAM Basics",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lp-m2-u1-s1-i1",
+                    "title": "Accounts, Users, and the Root of All Power",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u1-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Accounts, Users, and the Root of All Power", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every cloud journey starts with an **account** — the billing and security boundary that owns everything you create. The identity that opens the account is the **root user**, and it can do absolutely anything, including delete the account itself. Professional practice is to use root exactly once: to switch on multi-factor authentication and create an everyday **admin user**, after which the root credentials go into a safe and stay there."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Below root, an **Identity and Access Management (IAM)** service manages named users, groups of users, and machine identities. Each person on a team gets their own user — shared logins are how you lose track of who deleted the database. Groups let you manage permissions for ten developers with one policy instead of ten, which is both safer and less work."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u1-s1-i2",
+                    "title": "Policies, Roles, and Least Privilege",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u1-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Policies, Roles, and Least Privilege", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Permissions live in **policies** — small documents that say *who* may perform *which actions* on *which resources*. A policy might allow reading files from one storage bucket and nothing else. **Roles** are permission sets that identities *assume temporarily*: an application server assumes a role to reach its database, and a support engineer assumes an audit role for an hour. Roles beat long-lived passwords and keys because temporary credentials expire on their own."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i2-b3",
+                        "order": 3,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "warning",
+                          "md": "**Least privilege** is the golden rule: grant the minimum permissions a task needs, and nothing more. Broad \"allow everything\" policies feel convenient on day one and become the incident report on day ninety. Start narrow and widen only when a real task fails for lack of access."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u1-s1-i3",
+                    "title": "MFA and Credential Hygiene",
+                    "type": "reading",
+                    "order": 3,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u1-s1-i3-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "MFA and Credential Hygiene", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i3-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Multi-factor authentication (MFA)** adds a second proof of identity — a code from an authenticator app or a hardware key — on top of your password. It is the single highest-value security control you can enable, because it turns a stolen password from a disaster into a nuisance. Authenticator apps work offline once set up, which makes them a better fit than SMS codes where network coverage is patchy."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u1-s1-i3-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Credential hygiene extends beyond logins. **Access keys** — the credentials scripts and tools use — deserve the same care as passwords:\n\n- Never paste keys into code or commit them to a repository\n- Rotate keys on a schedule and delete unused ones\n- Prefer roles and temporary credentials over long-lived keys wherever possible\n\nMost publicised cloud breaches trace back to a key leaked in a public code repository — a mistake that takes seconds to make and hours of practice to reliably avoid."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u1-s1-i4",
+                    "title": "Knowledge Check: Identity & Access Fundamentals",
+                    "type": "knowledge_check",
+                    "order": 4,
+                    "durationMin": 5,
+                    "kcId": "kc-lp-m2-u1"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lp-m2-u2",
+            "title": "Storage & Networking Basics",
+            "order": 2,
+            "description": "Meet the storage families and virtual networks that carry every cloud workload, and learn the vocabulary that makes architecture diagrams readable.",
+            "durationMin": 45,
+            "pointsAward": 15,
+            "pointsRequired": 45,
+            "creators": [{ "name": "Kris Fernando" }],
+            "sections": [
+              {
+                "id": "lp-m2-u2-s1",
+                "title": "Where Data Lives and How It Moves",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lp-m2-u2-s1-i1",
+                    "title": "Object, Block, and File Storage in Depth",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u2-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Object, Block, and File Storage in Depth", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Object storage** treats each file as a self-contained object with a unique key, stored in a *bucket* and fetched over HTTP. Providers replicate objects across multiple facilities, achieving durability figures like eleven nines — meaning data loss is extraordinarily rare. Because you pay only for what you store and transfer, object storage is the default home for backups, media, and static websites."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Block storage** slices data into fixed-size blocks on a virtual disk attached to one server — this is where operating systems and databases live, because they need low-latency raw disk access. **File storage** exposes a shared network file system that many machines mount simultaneously, ideal for shared assets and older applications. A useful memory hook: objects for *the internet*, blocks for *one server*, files for *many servers*."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u2-s1-i2",
+                    "title": "Virtual Networks, Subnets, and Firewalls",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u2-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Virtual Networks, Subnets, and Firewalls", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "A **virtual network** (a VPC on AWS, a VNet on Azure) is your private slice of the provider's network — you choose its IP address range and carve it into **subnets**. The classic pattern uses *public subnets* for things the internet must reach, like web servers, and *private subnets* for things it must not, like databases. Traffic between them is deliberate and controlled, not accidental."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Control comes from virtual firewalls — **security groups** — that state which ports and sources may talk to each resource. A sensible web server rule set allows HTTPS (port 443) from anywhere and administrative SSH (port 22) only from your own IP address. Every rule you *do not* add is attack surface you do not have, so the same least-privilege mindset from IAM applies to networks too."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u2-s1-i3",
+                    "title": "Regions, Zones, and Content Delivery",
+                    "type": "reading",
+                    "order": 3,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lp-m2-u2-s1-i3-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Regions, Zones, and Content Delivery", "level": 2 }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i3-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Providers divide the world into **regions** — clusters of data centres in one geography, such as Cape Town or Johannesburg — and each region into isolated **availability zones**. Deploying an application across two zones means one flooded or powerless facility does not take you offline. Choosing a nearby region also cuts latency dramatically, which your users feel on every tap."
+                        }
+                      },
+                      {
+                        "id": "lp-m2-u2-s1-i3-b3",
+                        "order": 3,
+                        "type": "callout",
+                        "payload": {
+                          "tone": "info",
+                          "md": "A **content delivery network (CDN)** caches copies of your files at edge locations across Africa and the world, so a student in Accra downloads your page from a nearby cache instead of a server continents away. CDNs cut both latency *and* egress costs — remember them whenever a scenario mentions \"users far from the region\" or \"slow static content.\""
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lp-m2-u2-s1-i4",
+                    "title": "Knowledge Check: Storage & Networking Basics",
+                    "type": "knowledge_check",
+                    "order": 4,
+                    "durationMin": 5,
+                    "kcId": "kc-lp-m2-u2"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "it-fundamentals",
+    "title": "IT Fundamentals",
+    "slug": "it-fundamentals",
+    "blurb": "Learn how computers, networks, and the internet actually work behind the scenes in everyday life.",
+    "heroImage": "/images/program-it-fundamentals.svg",
+    "language": "en",
+    "delivery": "self-paced",
+    "creators": [{ "name": "Amara Okafor", "role": "Lead Instructor" }],
+    "published": true,
+    "modules": [
+      {
+        "id": "itf-m1",
+        "title": "Computing Foundations",
+        "order": 1,
+        "description": "Understand the machines and networks underneath every app you use, from the processor in your phone to the cables that cross oceans.",
+        "units": [
+          {
+            "id": "itf-m1-u1",
+            "title": "How Computers Work",
+            "order": 1,
+            "description": "Open the box: processors, memory, storage, and how software turns hardware into something useful.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Amara Okafor" }],
+            "sections": [
+              {
+                "id": "itf-m1-u1-s1",
+                "title": "Inside the Machine",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "itf-m1-u1-s1-i1",
+                    "title": "The Parts Every Computer Shares",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "itf-m1-u1-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "The Parts Every Computer Shares", "level": 2 }
+                      },
+                      {
+                        "id": "itf-m1-u1-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Whether it is a smartphone, a laptop, or a rack server in a data centre, every computer is built from the same four ingredients. The **CPU** does the thinking, executing billions of tiny instructions per second. **RAM** is its short-term memory — fast but forgetful, emptied the moment power drops. **Storage** (a drive or flash chip) remembers things permanently, and **input/output devices** — screens, keyboards, radios — connect the machine to people and networks."
+                        }
+                      },
+                      {
+                        "id": "itf-m1-u1-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Understanding these parts explains everyday frustrations. A phone that slows down with many open apps is running out of **RAM**; one that cannot install updates is out of **storage**. When you later size a cloud server, you will use exactly this vocabulary — choosing how many CPU cores, how much memory, and what kind of disk a workload needs."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "itf-m1-u1-s1-i2",
+                    "title": "From Hardware to Software",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "itf-m1-u1-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "From Hardware to Software", "level": 2 }
+                      },
+                      {
+                        "id": "itf-m1-u1-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Raw hardware only understands electrical signals, so an **operating system** — Android, Windows, or Linux — sits in the middle, managing memory, files, and which program gets the CPU next. Applications ask the operating system for what they need instead of touching the hardware directly; that is why the same app can run on wildly different phones."
+                        }
+                      },
+                      {
+                        "id": "itf-m1-u1-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "This layering is the most important idea in all of IT: **each layer hides complexity from the one above it**. Apps sit on operating systems, operating systems on hardware — and, as you will see in the cloud, virtual machines sit on physical ones. Master the habit of asking *\"which layer am I working in?\"* and unfamiliar technology becomes far less intimidating."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "itf-m1-u2",
+            "title": "Networks and the Internet",
+            "order": 2,
+            "description": "Trace a message from your phone across the internet and back: IP addresses, DNS, and the infrastructure connecting Africa to the world.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Amara Okafor" }],
+            "sections": [
+              {
+                "id": "itf-m1-u2-s1",
+                "title": "How Data Travels",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "itf-m1-u2-s1-i1",
+                    "title": "Addresses, Packets, and DNS",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "itf-m1-u2-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Addresses, Packets, and DNS", "level": 2 }
+                      },
+                      {
+                        "id": "itf-m1-u2-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every device on a network has an **IP address**, and every message is chopped into small **packets** that carry the sender's and receiver's addresses like envelopes. Routers pass packets hop by hop toward their destination, where they are reassembled in order. This packet design is why the internet is so resilient — if one path fails, packets simply take another."
+                        }
+                      },
+                      {
+                        "id": "itf-m1-u2-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Humans remember names, not numbers, so the **Domain Name System (DNS)** translates names like `cloudheroesafrica.com` into IP addresses before any connection starts. It works like a distributed phone book consulted in milliseconds. When a site \"does not open\" while others work fine, a DNS lookup failure is one of the first suspects a technician checks."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "itf-m1-u2-s1-i2",
+                    "title": "The Internet's Physical Backbone",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "itf-m1-u2-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "The Internet's Physical Backbone", "level": 2 }
+                      },
+                      {
+                        "id": "itf-m1-u2-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The internet feels wireless, but almost all of it is glass: **submarine fibre-optic cables** carry the world's traffic between continents, with systems along Africa's coasts linking the region to Europe, Asia, and the Americas. From landing stations, national fibre and mobile towers carry data the last kilometres to your phone. When a major cable is damaged, whole countries feel the slowdown — a reminder that \"the cloud\" has a very physical body."
+                        }
+                      },
+                      {
+                        "id": "itf-m1-u2-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Distance costs time: each hop and kilometre adds **latency**, measured in milliseconds. This is why providers build data centres and cache points on the continent, and why an app hosted nearby feels snappier than the same app hosted overseas. Keep latency in mind — it will guide many of the architecture choices you make later in your cloud journey."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "hands-on-labs",
+    "title": "Hands On Labs",
+    "slug": "hands-on-labs",
+    "blurb": "Learn by doing through real-world practice sessions where you click, build, and test tech skills yourself.",
+    "heroImage": "/images/program-hands-on-labs.svg",
+    "language": "en",
+    "delivery": "self-paced",
+    "creators": [
+      { "name": "Eddie Patrick", "role": "Lab Engineer" },
+      { "name": "Kris Fernando", "role": "Lead Instructor" }
+    ],
+    "published": true,
+    "modules": [
+      {
+        "id": "hol-m1",
+        "title": "Getting Hands-On",
+        "order": 1,
+        "description": "Set up a safe, low-cost practice environment and learn the habits that make hands-on experimentation productive instead of expensive.",
+        "units": [
+          {
+            "id": "hol-m1-u1",
+            "title": "Your First Lab Environment",
+            "order": 1,
+            "description": "Prepare a personal sandbox — free-tier accounts, guardrails, and tools — so you can practise without fear of surprise bills.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Eddie Patrick" }],
+            "sections": [
+              {
+                "id": "hol-m1-u1-s1",
+                "title": "Setting Up Your Sandbox",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "hol-m1-u1-s1-i1",
+                    "title": "Free Tiers and Guardrails First",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "hol-m1-u1-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Free Tiers and Guardrails First", "level": 2 }
+                      },
+                      {
+                        "id": "hol-m1-u1-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every major provider offers a **free tier** generous enough for a full learning journey: small virtual machines, gigabytes of object storage, and a million serverless calls per month. The trick is staying inside it. Before your first experiment, do two things in this exact order: **enable MFA** on your account, and **create a billing alert** at a low threshold so an email warns you long before money does."
+                        }
+                      },
+                      {
+                        "id": "hol-m1-u1-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Adopt the lab mantra: **build, verify, tear down**. Resources you forget are resources you pay for, so every lab in this program ends with a cleanup step, and you should end personal experiments the same way. A five-minute teardown habit is the difference between a free education and an expensive one."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "hol-m1-u1-s1-i2",
+                    "title": "Tools of the Trade: Console, CLI, and Notes",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "hol-m1-u1-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Tools of the Trade: Console, CLI, and Notes", "level": 2 }
+                      },
+                      {
+                        "id": "hol-m1-u1-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "You will work through two doors into the cloud. The **web console** is visual and great for learning what exists; the **command-line interface (CLI)** is text-based, scriptable, and much lighter on data — a full day of CLI work can use less bandwidth than loading one graphical dashboard. Learn tasks in the console first, then repeat them in the CLI to make them repeatable."
+                        }
+                      },
+                      {
+                        "id": "hol-m1-u1-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Finally, keep a **lab journal**. After every session, note what you built, what broke, and the exact command or setting that fixed it. Written notes turn one lab into permanent knowledge, become your personal revision guide before certification exams, and — shared with a study group — multiply everyone's progress at zero data cost."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "hol-m1-u2",
+            "title": "Building and Breaking Safely",
+            "order": 2,
+            "description": "Learn the experiment loop professionals use: change one thing, observe, roll back — and treat every error message as data.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Eddie Patrick" }],
+            "sections": [
+              {
+                "id": "hol-m1-u2-s1",
+                "title": "The Experiment Loop",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "hol-m1-u2-s1-i1",
+                    "title": "Change One Thing at a Time",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "hol-m1-u2-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Change One Thing at a Time", "level": 2 }
+                      },
+                      {
+                        "id": "hol-m1-u2-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "The core skill of hands-on work is the **experiment loop**: predict what a change will do, make *only that change*, observe the result, and write it down. Change three settings at once and a fixed system teaches you nothing, because you cannot say which change mattered. Slow is smooth, and smooth is fast."
+                        }
+                      },
+                      {
+                        "id": "hol-m1-u2-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Professionals make experiments *reversible* before they make them. Snapshot the disk, note the original setting, or work on a copy — then explore boldly. In a lab sandbox the blast radius is small by design, which is exactly why sandboxes exist: **break things here**, so you never have to find out what breaking production feels like."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "hol-m1-u2-s1-i2",
+                    "title": "Reading Errors Like a Detective",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "hol-m1-u2-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Reading Errors Like a Detective", "level": 2 }
+                      },
+                      {
+                        "id": "hol-m1-u2-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "An error message is not a verdict — it is a **clue**. Read it fully, out loud if needed, and extract three facts: *what* failed, *where* it failed, and *what the system expected instead*. Most beginner errors fall into a handful of families: permission denied (an IAM problem), connection refused or timed out (a network problem), and not found (a name, path, or region problem)."
+                        }
+                      },
+                      {
+                        "id": "hol-m1-u2-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Build a personal **triage routine**: check you are in the right account and region, check permissions, check network rules, then read the logs. Only after those four steps should you search the web — and when you do, search the exact error text in quotes. Debugging this way is faster *and* cheaper on data than scrolling forums hoping to recognise your problem."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "linux-foundations",
+    "title": "Linux Foundations",
+    "slug": "linux-foundations",
+    "blurb": "Learn the powerful operating system that runs the backends of your favorite apps and smart devices.",
+    "heroImage": "/images/program-linux-foundations.svg",
+    "language": "en",
+    "delivery": "self-paced",
+    "creators": [{ "name": "Thandi Mwangi", "role": "Lead Instructor" }],
+    "published": true,
+    "modules": [
+      {
+        "id": "lnx-m1",
+        "title": "Linux Essentials",
+        "order": 1,
+        "description": "Get comfortable at the Linux command line — the environment behind most cloud servers — and learn to manage files, permissions, and processes.",
+        "units": [
+          {
+            "id": "lnx-m1-u1",
+            "title": "Meet the Terminal",
+            "order": 1,
+            "description": "Why Linux dominates servers, and the first commands that let you move around and see what a system is doing.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Thandi Mwangi" }],
+            "sections": [
+              {
+                "id": "lnx-m1-u1-s1",
+                "title": "First Steps in the Shell",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lnx-m1-u1-s1-i1",
+                    "title": "Why Linux Runs the Cloud",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lnx-m1-u1-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Why Linux Runs the Cloud", "level": 2 }
+                      },
+                      {
+                        "id": "lnx-m1-u1-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "**Linux** is a free, open-source operating system that powers the overwhelming majority of cloud servers, every Android phone, and most of the world's supercomputers. It won the server world for three reasons: it costs nothing to license, it can be automated end to end from text commands, and thousands of engineers worldwide inspect and improve its code. When you rent a virtual machine in the cloud, odds are you are renting a Linux machine."
+                        }
+                      },
+                      {
+                        "id": "lnx-m1-u1-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "You will usually meet Linux through a **terminal** — a text window where you type commands into a program called the *shell*. It looks austere next to a graphical desktop, but text is precise, scriptable, and extremely light on bandwidth: administering a server over SSH uses a few kilobytes where a remote desktop streams megabytes. That efficiency is a genuine superpower on a limited data bundle."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lnx-m1-u1-s1-i2",
+                    "title": "Navigating the File System",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lnx-m1-u1-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Navigating the File System", "level": 2 }
+                      },
+                      {
+                        "id": "lnx-m1-u1-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Linux organises everything under a single root directory written as `/`, with your personal files in a *home* directory like `/home/ada`. Three commands take you anywhere:\n\n- `pwd` — print which directory you are standing in\n- `ls` — list what is here\n- `cd` — change to another directory\n\nPaths starting with `/` are **absolute** (from the root); anything else is **relative** to where you stand."
+                        }
+                      },
+                      {
+                        "id": "lnx-m1-u1-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Practise a small loop until it is muscle memory: `pwd` to orient yourself, `ls` to look around, `cd` to move, and `cat` to peek inside a text file. Add `mkdir` to create directories and `cp`/`mv` to copy and move files, and you can already organise a server's files faster than most people manage with a mouse. Every advanced Linux skill is built on exactly these moves."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "id": "lnx-m1-u2",
+            "title": "Files, Permissions, and Processes",
+            "order": 2,
+            "description": "Understand who may read, write, and run each file, and learn to watch and control the programs running on a system.",
+            "durationMin": 30,
+            "pointsAward": 10,
+            "pointsRequired": 0,
+            "creators": [{ "name": "Thandi Mwangi" }],
+            "sections": [
+              {
+                "id": "lnx-m1-u2-s1",
+                "title": "Ownership and Running Programs",
+                "order": 1,
+                "items": [
+                  {
+                    "id": "lnx-m1-u2-s1-i1",
+                    "title": "Understanding Permissions",
+                    "type": "reading",
+                    "order": 1,
+                    "durationMin": 8,
+                    "blocks": [
+                      {
+                        "id": "lnx-m1-u2-s1-i1-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Understanding Permissions", "level": 2 }
+                      },
+                      {
+                        "id": "lnx-m1-u2-s1-i1-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every file in Linux carries three permissions — **read (r)**, **write (w)**, and **execute (x)** — granted separately to its *owner*, its *group*, and *everyone else*. The string `rwxr-x---` therefore tells a complete story: the owner can do anything, group members can read and run it, and outsiders cannot touch it. `ls -l` shows these permissions, and `chmod` changes them."
+                        }
+                      },
+                      {
+                        "id": "lnx-m1-u2-s1-i1-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "This tiny model is the ancestor of cloud IAM: the same least-privilege thinking, applied to files decades earlier. In practice it means a web application should own only its own files, and configuration containing secrets should be readable by as few identities as possible. Resist the beginner shortcut of granting everything to everyone (`chmod 777`) — it \"fixes\" the error today and becomes the vulnerability tomorrow."
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "id": "lnx-m1-u2-s1-i2",
+                    "title": "Watching and Managing Processes",
+                    "type": "reading",
+                    "order": 2,
+                    "durationMin": 7,
+                    "blocks": [
+                      {
+                        "id": "lnx-m1-u2-s1-i2-b1",
+                        "order": 1,
+                        "type": "heading",
+                        "payload": { "text": "Watching and Managing Processes", "level": 2 }
+                      },
+                      {
+                        "id": "lnx-m1-u2-s1-i2-b2",
+                        "order": 2,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "Every running program is a **process** with a numeric ID (PID), an owner, and an appetite for CPU and memory. `ps aux` photographs everything running at this instant, while `top` shows a live, constantly updating view — your first stop when a server feels slow. Reading that view tells you *which* process is eating the machine, and whose it is."
+                        }
+                      },
+                      {
+                        "id": "lnx-m1-u2-s1-i2-b3",
+                        "order": 3,
+                        "type": "richtext",
+                        "payload": {
+                          "md": "When a process misbehaves you can end it with `kill` and its PID — a polite request first, and a forceful `kill -9` only as a last resort, since forced processes get no chance to save their work. Long-running services like web servers are managed more gracefully with `systemctl start`, `stop`, and `status`. Together, permissions and processes give you real operational control of any Linux machine, in the cloud or on your desk."
+                        }
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

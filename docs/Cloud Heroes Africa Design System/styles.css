@@ -1,0 +1,10 @@
+/* ============================================================
+   CHA PLATFORM — Global stylesheet entry point.
+   Consumers link THIS file. It is an @import manifest only.
+   ============================================================ */
+
+@import './tokens/fonts.css';
+@import './tokens/fig-tokens.css';   /* raw Figma Variables (Light/Dark modes) */
+@import './tokens/colors.css';       /* brand palette + semantic aliases */
+@import './tokens/typography.css';   /* font families + type scale */
+@import './tokens/spacing.css';      /* spacing, radii, shadows */

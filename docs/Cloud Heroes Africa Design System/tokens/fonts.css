@@ -1,0 +1,5 @@
+/* CHA Platform webfonts.
+   Sourced from Google Fonts (Host Grotesk, Inter, DM Sans) — the three
+   families the Figma file uses. If you have licensed binaries, swap the
+   @import for local @font-face rules pointing at them. */
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');

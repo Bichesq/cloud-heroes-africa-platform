@@ -1,0 +1,88 @@
+/* ============================================================
+   CHA PLATFORM — COLOR SYSTEM
+   Brand palette + semantic aliases.
+   Base values are transcribed from the Figma file; brand orange
+   (the platform's true primary) is read from the product screens,
+   not the Figma Variable collection (which maps "primary" to purple).
+   ============================================================ */
+
+:root {
+  /* ---- Brand: Heroic Orange (primary) ---- */
+  --cha-orange-600: rgb(232,84,26);   /* #E8541A — primary action, CTAs */
+  --cha-orange-500: rgb(236,90,28);   /* #EC5A1C — brand orange */
+  --cha-orange-400: rgb(255,141,40);  /* #FF8D28 — accent / hover lift */
+  --cha-orange-300: rgb(247,178,151); /* lighter fill, progress track */
+  --cha-orange-100: rgb(247,228,205); /* #F7E4CD — soft tint surface */
+
+  /* ---- Brand: Ocean (secondary / info) ---- */
+  --cha-ocean-600: rgb(41,151,193);   /* #2997C1 */
+  --cha-ocean-500: rgb(50,167,212);   /* #32A7D4 — module accent, streaks */
+  --cha-ocean-400: rgb(74,177,217);   /* #4AB1D9 */
+  --cha-ocean-300: rgb(97,187,222);   /* #61BBDE */
+
+  /* ---- Brand: Electric Blue (links, active nav) ---- */
+  --cha-blue-500: rgb(4,133,247);     /* #0485F7 */
+  --cha-blue-400: rgb(53,146,249);    /* #3592F9 — hover */
+  --cha-blue-soft: rgba(4,133,247,0.15);
+
+  /* ---- Neutrals: Zinc ramp ---- */
+  --cha-black: rgb(0,0,0);
+  --cha-eclipse: rgb(24,24,27);       /* #18181B — near-black surfaces */
+  --cha-ink: rgb(31,31,33);           /* #1F1F21 — primary text */
+  --cha-zinc-800: rgb(42,42,42);
+  --cha-zinc-700: rgb(62,62,65);      /* #3E3E41 */
+  --cha-zinc-500: rgb(113,113,122);   /* #71717A — muted text */
+  --cha-zinc-400: rgb(161,161,170);   /* #A1A1AA */
+  --cha-zinc-300: rgb(182,182,186);   /* #B6B6BA */
+  --cha-zinc-200: rgb(222,222,224);   /* #DEDEE0 — borders */
+  --cha-zinc-150: rgb(231,231,231);   /* #E7E7E7 */
+  --cha-zinc-100: rgb(235,235,236);   /* #EBEBEC — default fill */
+  --cha-zinc-75:  rgb(239,239,240);
+  --cha-zinc-50:  rgb(247,247,247);   /* #F7F7F7 */
+  --cha-snow: rgb(252,252,252);       /* #FCFCFC */
+  --cha-white: rgb(255,255,255);
+
+  /* Page background — soft lavender used across product shells */
+  --cha-canvas: rgb(242,244,251);     /* #F2F4FB */
+
+  /* ---- Semantic status ---- */
+  --cha-success: rgb(23,201,100);     /* #17C964 */
+  --cha-success-soft: rgba(23,201,100,0.15);
+  --cha-warning: rgb(245,165,36);     /* #F5A524 */
+  --cha-warning-soft: rgba(245,165,36,0.15);
+  --cha-danger: rgb(255,56,60);       /* #FF383C */
+  --cha-danger-soft: rgba(255,56,60,0.15);
+  --cha-info: var(--cha-blue-500);
+
+  /* ============================================================
+     SEMANTIC ALIASES — reference these in components
+     ============================================================ */
+  --color-primary: var(--cha-orange-600);
+  --color-primary-hover: var(--cha-orange-500);
+  --color-primary-fg: var(--cha-white);
+  --color-secondary: var(--cha-ocean-500);
+  --color-accent: var(--cha-blue-500);
+  --color-accent-hover: var(--cha-blue-400);
+
+  --text-primary: var(--cha-ink);
+  --text-secondary: rgba(31,31,33,0.74);
+  --text-tertiary: rgba(31,31,33,0.56);
+  --text-muted: var(--cha-zinc-500);
+  --text-inverted: var(--cha-white);
+  --text-link: var(--cha-blue-500);
+  --text-accent: var(--cha-ocean-600);
+
+  --surface-page: var(--cha-canvas);
+  --surface-card: var(--cha-white);
+  --surface-raised: var(--cha-white);
+  --surface-sunken: var(--cha-zinc-50);
+  --surface-dark: var(--cha-eclipse);
+  --surface-fill: var(--cha-zinc-100);
+
+  --border-subtle: var(--cha-zinc-200);
+  --border-default: var(--cha-zinc-150);
+  --border-strong: var(--cha-ink);
+  --separator: rgb(228,228,231);
+
+  --focus-ring: var(--cha-blue-500);
+}

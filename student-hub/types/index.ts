@@ -172,3 +172,78 @@ export type KBArticle = {
   excerpt: string;
   url: string;
 };
+
+/* ------------------------------ Help / Support ------------------------------ */
+/* Help Desk (learning/content/community) and Service Desk (account/access/
+ * technical) are distinct modules per docs/student-hub/requirements/help2.md,
+ * even though both are surfaced together on the /support page. Students never
+ * choose this desk explicitly — it is derived from the category they pick. */
+
+export type SupportDesk = "help" | "service";
+
+export type TicketStatus =
+  | "open"
+  | "pending"
+  | "responded"
+  | "resolved"
+  | "cancelled";
+
+/** Chronological status-date log — every status change is stored with its date. */
+export type TicketStatusEvent = {
+  status: TicketStatus;
+  at: string; // ISO 8601
+};
+
+/** Snapshot of the student's learning context at submission time, captured
+ * automatically rather than asked of the student (help2.md "derive, don't
+ * classify"). */
+export type TicketContext = {
+  programId?: string;
+  programTitle?: string;
+  moduleId?: string;
+  moduleTitle?: string;
+  unitId?: string;
+  unitTitle?: string;
+};
+
+export type SupportTicket = {
+  id: string;
+  /** null for a Service Desk request filed before sign-in — identified by
+   * contactName/contactEmail instead. Help Desk tickets always require a
+   * session, so studentId is only ever null on desk === "service". */
+  studentId: string | null;
+  desk: SupportDesk;
+  categoryId: string;
+  topic: string; // short description
+  description: string; // long description
+  preferredChannel: string | null;
+  status: TicketStatus;
+  statusLog: TicketStatusEvent[];
+  assignedTo: string | null;
+  resolvedBy: string | null;
+  resolutionSummary: string | null;
+  context: TicketContext;
+  closedAt: string | null;
+  contactName: string | null;
+  contactEmail: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type HelpCategory = {
+  id: string;
+  label: string;
+  desk: SupportDesk;
+  /** lucide-react icon component name, resolved by the UI layer. */
+  icon: string;
+  blurb: string;
+};
+
+export type Faq = {
+  id: string;
+  categoryId: string;
+  question: string;
+  answer: string;
+  /** Optional deep link into fuller help content (article/thread). */
+  href?: string;
+};

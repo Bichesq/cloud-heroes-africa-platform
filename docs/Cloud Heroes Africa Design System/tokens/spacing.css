@@ -1,0 +1,59 @@
+/* ============================================================
+   CHA PLATFORM — SPACING, RADII, SHADOWS
+   Values transcribed verbatim from the Figma file.
+   ============================================================ */
+
+:root {
+  /* Spacing scale (px) */
+  --space-0: 0;
+  --space-px: 1px;
+  --space-0-5: 2px;
+  --space-1: 4px;
+  --space-1-5: 6px;
+  --space-2: 8px;
+  --space-2-5: 10px;
+  --space-3: 12px;
+  --space-3-5: 14px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+  --space-9: 36px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-40: 160px;
+
+  /* Corner radii (px) — CHA leans heavily on soft, generous rounding */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;    /* fields, small chips */
+  --radius-2xl: 16px;   /* buttons, inner cards */
+  --radius-2-5xl: 20px; /* panels inner */
+  --radius-3xl: 24px;   /* cards, panels */
+  --radius-4xl: 32px;   /* large feature cards */
+  --radius-pill: 999px; /* pill buttons, nav items, chips */
+  --radius-panel: 24px;
+  --radius-panel-inner: 20px;
+
+  /* Border widths */
+  --border-width: 1px;
+  --border-width-thick: 1.5px;
+
+  /* ---- Shadows ---- */
+  /* Cards float on very soft, low-alpha shadows */
+  --shadow-xs: 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow-lg: 0 8px 28px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04);
+  --shadow-card: 0 2px 10px rgba(0,0,0,0.05);
+  --shadow-inner: inset 0 0 0 1px rgba(0,0,0,0.04);
+
+  /* Focus ring */
+  --ring-focus-width: 4px;
+  --ring-offset-width: 2px;
+}

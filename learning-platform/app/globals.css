@@ -1,0 +1,102 @@
+/* HeroUI v3 styles — imports Tailwind CSS v4 internally */
+@import "@heroui/styles";
+
+/* Disable prefers-color-scheme media query fallback to allow theme control */
+@custom-variant dark {
+  &:is(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+
+    &::before,
+    &::after {
+      @slot;
+    }
+  }
+}
+
+
+/* ------------------------------------------------------------------ *
+ * Cloud Heroes Africa design tokens exposed as Tailwind v4 theme vars.
+ * Kept in sync with student-hub/app/globals.css so both surfaces share
+ * one visual language. Using @theme generates utilities: bg-cha-orange,
+ * text-cha-ink, font-display, etc.
+ * ------------------------------------------------------------------ */
+@theme {
+  /* Brand — fixed accents, identical in light and dark. */
+  --color-cha-orange: #e8541a; /* primary — CTAs, active nav, progress */
+  --color-cha-orange-strong: #ec5a1c;
+  --color-cha-orange-soft: #f7e4cd;
+  --color-cha-ocean: #32a7d4; /* secondary accent */
+  --color-cha-blue: #0485f7; /* links / utility */
+  --color-cha-eclipse: #18181b; /* dark chips / filled tabs */
+
+  /* Status accents (tokens.md "Status tokens") — event blocks, badges */
+  --color-cha-warning: #f0a93b; /* amber — live class blocks, warnings */
+  --color-cha-warning-soft: #f5c05a;
+  --color-cha-success: #34c759;
+  --color-cha-danger: #ef4444;
+
+  /* Fonts — variables are provided by next/font in app/layout.tsx */
+  --font-display: var(--font-host), "Host Grotesk", system-ui, sans-serif;
+  --font-body: var(--font-inter), "Inter", system-ui, sans-serif;
+  --font-dm: var(--font-dm-sans), "DM Sans", system-ui, sans-serif;
+}
+
+/* ------------------------------------------------------------------ *
+ * Theme-aware neutral tokens. Defined as raw CSS vars here (swapped
+ * under .dark / [data-theme="dark"]) and exposed as Tailwind utilities
+ * via @theme inline below — so bg-cha-canvas, text-cha-ink, bg-cha-surface
+ * etc. re-theme automatically when the theme toggle flips the attribute.
+ * ------------------------------------------------------------------ */
+:root {
+  --cha-canvas: #f2f4fb; /* app background */
+  --cha-ink: #1f1f21; /* primary text */
+  --cha-separator: #e4e4e7;
+  --cha-surface: #ffffff; /* cards / raised panels */
+  --cha-surface-2: #f4f4f5; /* hover / sunken (zinc-50/100) */
+  --cha-muted: #52525b; /* secondary text (zinc-600) */
+  --cha-faint: #a1a1aa; /* tertiary text (zinc-400) */
+  --cha-border: #e4e4e7;
+
+  /* HeroUI v3 brand accent. #E8541A ≈ oklch(0.62 0.184 38). */
+  --accent: oklch(0.62 0.184 38);
+  --accent-foreground: #ffffff;
+}
+
+.dark,
+[data-theme="dark"] {
+  --cha-canvas: #0e1116;
+  --cha-ink: #f4f4f5;
+  --cha-separator: #27272a;
+  --cha-surface: #1a1d23;
+  --cha-surface-2: #23272f;
+  --cha-muted: #a1a1aa;
+  --cha-faint: #71717a;
+  --cha-border: #2a2f37;
+}
+
+@theme inline {
+  --color-cha-canvas: var(--cha-canvas);
+  --color-cha-ink: var(--cha-ink);
+  --color-cha-separator: var(--cha-separator);
+  --color-cha-surface: var(--cha-surface);
+  --color-cha-surface-2: var(--cha-surface-2);
+  --color-cha-muted: var(--cha-muted);
+  --color-cha-faint: var(--cha-faint);
+  --color-cha-border: var(--cha-border);
+}
+
+@layer components {
+  /* Raised surface panel — soft shadow, generous rounding. */
+  .cha-card {
+    @apply rounded-3xl bg-cha-surface shadow-[0_2px_10px_rgba(0,0,0,0.05)] dark:shadow-[0_2px_10px_rgba(0,0,0,0.4)];
+  }
+  /* Outline / sunken variants */
+  .cha-card-outline {
+    @apply rounded-3xl border border-cha-border bg-cha-surface;
+  }
+}
+
+body {
+  @apply bg-cha-canvas text-cha-ink;
+  font-family: var(--font-body);
+}

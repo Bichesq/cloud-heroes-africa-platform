@@ -1,0 +1,82 @@
+[
+  {
+    "id": "st-0001",
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "desk": "help",
+    "categoryId": "programs-lessons",
+    "topic": "DNS & Load Balancing lesson is confusing",
+    "description": "I've read the DNS & Load Balancing lesson twice but I still don't understand how a load balancer picks which server to send traffic to. Could someone explain it in simpler terms or point me to an example?",
+    "preferredChannel": null,
+    "status": "pending",
+    "statusLog": [
+      { "status": "open", "at": "2026-07-17T09:12:00.000Z" },
+      { "status": "pending", "at": "2026-07-17T09:12:00.000Z" }
+    ],
+    "assignedTo": "Kwame (Volunteer Mentor)",
+    "resolvedBy": null,
+    "resolutionSummary": null,
+    "context": {
+      "programId": "cloud-practitioner",
+      "programTitle": "Cloud Practitioner",
+      "moduleId": "m4",
+      "moduleTitle": "Networking Basics",
+      "unitId": "m4-u2",
+      "unitTitle": "DNS & Load Balancing"
+    },
+    "closedAt": null,
+    "contactName": null,
+    "contactEmail": null,
+    "createdAt": "2026-07-17T09:12:00.000Z",
+    "updatedAt": "2026-07-17T09:12:00.000Z"
+  },
+  {
+    "id": "st-0002",
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "desk": "service",
+    "categoryId": "account-login",
+    "topic": "Can't tell if my MFA is active",
+    "description": "I set up email MFA a few days ago but I never get asked for a code when I sign in. Is it actually enabled? I don't want to lose access to my account.",
+    "preferredChannel": "Email",
+    "status": "responded",
+    "statusLog": [
+      { "status": "open", "at": "2026-07-14T14:05:00.000Z" },
+      { "status": "responded", "at": "2026-07-15T11:30:00.000Z" }
+    ],
+    "assignedTo": "Allen (Service Desk)",
+    "resolvedBy": "Allen (Service Desk)",
+    "resolutionSummary": "Confirmed your email MFA method is active (MFA-5C90). You won't be re-prompted on the same trusted browser for 30 days — that's expected behavior, not a misconfiguration.",
+    "context": {
+      "programId": "cloud-practitioner",
+      "programTitle": "Cloud Practitioner",
+      "moduleId": "m4",
+      "moduleTitle": "Networking Basics",
+      "unitId": "m4-u2",
+      "unitTitle": "DNS & Load Balancing"
+    },
+    "closedAt": null,
+    "contactName": null,
+    "contactEmail": null,
+    "createdAt": "2026-07-14T14:05:00.000Z",
+    "updatedAt": "2026-07-15T11:30:00.000Z"
+  },
+  {
+    "id": "st-0003",
+    "studentId": null,
+    "desk": "service",
+    "categoryId": "account-login",
+    "topic": "Locked out — never got an approved-email invite",
+    "description": "I applied a few weeks ago and haven't heard back. When I try to sign in with Google it just redirects me to the registration form again. Can someone check whether my application went through?",
+    "preferredChannel": "Email",
+    "status": "open",
+    "statusLog": [{ "status": "open", "at": "2026-07-18T16:40:00.000Z" }],
+    "assignedTo": null,
+    "resolvedBy": null,
+    "resolutionSummary": null,
+    "context": {},
+    "closedAt": null,
+    "contactName": "Amara Nwosu",
+    "contactEmail": "amara.nwosu.applicant@gmail.com",
+    "createdAt": "2026-07-18T16:40:00.000Z",
+    "updatedAt": "2026-07-18T16:40:00.000Z"
+  }
+]

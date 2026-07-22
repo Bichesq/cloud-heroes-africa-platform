@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { Separator } from "@heroui/react";
 import {
@@ -115,17 +116,28 @@ export default function SignInClient() {
         </div>
 
         {/* Footer */}
-        <p className="text-center text-xs text-white/50">
-          Not yet approved?{" "}
-          <a
-            href={process.env.NEXT_PUBLIC_REGISTRATION_FORM_URL ?? "#"}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold text-white/80 underline-offset-2 hover:underline"
-          >
-            Apply to join
-          </a>
-        </p>
+        <div className="flex flex-col items-center gap-1.5">
+          <p className="text-center text-xs text-white/50">
+            Not yet approved?{" "}
+            <a
+              href={process.env.NEXT_PUBLIC_REGISTRATION_FORM_URL ?? "#"}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-white/80 underline-offset-2 hover:underline"
+            >
+              Apply to join
+            </a>
+          </p>
+          <p className="text-center text-xs text-white/50">
+            Trouble signing in?{" "}
+            <Link
+              href="/service-desk"
+              className="font-semibold text-white/80 underline-offset-2 hover:underline"
+            >
+              Get help
+            </Link>
+          </p>
+        </div>
       </div>
 
       {/* Right — community panel */}

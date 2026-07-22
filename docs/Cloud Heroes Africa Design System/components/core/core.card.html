@@ -1,0 +1,76 @@
+<!-- @dsCard group="Components" viewport="700x360" name="Core — Buttons, Chips, Tags, Avatars" subtitle="Actions, filters, status labels & user imagery" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="stylesheet" href="../../styles.css" />
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>
+  body { margin: 0; font-family: var(--font-body); background: var(--cha-white); color: var(--text-primary); }
+  .wrap { padding: 24px 28px; display: flex; flex-direction: column; gap: 18px; }
+  .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .lbl { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--cha-zinc-400); width: 74px; flex: none; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+  const { Button, Chip, Tag, Avatar, AvatarGroup, IconButton, Link, Separator, Icon } =
+    window.CloudHeroesAfricaDesignSystem_45bdf7;
+  const A = "../../assets/avatar-patrick.jpg";
+  const people = [{src:A},{name:"Ada L"},{name:"Ben O"},{name:"Cara M"}];
+  function App() {
+    return (
+      <div className="wrap">
+        <div className="row"><span className="lbl">Buttons</span>
+          <Button variant="primary">Resume Learning</Button>
+          <Button variant="accent">Create Event</Button>
+          <Button variant="dark">Log Out</Button>
+          <Button variant="secondary">Invite</Button>
+          <Button variant="outline">Cancel</Button>
+          <Button variant="ghost">Skip</Button>
+        </div>
+        <div className="row"><span className="lbl">Sizes</span>
+          <Button size="sm">Small</Button>
+          <Button size="md">Medium</Button>
+          <Button size="lg">Large</Button>
+          <Button variant="primary" iconRight={<Icon name="arrow-forward" size={16} />}>With icon</Button>
+          <Button disabled>Disabled</Button>
+        </div>
+        <Separator />
+        <div className="row"><span className="lbl">Chips</span>
+          <Chip selected>All</Chip>
+          <Chip>DevOps</Chip>
+          <Chip>Security</Chip>
+          <Chip tone="dark">Cloud Security</Chip>
+          <Chip tone="orange">Beginner</Chip>
+        </div>
+        <div className="row"><span className="lbl">Tags</span>
+          <Tag tone="orange">In Progress</Tag>
+          <Tag tone="ocean">Submitted</Tag>
+          <Tag tone="neutral">Not Started</Tag>
+          <Tag tone="success">A+</Tag>
+          <Tag tone="danger">Overdue</Tag>
+          <Tag tone="warning">Upcoming</Tag>
+        </div>
+        <Separator />
+        <div className="row"><span className="lbl">Avatars</span>
+          <Avatar src={A} size="sm" />
+          <Avatar src={A} size="md" status="online" />
+          <Avatar src={A} size="lg" ring />
+          <Avatar name="Ada L" size="md" />
+          <AvatarGroup people={people} max={3} extra={5} />
+          <IconButton variant="soft"><Icon name="ellipsis" size={18} /></IconButton>
+          <Link variant="accent" href="#">Learn more</Link>
+        </div>
+      </div>
+    );
+  }
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -1,0 +1,131 @@
+[
+  {
+    "id": "readiness-cloud-practitioner",
+    "kind": "readiness",
+    "scope": "program",
+    "scopeId": "cloud-practitioner",
+    "title": "Cloud Practitioner Exam Readiness",
+    "description": "Gauge how ready you are for an entry-level cloud practitioner certification exam. Five exam-style questions sample the whole program — service models, deployment models, security, and cost — and your score maps to a readiness level with guidance on what to revise next.",
+    "config": {
+      "questions": [
+        {
+          "id": "readiness-cloud-practitioner-q1",
+          "prompt": "A company wants to stop managing email servers entirely and have staff simply sign in to a hosted email application through the browser. Which service model are they adopting?",
+          "options": [
+            { "id": "a", "label": "Infrastructure as a Service (IaaS)" },
+            { "id": "b", "label": "Platform as a Service (PaaS)" },
+            { "id": "c", "label": "Software as a Service (SaaS)" },
+            { "id": "d", "label": "Function as a Service (FaaS)" }
+          ],
+          "correctOptionId": "c",
+          "explanation": "A fully hosted application consumed through a browser with nothing to install or manage is SaaS — the provider runs everything from the hardware up to the application itself."
+        },
+        {
+          "id": "readiness-cloud-practitioner-q2",
+          "prompt": "Under the shared responsibility model, which of the following is always the CUSTOMER'S responsibility, regardless of service model?",
+          "options": [
+            { "id": "a", "label": "Physical security of the data centres" },
+            { "id": "b", "label": "Managing user access permissions and account credentials" },
+            { "id": "c", "label": "Replacing failed hard drives in the provider's servers" },
+            { "id": "d", "label": "Maintaining the provider's core network backbone" }
+          ],
+          "correctOptionId": "b",
+          "explanation": "The provider secures the cloud itself — facilities, hardware, and core network — but who may access your data and how identities are protected is always on the customer's side of the line."
+        },
+        {
+          "id": "readiness-cloud-practitioner-q3",
+          "prompt": "A regulated bank must keep customer records on infrastructure it controls, but wants public cloud elasticity for its marketing website. Which deployment approach satisfies both requirements?",
+          "options": [
+            { "id": "a", "label": "Move everything to a single public cloud region" },
+            { "id": "b", "label": "A hybrid cloud: sensitive systems on private infrastructure, the website in the public cloud" },
+            { "id": "c", "label": "Keep everything on-premises and buy more servers for traffic spikes" },
+            { "id": "d", "label": "A community cloud shared with other banks' customer data" }
+          ],
+          "correctOptionId": "b",
+          "explanation": "Hybrid cloud is the standard answer when regulation pins some data to controlled infrastructure while other workloads benefit from public cloud scale — each system runs where its constraints demand."
+        },
+        {
+          "id": "readiness-cloud-practitioner-q4",
+          "prompt": "Which combination of actions best protects a new cloud account on day one?",
+          "options": [
+            { "id": "a", "label": "Enable MFA on the root user, create a separate admin user, and set a billing alert" },
+            { "id": "b", "label": "Write the root password in a shared team chat and start building" },
+            { "id": "c", "label": "Grant all team members full administrator access to save time" },
+            { "id": "d", "label": "Disable all security features until the first application is live" }
+          ],
+          "correctOptionId": "a",
+          "explanation": "MFA on root, an everyday admin user in place of root, and a billing alarm are the three cheapest, highest-value protections — they guard against account takeover and surprise bills before any workload exists."
+        },
+        {
+          "id": "readiness-cloud-practitioner-q5",
+          "prompt": "An application's users across West Africa complain that downloading its static images is slow because the servers are hosted in Europe. Which service most directly addresses this?",
+          "options": [
+            { "id": "a", "label": "A larger virtual machine in the same European region" },
+            { "id": "b", "label": "A content delivery network caching the images at edge locations near the users" },
+            { "id": "c", "label": "A second database replica in Europe" },
+            { "id": "d", "label": "Switching from object storage to block storage" }
+          ],
+          "correctOptionId": "b",
+          "explanation": "A CDN caches static content at edge locations close to users, cutting the distance data travels — the direct remedy when latency to a far-away region makes static content slow."
+        }
+      ],
+      "levels": [
+        { "min": 0, "label": "Not Yet Ready" },
+        { "min": 0.5, "label": "Getting Close" },
+        { "min": 0.8, "label": "Exam Ready" }
+      ]
+    }
+  },
+  {
+    "id": "final-lp-m1",
+    "kind": "standalone",
+    "scope": "module",
+    "scopeId": "lp-m1",
+    "title": "Cloud For Beginners Final Assessment",
+    "description": "The capstone for the Cloud For Beginners module. It combines multiple-choice questions covering the module's key concepts with a practical submission where you apply what you learned to a small architecture exercise.",
+    "config": {
+      "questions": [
+        {
+          "id": "final-lp-m1-q1",
+          "prompt": "Which statement correctly orders the service models from most customer-managed to least customer-managed?",
+          "options": [
+            { "id": "a", "label": "SaaS → PaaS → IaaS" },
+            { "id": "b", "label": "IaaS → PaaS → SaaS" },
+            { "id": "c", "label": "PaaS → IaaS → SaaS" },
+            { "id": "d", "label": "IaaS → SaaS → PaaS" }
+          ],
+          "correctOptionId": "b",
+          "explanation": "With IaaS you manage everything above the infrastructure; PaaS hands the platform to the provider; with SaaS the provider manages the entire stack, leaving you only the application to use."
+        },
+        {
+          "id": "final-lp-m1-q2",
+          "prompt": "A startup with unpredictable growth and no capital for hardware needs to launch quickly. Which deployment model do its constraints point to?",
+          "options": [
+            { "id": "a", "label": "Private cloud in its own data centre" },
+            { "id": "b", "label": "Community cloud with other startups" },
+            { "id": "c", "label": "Public cloud" },
+            { "id": "d", "label": "No cloud — buy used servers" }
+          ],
+          "correctOptionId": "c",
+          "explanation": "Zero upfront cost, pay-as-you-go pricing, and instant elasticity make the public cloud the natural fit for a startup that cannot predict its growth or fund hardware purchases."
+        },
+        {
+          "id": "final-lp-m1-q3",
+          "prompt": "Before migrating a workload, which prerequisite most directly prevents a surprise bill in the first month?",
+          "options": [
+            { "id": "a", "label": "Choosing a memorable name for the project" },
+            { "id": "b", "label": "Setting up billing alerts and estimating monthly cost at realistic usage" },
+            { "id": "c", "label": "Buying reserved capacity for three years immediately" },
+            { "id": "d", "label": "Migrating all workloads at once to finish faster" }
+          ],
+          "correctOptionId": "b",
+          "explanation": "A cost estimate sets expectations and a billing alert catches drift early — together they turn a forgotten test server into an email notification instead of an invoice shock."
+        }
+      ],
+      "practical": {
+        "type": "link-or-upload",
+        "instructions": "Submit a link to your architecture diagram or upload your write-up."
+      }
+    }
+  }
+]
