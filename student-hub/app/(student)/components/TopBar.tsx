@@ -27,7 +27,6 @@ const PAGE_TITLES = [
   { href: "/my-program", label: "My Program" },
   { href: "/calendar", label: "Calendar" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/notes", label: "Notes" },
   { href: "/support", label: "Helpdesk" },
   { href: "/service-desk", label: "Service Desk" },
   { href: "/profile", label: "My Profile" },

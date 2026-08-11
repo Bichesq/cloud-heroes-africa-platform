@@ -139,11 +139,31 @@ These reflect decisions that are already clear from the meeting discussion or fr
 | 2026-07-16 | V1 scope | V1 release scope is fixed at: student login and profile management, learning dashboard access, and course consumption (written content first); calendar view and video content are excluded from V1 | Decided | Team / Kris / Bichesq | Defined for the Saturday board presentation; video is a fast follow |
 | 2026-07-16 | Learning Platform UI | Unit view removes the "Learning Material" heading (redundant, conflicts with long course titles), author info (already on course overview page), and navigation arrows (redundant with the "Go to next item" button) | Decided | Team / Kris / Eddie | Streamlines the unit view and prevents layout conflicts |
 | 2026-07-16 | Learning Platform UI | The sidebar toggle icon uses the existing student hub icon (line with arrow), not a hamburger icon | Decided | Team / Kris / Eddie | Hamburger icon is mobile-centric and not intuitive for toggling a desktop sidebar |
-| 2026-07-16 | Learning Platform UI | Knowledge Check design is modernized with a progress bar and a "skip question" option | Decided | Team / Kris / Eddie | Improves the student assessment experience |
+| 2026-07-16 | Learning Platform UI | Knowledge Check design is modernized with a progress bar and a "skip question" option; broader assessment rules and V1 question-type scope were defined later in the August 6 assessment decisions | Decided | Team / Kris / Eddie | Improves the student assessment experience while keeping the earlier row consistent with later assessment decisions |
 | 2026-07-16 | Content strategy | Video content is added as a secondary delivery option (fast follow after V1); students can choose between written content (TTS) and video based on network constraints | Decided | Team / Kris / Bichesq | Complements the July 6 data-light strategy; video availability will depend on connectivity |
 | 2026-07-16 | Localization | Platform is English-only for V1; French and other African languages are a future consideration | Decided | Team / Kris | All human interaction (community, support) is in English; multilingual support adds complexity not needed at launch |
 | 2026-07-16 | Security | Passkey changes use a 24–48 hour provisional delay before activation, with email notifications to both primary and secondary emails, a one-click revoke link in the notification email, and an admin reset capability for emergency account recovery | Decided | Team / Kris / Bichesq | Protects against account lockout if a student's primary email is compromised |
 | 2026-07-16 | Profile page UI | The profile page separates authentication options into distinct categories: "Email MFA", "SMS MFA", and "Passkeys" | Decided | Team / Kris / Eddie | Prevents user confusion about available authentication methods |
+| 2026-08-06 | Platform naming | The central student-facing application is referred to as the Hub Module, while course delivery is referred to as the Learning Module; inconsistent use of "Student Portal" / "Learning Platform" should be normalized to these agreed names in product discussions and documentation | Decided | Team | The team explicitly aligned terminology to reduce ambiguity between the student-facing gateway and the learning delivery surface |
+| 2026-08-06 | Assessment model | The assessment under discussion is a module-end assessment (covering the whole module), not a unit-level knowledge check | Decided | Team | The team clarified that this workflow concerns end-of-module evaluation rather than embedded unit checks |
+| 2026-08-06 | Knowledge Checks vs Assessments | Knowledge Checks and Assessments follow different feedback rules: Knowledge Checks may show correctness and explain mistakes, while Assessments must not reveal correct/incorrect answers during the attempt | Decided | Team | The team intentionally separated formative feedback behavior from summative assessment behavior |
+| 2026-08-06 | Assessment question count | The assessment UI must support a variable number of questions rather than assuming a fixed count such as 10 | Decided | Team | Future modules may have significantly more questions, so the UI and logic must scale beyond a hard-coded count |
+| 2026-08-06 | Assessment navigation UI | Assessment navigation should use compact numbered question buttons / grid-style navigation rather than a long linear list; question labels should use numeric formatting such as "Question 6" rather than spelled-out text | Decided | Team | Reduces UI clutter and avoids unnecessary implementation complexity |
+| 2026-08-06 | Assessment feedback during attempt | During an assessment attempt, the platform must not display whether an individual answer is correct or incorrect | Decided | Team | Prevents students from using the assessment itself as an answer-reveal tool |
+| 2026-08-06 | Assessment post-attempt feedback | Post-assessment feedback should emphasize weak areas / improvement areas rather than celebrating all correctly answered questions | Decided | Team | The intent is to guide remediation and study focus after failure or weak performance |
+| 2026-08-06 | Assessment question types V1 | Version 1 assessments support only single-choice and multi-select questions | Decided | Team | More complex interactions are intentionally deferred to keep V1 build scope realistic |
+| 2026-08-06 | Advanced assessment question types | Drag-and-drop, matching/order interactions, short-answer responses, code evaluation, and other advanced formats are deferred to a later version beyond V1 | Decided | Team | Explicit scope control decision made during the meeting |
+| 2026-08-06 | Multi-select scoring | Multi-select questions use partial-credit scoring rather than all-or-nothing scoring | Decided | Team | The team agreed it is unfair to score partially correct answers the same as completely incorrect answers |
+| 2026-08-06 | Multi-select scoring method | Multi-select marks are distributed proportionally across the required correct answers for a question | Decided | Team | Example discussed: a one-mark question with three required correct options can award fractional credit per correct selection |
+| 2026-08-06 | Assessment scoring vs progression points | Internal assessment marks are separate from course / progression points or tokens awarded for completion | Decided | Team | The meeting distinguished grading logic from progression/reward mechanics |
+| 2026-08-06 | Assessment integrity | Assessments should pull from a large randomized question bank to reduce repeated exposure and answer sharing | Decided | Team | Randomization was explicitly chosen as the main anti-cheating mechanism within scope |
+| 2026-08-06 | Question bank balancing | Assessment question banks should classify questions by difficulty (e.g. easy, medium, difficult), and each generated assessment should include a deliberate difficulty mix rather than purely random selection | Decided | Team | Prevents one learner receiving only easy questions while another receives disproportionately hard ones |
+| 2026-08-06 | Assessment retake policy | Retake cooldowns are progressive: after the first failure wait 1 hour; after the second failure wait 3 hours; after the third and subsequent failures wait 24 hours | Decided | Team | The team agreed on increasing delay intervals to discourage rapid trial-and-error attempts |
+| 2026-08-06 | Assessment retake restart behavior | Every retake starts the assessment from the beginning; previously answered questions or partial progress are not carried forward | Decided | Team | The team explicitly rejected partial carry-forward progression without demonstrated competence |
+| 2026-08-06 | Assessment repeated-failure support | After repeated failures, the platform should alert the relevant instructor / support person so the student can receive human guidance | Decided | Team | The meeting proposed escalation after repeated failed attempts rather than leaving the learner unsupported |
+| 2026-08-06 | Assessment failure guidance | When a student fails an assessment, the platform should recommend review of the relevant weak topic areas and communicate the retake cooldown clearly via a popup / alert | Decided | Team | Failure handling should be corrective and explanatory, not just punitive |
+| 2026-08-06 | Assessment lockout model | Students are not permanently blocked or forced to restart the entire module after repeated assessment failures; they may retry after the applicable cooldown period | Decided | Team | The agreed model balances enforcement with persistence and learner motivation |
+| 2026-08-06 | Assessment retake randomization | Retakes should use newly randomized questions where possible from the broader question bank | Decided | Team | Reduces memorization of prior attempt sequences and improves integrity |
 
 ***
 
@@ -195,7 +215,7 @@ These decisions are important and should be resolved as early as possible.
 | Date Logged | Area | Question | Status | Owner | Why It Matters |
 |---|---|---|---|---|---|
 | 2026-05-18 | Repo structure | If there are multiple application surfaces, should this be a monorepo? | Decided | Bichesq / Team | Resolved June 15: monorepo confirmed; all five sub-applications will share a single repo for a consistent data model |
-| 2026-05-18 | Assessment design | What questions will the assessment ask, and how should answers be stored? | Open | Team | Explicitly raised in the meeting |
+| 2026-05-18 | Assessment design | What exact assessment content model, authoring schema, and answer-storage structure should be used for single-choice, multi-select, randomized question banks, difficulty balancing, and retake history? | Open | Team | August 6 resolved major behavioral rules, but the data model / authoring structure is still not fully specified |
 | 2026-05-18 | Demo scope | What exactly must work live in the first stakeholder demo, and what can be mocked? | Open | Team | Critical for scoping the first build |
 | 2026-05-18 | Design system | What UI/design system direction should the app follow? | Decided | Team | Resolved June 15: Hero UI confirmed as the component library for the POC |
 | 2026-05-18 | API structure | What API style and conventions should be standardized? | Open | Team | Affects Claude prompt quality and implementation consistency |
@@ -205,7 +225,7 @@ These decisions are important and should be resolved as early as possible.
 | 2026-05-18 | Advanced student bypass | How should advanced students bypass lower-level modules — admin-granted exception or a separate self-assessment? | Open | Team / Kris | Needs a controlled and fair mechanism |
 | 2026-05-18 | Placement assessment | Should a placement/level assessment be included during onboarding registration, or handled entirely within the learning platform? | Open | Team / Bichesq | Affects placement accuracy and onboarding flow |
 | 2026-05-21 | Assessments as a separate module | Should assessments be their own standalone module, separate from the learning platform, or remain integrated within it? | Decided | Team / Kris | Resolved July 2: assessments remain in the learning platform but are separated from unit content to allow independent updates |
-| 2026-05-21 | Student presentations / assignments | Should practical presentations or assignments be required at the module level or only at the program level? | Open | Team / Kris | This affects scale, workload, and assessment design |
+| 2026-05-21 | Student presentations / assignments | For post-V1 assessment design, should practical presentations, submissions, or other advanced assessment types be required at the module level, only at the program level, or both? | Open | Team / Kris | August 6 limited V1 to single-choice and multi-select only, so advanced/practical assessment formats remain unresolved for later phases |
 | 2026-05-21 | Payload CMS for learning platform | Is Payload CMS the right tool for the learning portal given the dynamic assessment and progress-tracking requirements, or does it need to be reconsidered? | Decided | Team / Bichesq | Resolved July 13: Payload CMS abandoned in favour of a custom backend (Postgres) |
 | 2026-05-28 | Help Desk submission UX | Should the student submission flow explicitly offer branching choices such as community-first, Help Desk-first, or live-session intent at the moment of intake, or should all requests default into the same threaded workflow first? | Open | Team / Kris / Bichesq | Intake branching and routing are still not fully settled |
 | 2026-05-28 | Immediate-help classification | What should count as an "immediate help" case versus a standard asynchronous support case, and how should those categories affect routing and expectations? | Open | Team / Flora / Vin | Affects promises, routing, and expectations |
@@ -237,25 +257,26 @@ These should be explicitly reviewed and either marked **Decided** or kept **Open
 7. Pre-login page: keep or redirect directly to sign-in
 8. Badges and gamification scope (unit vs module vs program)
 9. Student presentation / assignment level (module vs program)
-10. Assessment question design and storage
-11. Placement assessment — onboarding vs learning platform
-12. Advanced student bypass mechanism
-13. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
-14. Service Desk approval workflow and responsible parties
-15. First demo flow and scope (board meeting: July 18)
-16. Help Desk submission UX: single threaded intake vs explicit branching choices
-17. Help Desk queue structure: general queue vs expertise-based queues
-18. Service Desk intake, identity verification, and lost-email recovery process
-19. Immediate-help classification and routing criteria
-20. Service Desk intake channel
-21. Incident escalation thresholds and triage rules
-22. Assignment delivery workflow and submission model
-23. Learning Management content-sharing model for reusing units/modules across programs
-24. Student Hub login page — co-location of admin/volunteer and donor sign-in paths
-25. Calendar RSVP / attendance feature on Student Hub dashboard
-26. Student vetting process design and how it feeds the approved-email list
-27. Program-level support channel: tool selection and workflow
-28. Interactive terminal / cloud shell feasibility and cost model
+10. Assessment content schema, answer storage model, and question-bank authoring structure
+11. Placement assessment — onboarding vs learning platform, and whether it should reuse the same randomized assessment engine
+12. Difficulty-mix rules for randomized assessments (e.g. easy/medium/hard ratios by assessment type)
+13. Advanced student bypass mechanism
+14. Ticketing system tool selection and SLA timeframes (Help Desk and Service Desk)
+15. Service Desk approval workflow and responsible parties
+16. First demo flow and scope (board meeting: July 18)
+17. Help Desk submission UX: single threaded intake vs explicit branching choices
+18. Help Desk queue structure: general queue vs expertise-based queues
+19. Service Desk intake, identity verification, and lost-email recovery process
+20. Immediate-help classification and routing criteria
+21. Service Desk intake channel
+22. Incident escalation thresholds and triage rules
+23. Assignment delivery workflow and submission model
+24. Learning Management content-sharing model for reusing units/modules across programs
+25. Student Hub login page — co-location of admin/volunteer and donor sign-in paths
+26. Calendar RSVP / attendance feature on Student Hub dashboard
+27. Student vetting process design and how it feeds the approved-email list
+28. Program-level support channel: tool selection and workflow
+29. Interactive terminal / cloud shell feasibility and cost model
 
 ***
 

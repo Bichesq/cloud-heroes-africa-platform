@@ -10,7 +10,6 @@ import {
   GraduationCap,
   CalendarDays,
   PieChart,
-  StickyNote,
   LifeBuoy,
   ShieldAlert,
   User,
@@ -39,7 +38,6 @@ const MAIN: NavLink[] = [
 ];
 
 const ACCOUNT: NavLink[] = [
-  { href: "/notes", label: "Notes", icon: StickyNote, chevron: true },
   { href: "/support", label: "Helpdesk", icon: LifeBuoy },
   { href: "/service-desk", label: "Service Desk", icon: ShieldAlert },
   { href: "/profile", label: "My Profile", icon: User },
