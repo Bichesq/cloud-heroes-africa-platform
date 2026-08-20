@@ -1,0 +1,24 @@
+# Local Postgres for the platform's apps (learning-platform now; student-hub
+# once it has its own Prisma schema — see docs/plan/2026-08-19-docker-postgres-setup.md).
+# One server, one database per app, created explicitly rather than baked
+# into the image, so adding a new app database later doesn't require
+# touching this file.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:

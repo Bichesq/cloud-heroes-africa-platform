@@ -1,0 +1,171 @@
+# Fix PrismaClientInitializationError — bring up local Postgres for learning-platform
+
+**Date:** 2026-08-17
+**Status:** Superseded (2026-08-19) by `docs/plan/2026-08-19-docker-postgres-setup.md`
+— the native install this plan set up was replaced by a Dockerized Postgres
+per the user's request. See revision log below for what this plan actually
+did while it was in effect.
+
+## Context
+
+After fixing the Next.js build errors in `learning-platform` (a stale
+points→tokens / Section-Item→Unit rename that left several pages on the old
+data shape), the app now builds and pages render — but any route that hits
+the database (`/courses`, `/programs/[id]`, the unit-detail page, etc.)
+throws at runtime:
+
+```
+PrismaClientInitializationError
+Can't reach database server at `localhost:5432`
+```
+
+This isn't a code bug. `learning-platform/.env`'s `DATABASE_URL` points at
+`postgresql://postgres:postgres@localhost:5432/learning_platform`, with its
+own comment flagging it as a **placeholder** ("point this at your actual
+local Postgres instance... before running `npx prisma migrate dev`"). Per
+`docs/learning_platform/backend-migration-plan.md`, Phase 1 (schema.prisma +
+one-time migration script) was written and reviewed but never actually run
+against a live database — this plan is that missing execution step.
+
+## Goal
+
+The learning-platform app runs against a real local Postgres instance with
+the current schema applied and the legacy JSON-store data migrated in, so
+pages that read from Prisma (`/courses`, `/programs/[id]`, unit pages, etc.)
+render real data instead of throwing `PrismaClientInitializationError`.
+
+## Scope
+
+- In scope: getting a local Postgres server running and reachable, applying
+  `prisma/schema.prisma` to a real `learning_platform` database, seeding it
+  via the existing `scripts/migrate-to-postgres.ts`, and verifying the app
+  end-to-end against it.
+- Out of scope: any changes to `schema.prisma` or `migrate-to-postgres.ts`
+  themselves (both already written/reviewed in the prior migration-planning
+  pass); any changes to `.env`'s `DATABASE_URL` value (host/port/db name
+  already match the local install); production/staging database setup.
+
+## Approach
+
+Read-only investigation already found:
+- A local Postgres 17 binary distribution at
+  `E:\Downloads\postgresql-17.7-2-windows-x64-binaries\pgsql`, whose `data\`
+  directory is **already initialized** (`PG_VERSION`, `base/`, `global/` are
+  present — `initdb` has run before).
+- Nothing is listening on port 5432 and no `postgres*` Windows service is
+  registered — the server process has simply never been started.
+- `learning-platform/prisma/` contains only `schema.prisma` — no
+  `prisma/migrations/` yet, so the `learning_platform` database (even once
+  reachable) has no tables.
+- The old `learning-platform/data/*.json` content has never been migrated
+  into Postgres. `scripts/migrate-to-postgres.ts` exists and is idempotent
+  per its own docstring, which also documents the exact required run order.
+
+Steps, in order:
+
+1. **Register and start Postgres as a Windows service** (chosen over a
+   one-off manual start, so it survives reboots and doesn't need to be
+   started by hand each dev session):
+   ```
+   pg_ctl register -N "postgresql-17" -D "E:\Downloads\postgresql-17.7-2-windows-x64-binaries\pgsql\data"
+   Start-Service postgresql-17
+   ```
+   Verify with `pg_isready` or `Test-NetConnection localhost -Port 5432`.
+
+2. **Confirm/align credentials.** `.env` assumes role `postgres` / password
+   `postgres`. Confirm this matches what the install was initialized with
+   (`psql -U postgres -h localhost`); if not, reset the role's password to
+   match rather than changing `.env`, since `.env`'s value is the documented
+   team convention, not a guess.
+
+3. **Create the `learning_platform` database if it doesn't already exist**
+   (`psql -U postgres -l` to check, `createdb -U postgres learning_platform`
+   if missing).
+
+4. **Apply the Prisma schema:**
+   ```
+   npx prisma migrate dev --name init
+   ```
+   from `learning-platform/` — creates `prisma/migrations/`, applies it, and
+   regenerates the Prisma client.
+
+5. **Seed real data from the legacy JSON stores:**
+   ```
+   npm run migrate:lp
+   ```
+   Runs `scripts/migrate-to-postgres.ts`. Watch its printed row-count
+   assertions to confirm no silent data loss versus the source JSON.
+
+6. **Verify end-to-end.** With the dev server already running on port 3001,
+   reload `/courses`, `/programs/[programId]`, and the unit-detail page,
+   signed in as the one seeded student, and confirm real data renders with no
+   Prisma errors — including the unit page's rewritten flat-content +
+   Knowledge Check flow against real seeded rows.
+
+## Files / modules affected
+
+- No source files change. This plan only *runs* commands against the local
+  environment (Postgres service registration, `prisma migrate dev`, `npm run
+  migrate:lp`) — the artifacts it creates are `prisma/migrations/*` (new,
+  generated by the migrate command) and rows in the local `learning_platform`
+  database.
+
+## Open questions / assumptions
+
+- Assuming the local Postgres install's `postgres` role password is (or can
+  safely be reset to) `postgres`, matching `.env`. Not yet confirmed — step 2
+  above is where this gets checked before proceeding further.
+- Assuming `prisma migrate dev --name init` is the right first migration name
+  since no `prisma/migrations/` folder exists yet at all.
+
+## Risks / things that could go wrong
+
+- `migrate:lp` is documented as idempotent/upsert-based, but this is its
+  first real run — worth watching its output closely rather than assuming
+  success from exit code alone.
+- Registering a Windows service touches machine-level state outside the repo
+  (persists across reboots) — confirmed with you already as the preferred
+  approach over a session-only manual start.
+
+## Out of scope (explicitly deferred)
+
+- Any further backend/frontend migration work beyond what's already been
+  built (Phase 2 module-by-module Prisma swap is already complete per the
+  backend-migration-plan.md status note; this plan is purely "make the
+  already-written schema/script actually run").
+
+---
+
+## Revision log
+
+- 2026-08-17: initial draft
+- 2026-08-19: executed, with two deviations from the plan as written:
+  - **Step 1 (service registration) was not possible** — `pg_ctl register`
+    requires an elevated shell, which wasn't available. Started Postgres
+    manually instead (`pg_ctl start -D <datadir> -l <datadir>\postgres.log`).
+    This works for the current session but does **not** survive a reboot —
+    registering the Windows service properly (from an admin PowerShell) is
+    still outstanding if persistence across reboots is wanted.
+  - **Step 2 (credentials) required an actual reset**, not just
+    confirmation — the `postgres` role's existing password did not match
+    `.env`'s `postgres`/`postgres` assumption. Reset it by temporarily
+    setting `pg_hba.conf` to `trust` for local/host connections, running
+    `ALTER USER postgres PASSWORD 'postgres'`, then restoring the original
+    `scram-sha-256` config and reloading. `pg_hba.conf` is back to its
+    original state; only the role's password changed.
+  - Steps 3–6 ran as written: `learning_platform` DB created, schema
+    applied via `prisma migrate dev --name init` (created
+    `prisma/migrations/20260819153121_init/`), `npm run migrate:lp` seeded
+    cleanly (107/107 content blocks migrated, only the two already-flagged
+    `lp_student_items` rows dropped, per the migration plan's Ambiguity #2).
+  - End-to-end verification: `/courses` and `/programs/cloud-practitioner`
+    return 200 with no Prisma error text, but both are auth-gated (Google
+    OAuth via NextAuth) and redirect unauthenticated requests to `/SignIn`
+    before ever reaching a Prisma call — so that alone didn't prove the DB
+    path works. Verified the actual Prisma-backed read path directly instead
+    (`lib/store/catalog.ts`'s `getPrograms`/`getProgram`, run via a one-off
+    `tsx` script, deleted after): returns all 4 published programs, and
+    `cloud-practitioner`'s first unit correctly resolves 35 content blocks.
+    Signing in as the real seeded student through Google OAuth was not
+    scripted here — still worth a manual browser check if full request-path
+    (including the auth-gated routes) confidence is wanted.
