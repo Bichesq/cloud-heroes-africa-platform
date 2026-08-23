@@ -2,13 +2,13 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Breadcrumbs from "@/app/(learner)/components/Breadcrumbs";
 import { currentStudent } from "@/lib/current-student";
-import { getAssessments, getKnowledgeCheck, getProgram } from "@/lib/store/catalog";
-import { getStudentItems, getStudentUnit } from "@/lib/store/progress";
-import { getPointsEntries } from "@/lib/store/points";
+import { getKnowledgeChecksForUnit, getProgram } from "@/lib/store/catalog";
+import { getStandaloneAssessmentsForScope } from "@/lib/store/standalone-assessments";
+import { getStudentUnit } from "@/lib/store/progress";
+import { getTokenEntries } from "@/lib/store/tokens";
 import { getAttempts } from "@/lib/store/attempts";
 import { getNote } from "@/lib/store/notes";
-import { flattenItems, nextItem, pointsBalance } from "@/lib/lp-utils";
-import type { KnowledgeCheck } from "@/types";
+import { tokensBalance } from "@/lib/lp-utils";
 import UnitShell, { type KcClientState } from "./components/UnitShell";
 
 export const metadata: Metadata = {
@@ -20,9 +20,9 @@ export default async function UnitPage({
   searchParams,
 }: {
   params: Promise<{ programId: string; unitId: string }>;
-  searchParams: Promise<{ item?: string }>;
+  searchParams: Promise<{ view?: string }>;
 }) {
-  const [{ programId, unitId }, { item: requestedItemId }] = await Promise.all([
+  const [{ programId, unitId }, { view: requestedView }] = await Promise.all([
     params,
     searchParams,
   ]);
@@ -35,33 +35,25 @@ export default async function UnitPage({
   const unit = module?.units.find((u) => u.id === unitId);
   if (!program || !module || !unit) notFound();
 
-  const [studentItems, studentUnit, points, note, assessments] =
+  const [studentUnit, tokens, note, knowledgeChecks, assessments] =
     await Promise.all([
-      getStudentItems(student.id),
       getStudentUnit(student.id, unitId),
-      getPointsEntries(student.id),
+      getTokenEntries(student.id),
       getNote(student.id, unitId),
-      getAssessments(),
+      getKnowledgeChecksForUnit(unitId),
+      getStandaloneAssessmentsForScope({ moduleId: module.id, programId: program.id }),
     ]);
 
-  // Points gate — locked units are never reachable by URL either.
-  const balance = pointsBalance(points);
-  if (!studentUnit && balance < unit.pointsRequired) {
+  // Tokens gate — locked units are never reachable by URL either.
+  const balance = tokensBalance(tokens);
+  if (!studentUnit && balance < unit.tokensRequired) {
     redirect(`/programs/${program.id}`);
   }
 
-  const completedItemIds = studentItems.map((i) => i.itemId);
-
-  // Knowledge-check definitions + per-KC attempt state for this unit.
-  const kcItems = flattenItems(unit).filter((i) => i.type === "knowledge_check");
-  const kcEntries = await Promise.all(
-    kcItems.map(async (item) => {
-      if (!item.kcId) return null;
-      const [kc, attempts] = await Promise.all([
-        getKnowledgeCheck(item.kcId),
-        getAttempts(student.id, item.kcId),
-      ]);
-      if (!kc) return null;
+  // Per-KC attempt state for this unit's Knowledge Check(s).
+  const kcs = await Promise.all(
+    knowledgeChecks.map(async (kc) => {
+      const attempts = await getAttempts(student.id, kc.id);
       let failRun = 0;
       for (const a of attempts) failRun = a.passed ? 0 : failRun + 1;
       const state: KcClientState = {
@@ -69,31 +61,21 @@ export default async function UnitPage({
         failRun,
         passed: attempts.some((a) => a.passed),
       };
-      return [item.kcId, { kc, state }] as const;
+      return { kc, state };
     })
   );
-  const kcMap: Record<string, { kc: KnowledgeCheck; state: KcClientState }> = {};
-  for (const entry of kcEntries) if (entry) kcMap[entry[0]] = entry[1];
 
   // Module-scoped standalone assessments → Assignments tab stub list.
-  const assignments = assessments
-    .filter(
-      (a) =>
-        a.kind === "standalone" &&
-        ((a.scope === "module" && a.scopeId === module.id) ||
-          (a.scope === "unit" && a.scopeId === unit.id) ||
-          (a.scope === "program" && a.scopeId === program.id))
-    )
-    .map((a) => ({ id: a.id, title: a.title, description: a.description }));
+  const assignments = assessments.map((a) => ({
+    id: a.id,
+    title: a.title,
+    description: a.description,
+  }));
 
-  const completedSet = new Set(completedItemIds);
-  const initialItemId =
-    (requestedItemId &&
-      flattenItems(unit).find((i) => i.id === requestedItemId)?.id) ||
-    nextItem(unit, completedSet)?.id ||
-    flattenItems(unit)[0]?.id;
-
-  if (!initialItemId) notFound(); // authoring error — a unit with no items
+  const initialView: string =
+    requestedView && kcs.some((k) => k.kc.id === requestedView)
+      ? requestedView
+      : "content";
 
   return (
     <div className="flex h-full flex-col">
@@ -108,12 +90,13 @@ export default async function UnitPage({
           title: unit.title,
           order: unit.order,
           description: unit.description,
-          pointsAward: unit.pointsAward,
+          heroImage: unit.heroImage,
+          durationMin: unit.durationMin,
+          tokensAward: unit.tokensAward,
+          contentBlocks: unit.contentBlocks,
         }}
-        sections={unit.sections}
-        kcMap={kcMap}
-        initialItemId={initialItemId}
-        initialCompleted={completedItemIds}
+        kcs={kcs}
+        initialView={initialView}
         initialUnitStatus={studentUnit?.status ?? null}
         initialNote={note?.body ?? ""}
         assignments={assignments}

@@ -1,0 +1,1 @@
+Proceed with Phase 1 only (schema + migration script, per §6 and the plan you gave me). Show me the migration script and the resulting Prisma schema before running it against real data. Stop after Phase 1 — do not start Phase 2.

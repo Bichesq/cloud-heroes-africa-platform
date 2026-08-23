@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { integrationStudent } from "@/lib/integration-auth";
 import { getReadinessAssessments } from "@/lib/store/catalog";
-import { getResults } from "@/lib/store/results";
+import { getResults } from "@/lib/store/readiness-results";
 import { latestReadiness } from "@/lib/lp-utils";
 
 /* GET — Exam Readiness data for the Student Hub widget (requirements §8):

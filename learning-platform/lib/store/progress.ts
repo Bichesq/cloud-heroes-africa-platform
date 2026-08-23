@@ -1,49 +1,44 @@
-import type { StudentItem, StudentUnit, StudentUnitStatus } from "@/types";
-import { readStore, writeStore } from "./json-store";
+import type { StudentUnit, StudentUnitStatus } from "@/types";
+import { prisma } from "@/lib/prisma";
 
-const ITEMS_FILE = "lp-student-items.json";
-const UNITS_FILE = "lp-student-units.json";
+/* Per-student unit progress — the dual-status records (completed_at /
+ * verified_at). (2026-08-11: StudentItem/per-item completion is gone along
+ * with Section/Item — Unit is the only tracked granularity now. See plan
+ * Ambiguity #2 for what decides "this unit's content is done" without a
+ * leaf level below Unit — app/api/progress/route.ts now takes that signal
+ * directly by unitId.) */
 
-/* Per-student learning state: item completions (rail dots / progress %) and
- * the dual-status unit records (completed_at / verified_at). */
-
-export async function getStudentItems(studentId: string): Promise<StudentItem[]> {
-  const all = await readStore<StudentItem>(ITEMS_FILE);
-  return all.filter((r) => r.studentId === studentId);
-}
-
-/** Idempotent — completing an already-complete item is a no-op. */
-export async function markItemComplete(
-  studentId: string,
-  itemId: string
-): Promise<StudentItem> {
-  const all = await readStore<StudentItem>(ITEMS_FILE);
-  const existing = all.find(
-    (r) => r.studentId === studentId && r.itemId === itemId
-  );
-  if (existing) return existing;
-
-  const record: StudentItem = {
-    studentId,
-    itemId,
-    completedAt: new Date().toISOString(),
+function toStudentUnit(row: {
+  studentId: string;
+  unitId: string;
+  status: StudentUnitStatus;
+  completedAt: Date | null;
+  verifiedAt: Date | null;
+  updatedAt: Date;
+}): StudentUnit {
+  return {
+    studentId: row.studentId,
+    unitId: row.unitId,
+    status: row.status,
+    completedAt: row.completedAt?.toISOString() ?? null,
+    verifiedAt: row.verifiedAt?.toISOString() ?? null,
+    updatedAt: row.updatedAt.toISOString(),
   };
-  all.push(record);
-  await writeStore(ITEMS_FILE, all);
-  return record;
 }
 
 export async function getStudentUnits(studentId: string): Promise<StudentUnit[]> {
-  const all = await readStore<StudentUnit>(UNITS_FILE);
-  return all.filter((r) => r.studentId === studentId);
+  const rows = await prisma.lpStudentUnit.findMany({ where: { studentId } });
+  return rows.map(toStudentUnit);
 }
 
 export async function getStudentUnit(
   studentId: string,
   unitId: string
 ): Promise<StudentUnit | null> {
-  const units = await getStudentUnits(studentId);
-  return units.find((u) => u.unitId === unitId) ?? null;
+  const row = await prisma.lpStudentUnit.findUnique({
+    where: { studentId_unitId: { studentId, unitId } },
+  });
+  return row ? toStudentUnit(row) : null;
 }
 
 /** Upserts the student-unit record. completedAt / verifiedAt are stamped the
@@ -54,36 +49,19 @@ export async function setUnitStatus(
   unitId: string,
   status: StudentUnitStatus
 ): Promise<StudentUnit> {
-  const all = await readStore<StudentUnit>(UNITS_FILE);
-  const now = new Date().toISOString();
-  const idx = all.findIndex(
-    (r) => r.studentId === studentId && r.unitId === unitId
-  );
+  const now = new Date();
+  const existing = await prisma.lpStudentUnit.findUnique({
+    where: { studentId_unitId: { studentId, unitId } },
+  });
 
-  if (idx === -1) {
-    const record: StudentUnit = {
-      studentId,
-      unitId,
-      status,
-      completedAt: status === "completed" || status === "verified" ? now : null,
-      verifiedAt: status === "verified" ? now : null,
-      updatedAt: now,
-    };
-    all.push(record);
-    await writeStore(UNITS_FILE, all);
-    return record;
-  }
+  const completedAt =
+    existing?.completedAt ?? (status === "completed" || status === "verified" ? now : null);
+  const verifiedAt = existing?.verifiedAt ?? (status === "verified" ? now : null);
 
-  const existing = all[idx];
-  all[idx] = {
-    ...existing,
-    status,
-    completedAt:
-      existing.completedAt ??
-      (status === "completed" || status === "verified" ? now : null),
-    verifiedAt: existing.verifiedAt ?? (status === "verified" ? now : null),
-    updatedAt: now,
-  };
-  await writeStore(UNITS_FILE, all);
-  return all[idx];
+  const row = await prisma.lpStudentUnit.upsert({
+    where: { studentId_unitId: { studentId, unitId } },
+    create: { studentId, unitId, status, completedAt, verifiedAt, updatedAt: now },
+    update: { status, completedAt, verifiedAt, updatedAt: now },
+  });
+  return toStudentUnit(row);
 }

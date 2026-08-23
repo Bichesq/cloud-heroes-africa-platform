@@ -26,9 +26,8 @@ export type OverviewUnit = {
   description: string;
   order: number;
   durationMin: number;
-  itemCount: number;
-  pointsAward: number;
-  pointsRequired: number;
+  tokensAward: number;
+  tokensRequired: number;
   status: StudentUnitStatus | null;
   completedAt: string | null;
   verifiedAt: string | null;
@@ -132,7 +131,7 @@ function UnitRow({
   balance: number;
   onSetGoal: () => void;
 }) {
-  const locked = unit.status === null && balance < unit.pointsRequired;
+  const locked = unit.status === null && balance < unit.tokensRequired;
   const clickable = !locked;
 
   const inner = (
@@ -154,15 +153,15 @@ function UnitRow({
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-cha-faint">
           <span className="flex items-center gap-1">
             <Clock size={12} />
-            {unit.durationMin} mins · {unit.itemCount} items
+            {unit.durationMin} mins
           </span>
           {locked ? (
             <span className="flex items-center gap-1 font-semibold text-cha-warning">
               <Lock size={12} />
-              Requires {unit.pointsRequired} points — you have {balance}
+              Requires {unit.tokensRequired} tokens — you have {balance}
             </span>
           ) : (
-            <span>Earns {unit.pointsAward} points</span>
+            <span>Earns {unit.tokensAward} tokens</span>
           )}
           {unit.goalTargetDate && (
             <span className="flex items-center gap-1 font-semibold text-cha-blue">

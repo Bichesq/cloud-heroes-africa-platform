@@ -1,11 +1,23 @@
 import type { UnitGoal } from "@/types";
-import { readStore, writeStore } from "./json-store";
+import { prisma } from "@/lib/prisma";
 
-const FILE = "lp-goals.json";
+function toUnitGoal(row: {
+  studentId: string;
+  unitId: string;
+  targetDate: Date;
+  setAt: Date;
+}): UnitGoal {
+  return {
+    studentId: row.studentId,
+    unitId: row.unitId,
+    targetDate: row.targetDate.toISOString().slice(0, 10),
+    setAt: row.setAt.toISOString(),
+  };
+}
 
 export async function getGoals(studentId: string): Promise<UnitGoal[]> {
-  const all = await readStore<UnitGoal>(FILE);
-  return all.filter((g) => g.studentId === studentId);
+  const rows = await prisma.lpUnitGoal.findMany({ where: { studentId } });
+  return rows.map(toUnitGoal);
 }
 
 /** One goal per (student, unit) — re-setting replaces the target date. */
@@ -14,25 +26,14 @@ export async function setGoal(
   unitId: string,
   targetDate: string
 ): Promise<UnitGoal> {
-  const all = await readStore<UnitGoal>(FILE);
-  const now = new Date().toISOString();
-  const idx = all.findIndex(
-    (g) => g.studentId === studentId && g.unitId === unitId
-  );
-  const goal: UnitGoal = { studentId, unitId, targetDate, setAt: now };
-  if (idx === -1) all.push(goal);
-  else all[idx] = goal;
-  await writeStore(FILE, all);
-  return goal;
+  const row = await prisma.lpUnitGoal.upsert({
+    where: { studentId_unitId: { studentId, unitId } },
+    create: { studentId, unitId, targetDate: new Date(targetDate) },
+    update: { targetDate: new Date(targetDate), setAt: new Date() },
+  });
+  return toUnitGoal(row);
 }
 
-export async function removeGoal(
-  studentId: string,
-  unitId: string
-): Promise<void> {
-  const all = await readStore<UnitGoal>(FILE);
-  await writeStore(
-    FILE,
-    all.filter((g) => !(g.studentId === studentId && g.unitId === unitId))
-  );
+export async function removeGoal(studentId: string, unitId: string): Promise<void> {
+  await prisma.lpUnitGoal.deleteMany({ where: { studentId, unitId } });
 }

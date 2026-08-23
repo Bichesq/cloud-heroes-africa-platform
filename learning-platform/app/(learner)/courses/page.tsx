@@ -6,8 +6,8 @@ import { currentStudent } from "@/lib/current-student";
 import { getPrograms } from "@/lib/store/catalog";
 import { ensureDefaultEnrollment } from "@/lib/store/enrollments";
 import { getStudentUnits } from "@/lib/store/progress";
-import { getPointsEntries } from "@/lib/store/points";
-import { pointsBalance, programStats, resumeUnit } from "@/lib/lp-utils";
+import { getTokenEntries } from "@/lib/store/tokens";
+import { tokensBalance, programStats, resumeUnit } from "@/lib/lp-utils";
 
 export const metadata: Metadata = {
   title: "My Courses — Cloud Heroes Africa Learning Platform",
@@ -19,15 +19,15 @@ export default async function CoursesPage() {
   const student = await currentStudent();
   if (!student) redirect("/SignIn");
 
-  const [programs, enrollments, studentUnitList, points] = await Promise.all([
+  const [programs, enrollments, studentUnitList, tokens] = await Promise.all([
     getPrograms(),
     ensureDefaultEnrollment(student.id, student.activeProgramId),
     getStudentUnits(student.id),
-    getPointsEntries(student.id),
+    getTokenEntries(student.id),
   ]);
 
   const studentUnits = new Map(studentUnitList.map((u) => [u.unitId, u]));
-  const balance = pointsBalance(points);
+  const balance = tokensBalance(tokens);
   const enrolled = programs.filter((p) =>
     enrollments.some((e) => e.programId === p.id)
   );
@@ -45,7 +45,7 @@ export default async function CoursesPage() {
         </div>
         <div className="flex items-center gap-2 rounded-full bg-cha-surface px-5 py-2.5 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
           <Trophy size={18} className="text-cha-orange" />
-          <span className="text-sm font-bold">{balance} points</span>
+          <span className="text-sm font-bold">{balance} tokens</span>
         </div>
       </div>
 

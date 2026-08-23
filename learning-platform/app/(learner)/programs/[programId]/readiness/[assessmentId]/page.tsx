@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import Breadcrumbs from "@/app/(learner)/components/Breadcrumbs";
 import { currentStudent } from "@/lib/current-student";
-import { getAssessment, getProgram } from "@/lib/store/catalog";
-import { getResults } from "@/lib/store/results";
+import { getProgram, getReadinessAssessment } from "@/lib/store/catalog";
+import { getResults } from "@/lib/store/readiness-results";
 import { latestReadiness } from "@/lib/lp-utils";
 import ReadinessRunner from "./components/ReadinessRunner";
 
@@ -22,10 +22,10 @@ export default async function ReadinessPage({
 
   const [program, assessment, results] = await Promise.all([
     getProgram(programId),
-    getAssessment(assessmentId),
+    getReadinessAssessment(assessmentId),
     getResults(student.id, assessmentId),
   ]);
-  if (!program || !assessment || assessment.kind !== "readiness") notFound();
+  if (!program || !assessment) notFound();
 
   return (
     <div className="flex h-full flex-col">

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { currentStudent } from "@/lib/current-student";
 import { getProgram } from "@/lib/store/catalog";
 import { getStudentUnits } from "@/lib/store/progress";
-import { getPointsEntries } from "@/lib/store/points";
-import { pointsBalance, resumeUnit } from "@/lib/lp-utils";
+import { getTokenEntries } from "@/lib/store/tokens";
+import { tokensBalance, resumeUnit } from "@/lib/lp-utils";
 
 /* Resume redirect — the Student Hub "handshake" target. The hub links here
  * without needing to know LP unit ids; LP resolves the student's current
@@ -23,13 +23,13 @@ export async function GET(
     return NextResponse.redirect(new URL("/courses", request.url));
   }
 
-  const [studentUnitList, points] = await Promise.all([
+  const [studentUnitList, tokenEntries] = await Promise.all([
     getStudentUnits(student.id),
-    getPointsEntries(student.id),
+    getTokenEntries(student.id),
   ]);
   const studentUnits = new Map(studentUnitList.map((u) => [u.unitId, u]));
 
-  const resume = resumeUnit(program, studentUnits, pointsBalance(points));
+  const resume = resumeUnit(program, studentUnits, tokensBalance(tokenEntries));
   const target = resume
     ? `/programs/${program.id}/units/${resume.unit.id}`
     : `/programs/${program.id}`;

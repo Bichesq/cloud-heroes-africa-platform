@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentStudent } from "@/lib/current-student";
-import { getKnowledgeCheck, getPrograms } from "@/lib/store/catalog";
+import { getKnowledgeCheck } from "@/lib/store/catalog";
 import { getAttempts, recordAttempt } from "@/lib/store/attempts";
-import { markItemComplete, setUnitStatus } from "@/lib/store/progress";
-import { awardPoints } from "@/lib/store/points";
+import { setUnitStatus } from "@/lib/store/progress";
+import { awardTokens } from "@/lib/store/tokens";
 import { recordEscalation } from "@/lib/store/escalations";
 import { nextAttemptOutcome, scoreAttempt } from "@/lib/kc-utils";
-import { flattenItems } from "@/lib/lp-utils";
 
 const submitSchema = z.strictObject({
   /** questionId → chosen optionId, null when skipped. */
@@ -15,14 +14,17 @@ const submitSchema = z.strictObject({
 });
 
 /** Flat award for passing a Knowledge Check (unit completion carries the
- * unit's own pointsAward — this is the smaller verification bonus). */
-const KC_PASS_POINTS = 5;
+ * unit's own tokensAward — this is the smaller verification bonus). Renamed
+ * from KC_PASS_POINTS per §1. */
+const KC_PASS_TOKENS = 5;
 
 /* POST — submit a Knowledge Check attempt. Scoring is authoritative here
  * (the client's per-question feedback is cosmetic). Cascade per the
- * 2026-05-21 failure flow: pass → unit "verified" (+ points); fail →
+ * 2026-05-21 failure flow: pass → unit "verified" (+ tokens); fail →
  * "retake"; second consecutive fail → retake + escalation record so a team
- * member follows up. */
+ * member follows up.
+ * (2026-08-11: no more per-item completion to mark on pass — the KC's own
+ * attempt record is the only signal needed now that Section/Item are gone.) */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ kcId: string }> }
@@ -51,29 +53,17 @@ export async function POST(
     passed: result.passed,
   });
 
-  let pointsAwarded = 0;
+  let tokensAwarded = 0;
 
   if (result.passed) {
     await setUnitStatus(student.id, kc.unitId, "verified");
-    const entry = await awardPoints({
+    const entry = await awardTokens({
       studentId: student.id,
       sourceType: "kc_pass",
       sourceId: kc.id,
-      points: KC_PASS_POINTS,
+      tokens: KC_PASS_TOKENS,
     });
-    pointsAwarded = entry?.points ?? 0;
-
-    // The KC item counts toward unit progress once passed.
-    const programs = await getPrograms();
-    for (const program of programs) {
-      for (const module of program.modules) {
-        for (const unit of module.units) {
-          if (unit.id !== kc.unitId) continue;
-          const kcItem = flattenItems(unit).find((i) => i.kcId === kc.id);
-          if (kcItem) await markItemComplete(student.id, kcItem.id);
-        }
-      }
-    }
+    tokensAwarded = entry?.tokens ?? 0;
   } else {
     await setUnitStatus(student.id, kc.unitId, "retake");
     if (outcome === "escalate") {
@@ -94,6 +84,6 @@ export async function POST(
     passed: result.passed,
     outcome,
     unitStatus: result.passed ? "verified" : "retake",
-    pointsAwarded,
+    tokensAwarded,
   });
 }

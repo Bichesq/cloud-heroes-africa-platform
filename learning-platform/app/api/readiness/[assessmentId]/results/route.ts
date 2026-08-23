@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentStudent } from "@/lib/current-student";
-import { getAssessment } from "@/lib/store/catalog";
-import { recordResult } from "@/lib/store/results";
+import { getReadinessAssessment } from "@/lib/store/catalog";
+import { recordResult } from "@/lib/store/readiness-results";
 import { levelForScore } from "@/lib/lp-utils";
 
 const submitSchema = z.strictObject({
@@ -21,8 +21,8 @@ export async function POST(
   const student = await currentStudent();
   if (!student) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const assessment = await getAssessment(assessmentId);
-  if (!assessment || assessment.kind !== "readiness") {
+  const assessment = await getReadinessAssessment(assessmentId);
+  if (!assessment) {
     return NextResponse.json({ error: "Unknown readiness assessment" }, { status: 404 });
   }
 

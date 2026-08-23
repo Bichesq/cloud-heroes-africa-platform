@@ -67,9 +67,11 @@ export type Student = {
 };
 
 /* ======================= LP content hierarchy ======================= */
-/* Program → Module → Unit → Section → Item, with reading items made of
- * ordered content blocks. JSON stores mirror docs/learning-platform/schema.sql
- * 1:1 so the Postgres migration only swaps the I/O layer. */
+/* Program → Module → Unit → ContentBlock. Exactly three navigational levels
+ * (2026-08-11, final) — Section/Item are gone; a Unit is a plain content
+ * container holding its own ordered ContentBlocks directly. Postgres via
+ * Prisma (prisma/schema.prisma) is the source of truth; these types mirror
+ * it 1:1. */
 
 export type CreatorRef = {
   name: string;
@@ -77,7 +79,7 @@ export type CreatorRef = {
   avatarUrl?: string;
 };
 
-/** Ordered content blocks inside a reading item. The union is open by
+/** Ordered content blocks inside a Unit's body. The union is open by
  * design — a future "video" block (fast-follow per decision 2026-07-16)
  * slots in without schema changes. */
 export type ContentBlock =
@@ -85,44 +87,26 @@ export type ContentBlock =
   | { id: string; order: number; type: "richtext"; payload: { md: string } }
   | { id: string; order: number; type: "image"; payload: { src: string; alt: string; caption?: string } }
   | { id: string; order: number; type: "code"; payload: { lang: string; code: string } }
-  | { id: string; order: number; type: "callout"; payload: { tone: "info" | "tip" | "warning"; md: string } };
+  | { id: string; order: number; type: "callout"; payload: { tone: "info" | "tip" | "warning"; md: string } }
+  | { id: string; order: number; type: "video"; payload: { src: string; poster?: string } };
 
-/** V1 item types; the schema reserves "video" and "assessment" for later. */
-export type LpItemType = "reading" | "knowledge_check";
-
-export type LpItem = {
-  id: string;
-  title: string;
-  type: LpItemType;
-  order: number;
-  durationMin: number;
-  /** knowledge_check items point at their KC definition. */
-  kcId?: string;
-  /** reading items own their content. */
-  blocks?: ContentBlock[];
-  /** optional static hero visual shown above the reading. */
-  heroImage?: string;
-};
-
-export type LpSection = {
-  id: string;
-  title: string;
-  order: number;
-  items: LpItem[];
-};
-
+/** Unit is the only level between Module and content — no `type`, no
+ * children besides its own ContentBlocks. A Knowledge Check "belongs" to a
+ * Unit by referencing its id (KnowledgeCheck.unitId), not by a flag here. */
 export type LpUnit = {
   id: string;
   title: string;
   order: number;
   description: string;
   durationMin: number;
-  /** Points granted when the unit is completed. */
-  pointsAward: number;
-  /** Minimum points balance required to start the unit (0 = always open). */
-  pointsRequired: number;
+  heroImage?: string;
+  /** Tokens granted when the unit is completed (renamed from pointsAward, §1). */
+  tokensAward: number;
+  /** Minimum token balance required to start the unit; 0 = always open
+   * (renamed from pointsRequired, §1). */
+  tokensRequired: number;
   creators: CreatorRef[];
-  sections: LpSection[];
+  contentBlocks: ContentBlock[];
 };
 
 export type LpModule = {
@@ -176,16 +160,11 @@ export type Enrollment = {
   status: "active" | "completed";
 };
 
-/** Per-item completion — drives the rail dots and unit progress %. */
-export type StudentItem = {
-  studentId: string;
-  itemId: string;
-  completedAt: string;
-};
-
 /** Dual-state model (decision 2026-05-21): a unit can be Completed
  * (content finished) without being Verified (KC passed). "retake" is the
- * post-KC-failure state. */
+ * post-KC-failure state. (2026-08-11: with Section/Item removed, this is
+ * the only progress-tracking table — there is no leaf-level completion
+ * below Unit any more.) */
 export type StudentUnitStatus = "in_progress" | "completed" | "retake" | "verified";
 
 export type StudentUnit = {
@@ -210,18 +189,20 @@ export type KcAttempt = {
   createdAt: string;
 };
 
-export type PointsSourceType =
+/** Renamed from PointsSourceType (§1, 2026-08-11). */
+export type TokenSourceType =
   | "unit_completion"
   | "kc_pass"
   | "assessment"
   | "adjustment";
 
-export type PointsEntry = {
+/** Renamed from PointsEntry (§1). */
+export type TokenEntry = {
   id: string;
   studentId: string;
-  sourceType: PointsSourceType;
+  sourceType: TokenSourceType;
   sourceId: string;
-  points: number;
+  tokens: number;
   createdAt: string;
 };
 
@@ -236,12 +217,10 @@ export type UnitGoal = {
 };
 
 /* ========================= Assessments ============================== */
-/* Two kinds share one table: "readiness" (exam-readiness, fully used in V1)
- * and "standalone" (MCQ + practical submissions — schema extension point;
- * submission workflow is an open decision). */
-
-export type LpAssessmentKind = "standalone" | "readiness";
-export type LpAssessmentScope = "program" | "module" | "unit";
+/* 2026-08-11 rebuild: "readiness" and "standalone" are no longer one union
+ * table — Exam Readiness stays a fixed, unchanged-shape assessment
+ * (lp_readiness_assessments/lp_readiness_results); standalone Assessments
+ * get a full question-bank + randomized-attempt engine of their own. */
 
 export type ReadinessLevel = {
   /** Minimum score fraction (0..1) for this level. */
@@ -249,23 +228,18 @@ export type ReadinessLevel = {
   label: string;
 };
 
-export type LpAssessment = {
+export type LpReadinessAssessment = {
   id: string;
-  kind: LpAssessmentKind;
-  scope: LpAssessmentScope;
-  scopeId: string;
+  programId: string;
   title: string;
   description: string;
   config: {
     questions?: KcQuestion[];
     levels?: ReadinessLevel[];
-    /** standalone extension point — practical task definition. */
-    practical?: unknown;
   };
-  rubric?: unknown;
 };
 
-export type AssessmentResult = {
+export type ReadinessResult = {
   id: string;
   studentId: string;
   assessmentId: string;
@@ -277,13 +251,107 @@ export type AssessmentResult = {
   submittedAt: string;
 };
 
+/** Links a question bank item back to the unit a student should review. */
+export type LpTopic = {
+  id: string;
+  name: string;
+  unitId: string | null;
+};
+
+/** Exactly one of moduleId/programId is set (module-end vs program-end
+ * assessment). */
+export type LpStandaloneAssessment = {
+  id: string;
+  moduleId: string | null;
+  programId: string | null;
+  title: string;
+  description: string;
+  questionsPerAttempt: number;
+  /** e.g. {"easy":4,"medium":4,"difficult":2} */
+  difficultyMix: Record<string, number>;
+  /** Fraction correct needed to pass, e.g. 0.75. */
+  passThreshold: number;
+  timeLimitSeconds: number;
+};
+
+/** V1 scope: single_choice and multi_select only. */
+export type QuestionType = "single_choice" | "multi_select";
+export type QuestionDifficulty = "easy" | "medium" | "difficult";
+
+export type LpQuestionBankItem = {
+  id: string;
+  assessmentId: string;
+  topicId: string | null;
+  type: QuestionType;
+  difficulty: QuestionDifficulty;
+  prompt: string;
+  options: KcOption[];
+  correctOptionIds: string[];
+  pointsPossible: number;
+  explanation: string | null;
+};
+
+/** Question bank item with correctness fields stripped — what the client
+ * sees during an in-progress attempt ("no correctness during attempt"). */
+export type PublicQuestionBankItem = Omit<
+  LpQuestionBankItem,
+  "correctOptionIds" | "explanation" | "topicId"
+>;
+
+export type AttemptStatus = "in_progress" | "submitted" | "expired";
+
+/** topicId is null for the generic "review the full module" fallback (brief
+ * §4: a failed attempt with no topic individually below threshold). */
+export type WeakTopic = {
+  topicId: string | null;
+  topicName: string;
+  unitId: string | null;
+  scorePct: number;
+};
+
+export type LpAssessmentAttempt = {
+  id: string;
+  assessmentId: string;
+  studentId: string;
+  attemptNumber: number;
+  status: AttemptStatus;
+  score: number | null;
+  passed: boolean | null;
+  startedAt: string;
+  lastSavedAt: string | null;
+  submittedAt: string | null;
+  nextEligibleAt: string | null;
+  weakTopics: WeakTopic[] | null;
+};
+
+/** Snapshot of which bank items were randomly selected for a specific
+ * attempt — preserved exactly even as retakes re-randomize. */
+export type LpAttemptQuestion = {
+  id: string;
+  attemptId: string;
+  questionBankItemId: string;
+  orderIndex: number;
+};
+
+export type LpAttemptAnswer = {
+  attemptQuestionId: string;
+  selectedOptionIds: string[];
+  /** Hidden from the client until submission; numeric to encode multi-select
+   * partial credit. */
+  pointsEarned: number | null;
+  answeredAt: string;
+};
+
 /* ========================== Escalations ============================= */
+
+export type EscalationKind = "kc_second_failure" | "assessment_repeated_failure";
 
 export type Escalation = {
   id: string;
   studentId: string;
-  kind: "kc_second_failure";
-  /** Reference into the source record (kcId for KC failures). */
+  kind: EscalationKind;
+  /** Reference into the source record (kcId for KC failures, standalone
+   * assessment id for repeated Assessment failure). */
   refId: string;
   payload: {
     unitId?: string;

@@ -4,10 +4,10 @@ import Breadcrumbs from "@/app/(learner)/components/Breadcrumbs";
 import { currentStudent } from "@/lib/current-student";
 import { getProgram, getReadinessAssessments } from "@/lib/store/catalog";
 import { getStudentUnits } from "@/lib/store/progress";
-import { getPointsEntries } from "@/lib/store/points";
+import { getTokenEntries } from "@/lib/store/tokens";
 import { getGoals } from "@/lib/store/goals";
-import { getResults } from "@/lib/store/results";
-import { flattenItems, latestReadiness, pointsBalance, programStats } from "@/lib/lp-utils";
+import { getResults } from "@/lib/store/readiness-results";
+import { latestReadiness, tokensBalance, programStats } from "@/lib/lp-utils";
 import ProgramOverview, { type OverviewUnit } from "./components/ProgramOverview";
 import ReadinessCard from "./components/ReadinessCard";
 
@@ -27,10 +27,10 @@ export default async function ProgramPage({
   const program = await getProgram(programId);
   if (!program) notFound();
 
-  const [studentUnitList, points, goals, readinessAssessments] =
+  const [studentUnitList, tokens, goals, readinessAssessments] =
     await Promise.all([
       getStudentUnits(student.id),
-      getPointsEntries(student.id),
+      getTokenEntries(student.id),
       getGoals(student.id),
       getReadinessAssessments(program.id),
     ]);
@@ -42,7 +42,7 @@ export default async function ProgramPage({
 
   const studentUnits = new Map(studentUnitList.map((u) => [u.unitId, u]));
   const goalByUnit = new Map(goals.map((g) => [g.unitId, g]));
-  const balance = pointsBalance(points);
+  const balance = tokensBalance(tokens);
   const stats = programStats(program, studentUnits);
 
   const modules = [...program.modules]
@@ -62,9 +62,8 @@ export default async function ProgramPage({
             description: u.description,
             order: u.order,
             durationMin: u.durationMin,
-            itemCount: flattenItems(u).length,
-            pointsAward: u.pointsAward,
-            pointsRequired: u.pointsRequired,
+            tokensAward: u.tokensAward,
+            tokensRequired: u.tokensRequired,
             status: su?.status ?? null,
             completedAt: su?.completedAt ?? null,
             verifiedAt: su?.verifiedAt ?? null,
@@ -99,7 +98,7 @@ export default async function ProgramPage({
             <div className="h-10 w-px bg-cha-border" />
             <div>
               <div className="text-[11px] font-bold uppercase tracking-wide text-cha-faint">
-                Points
+                Tokens
               </div>
               <div className="font-display text-2xl font-extrabold text-cha-orange">
                 {balance}

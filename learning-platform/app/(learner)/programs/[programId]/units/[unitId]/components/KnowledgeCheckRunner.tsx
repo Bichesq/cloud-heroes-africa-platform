@@ -35,7 +35,7 @@ type SubmitResponse = {
   passed: boolean;
   outcome: "verified" | "retake" | "escalate";
   unitStatus: StudentUnitStatus;
-  pointsAwarded: number;
+  tokensAwarded: number;
 };
 
 const ORDINALS = [
@@ -43,7 +43,6 @@ const ORDINALS = [
 ];
 
 export default function KnowledgeCheckRunner({
-  kcItemId,
   kc,
   initialState,
   unlocked,
@@ -51,13 +50,11 @@ export default function KnowledgeCheckRunner({
   onResult,
   onExit,
 }: {
-  kcItemId: string;
   kc: KnowledgeCheck;
   initialState: KcClientState;
   unlocked: boolean;
-  unitStatus: StudentUnitStatus | null;
   helpContext: TicketContext;
-  onResult: (kcItemId: string, passed: boolean, status: StudentUnitStatus) => void;
+  onResult: (kcId: string, passed: boolean, status: StudentUnitStatus) => void;
   onExit: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>(!unlocked ? "locked" : "intro");
@@ -106,7 +103,7 @@ export default function KnowledgeCheckRunner({
     const data = (await res.json()) as SubmitResponse;
     setResult(data);
     setPhase("result");
-    onResult(kcItemId, data.passed, data.unitStatus);
+    onResult(kc.id, data.passed, data.unitStatus);
   }
 
   function restart() {
@@ -189,8 +186,8 @@ export default function KnowledgeCheckRunner({
               <p className="mt-2 text-cha-muted">
                 You scored {result.correctCount}/{result.total} (
                 {Math.round(result.score * 100)}%)
-                {result.pointsAwarded > 0 && (
-                  <> and earned <span className="font-bold text-cha-orange">+{result.pointsAwarded} points</span></>
+                {result.tokensAwarded > 0 && (
+                  <> and earned <span className="font-bold text-cha-orange">+{result.tokensAwarded} tokens</span></>
                 )}
                 . This unit is now verified — nice work.
               </p>

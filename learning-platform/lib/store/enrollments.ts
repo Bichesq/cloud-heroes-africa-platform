@@ -1,19 +1,30 @@
 import type { Enrollment } from "@/types";
-import { readStore, writeStore } from "./json-store";
+import { prisma } from "@/lib/prisma";
 
-const FILE = "lp-enrollments.json";
-
-export async function getEnrollments(studentId: string): Promise<Enrollment[]> {
-  const all = await readStore<Enrollment>(FILE);
-  return all.filter((e) => e.studentId === studentId);
+function toEnrollment(row: {
+  studentId: string;
+  programId: string;
+  enrolledAt: Date;
+  status: string;
+}): Enrollment {
+  return {
+    studentId: row.studentId,
+    programId: row.programId,
+    enrolledAt: row.enrolledAt.toISOString(),
+    status: row.status as Enrollment["status"],
+  };
 }
 
-export async function isEnrolled(
-  studentId: string,
-  programId: string
-): Promise<boolean> {
-  const enrollments = await getEnrollments(studentId);
-  return enrollments.some((e) => e.programId === programId);
+export async function getEnrollments(studentId: string): Promise<Enrollment[]> {
+  const rows = await prisma.lpEnrollment.findMany({ where: { studentId } });
+  return rows.map(toEnrollment);
+}
+
+export async function isEnrolled(studentId: string, programId: string): Promise<boolean> {
+  const row = await prisma.lpEnrollment.findUnique({
+    where: { studentId_programId: { studentId, programId } },
+  });
+  return row !== null;
 }
 
 /** Students arriving from Student Hub already have an active program on
@@ -29,23 +40,11 @@ export async function ensureDefaultEnrollment(
 }
 
 /** Idempotent enrollment (catalog "Start Program"). */
-export async function enroll(
-  studentId: string,
-  programId: string
-): Promise<Enrollment> {
-  const all = await readStore<Enrollment>(FILE);
-  const existing = all.find(
-    (e) => e.studentId === studentId && e.programId === programId
-  );
-  if (existing) return existing;
-
-  const enrollment: Enrollment = {
-    studentId,
-    programId,
-    enrolledAt: new Date().toISOString(),
-    status: "active",
-  };
-  all.push(enrollment);
-  await writeStore(FILE, all);
-  return enrollment;
+export async function enroll(studentId: string, programId: string): Promise<Enrollment> {
+  const row = await prisma.lpEnrollment.upsert({
+    where: { studentId_programId: { studentId, programId } },
+    create: { studentId, programId },
+    update: {},
+  });
+  return toEnrollment(row);
 }

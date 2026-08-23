@@ -56,6 +56,15 @@ function Block({ block }: { block: ContentBlock }) {
           <code>{block.payload.code}</code>
         </pre>
       );
+    case "video":
+      return (
+        <video
+          src={block.payload.src}
+          poster={block.payload.poster}
+          controls
+          className="w-full rounded-2xl"
+        />
+      );
     case "callout": {
       const tone = block.payload.tone;
       const styles =

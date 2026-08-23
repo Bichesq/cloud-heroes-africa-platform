@@ -2,8 +2,8 @@
 
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { KnowledgeCheck, LpItem, LpSection, StudentUnitStatus, TicketContext } from "@/types";
-import SectionRail from "./SectionRail";
+import type { ContentBlock, KnowledgeCheck, StudentUnitStatus, TicketContext } from "@/types";
+import UnitRail from "./UnitRail";
 import ReadingView from "./ReadingView";
 import KnowledgeCheckRunner from "./KnowledgeCheckRunner";
 import RightPanel from "./RightPanel";
@@ -13,7 +13,11 @@ import ProgressFooter from "./ProgressFooter";
  * Layout (mockup "Unit View (Reading - Learning Material)"): left learning
  * rail (collapsible = focus mode) · center content · right panel with the
  * secondary tabs (Lesson Script / Notes / Assignments / Help) that keep
- * non-essential material out of the main area (decision 2026-07-09). */
+ * non-essential material out of the main area (decision 2026-07-09).
+ *
+ * (2026-08-11: Section/Item are gone — a Unit is one flat reading (its own
+ * contentBlocks) followed by zero or more Knowledge Checks, so the rail's
+ * "views" collapse from a section/item tree down to just those two kinds.) */
 
 export type KcClientState = {
   attemptCount: number;
@@ -27,8 +31,13 @@ export type UnitMeta = {
   title: string;
   order: number;
   description: string;
-  pointsAward: number;
+  heroImage?: string;
+  durationMin: number;
+  tokensAward: number;
+  contentBlocks: ContentBlock[];
 };
+
+type KcEntry = { kc: KnowledgeCheck; state: KcClientState };
 
 type Props = {
   programId: string;
@@ -36,10 +45,8 @@ type Props = {
   moduleId: string;
   moduleTitle: string;
   unit: UnitMeta;
-  sections: LpSection[];
-  kcMap: Record<string, { kc: KnowledgeCheck; state: KcClientState }>;
-  initialItemId: string;
-  initialCompleted: string[];
+  kcs: KcEntry[];
+  initialView: string;
   initialUnitStatus: StudentUnitStatus | null;
   initialNote: string;
   assignments: { id: string; title: string; description: string }[];
@@ -51,54 +58,33 @@ export default function UnitShell({
   moduleId,
   moduleTitle,
   unit,
-  sections,
-  kcMap,
-  initialItemId,
-  initialCompleted,
+  kcs,
+  initialView,
   initialUnitStatus,
   initialNote,
   assignments,
 }: Props) {
   const router = useRouter();
-  const [selectedItemId, setSelectedItemId] = useState(initialItemId);
-  const [completed, setCompleted] = useState<Set<string>>(
-    () => new Set(initialCompleted)
-  );
+  const [view, setView] = useState(initialView);
   const [unitStatus, setUnitStatus] = useState<StudentUnitStatus | null>(
     initialUnitStatus
+  );
+  const [kcStates, setKcStates] = useState<Record<string, KcClientState>>(() =>
+    Object.fromEntries(kcs.map((k) => [k.kc.id, k.state]))
   );
   const [railCollapsed, setRailCollapsed] = useState(false);
   const [advancing, setAdvancing] = useState(false);
 
-  const orderedItems = useMemo(
-    () =>
-      [...sections]
-        .sort((a, b) => a.order - b.order)
-        .flatMap((s) =>
-          [...s.items]
-            .sort((a, b) => a.order - b.order)
-            .map((item) => ({ item, section: s }))
-        ),
-    [sections]
-  );
+  // Content is done once the unit has left "in_progress"/never-started — a
+  // Retake still means the reading itself was finished, only the KC wasn't.
+  const contentDone =
+    unitStatus === "completed" || unitStatus === "verified" || unitStatus === "retake";
+  const kcUnlocked = contentDone;
 
-  const current =
-    orderedItems.find(({ item }) => item.id === selectedItemId) ?? orderedItems[0];
-  const currentIndex = orderedItems.findIndex(
-    ({ item }) => item.id === current.item.id
-  );
-  const nextEntry = orderedItems[currentIndex + 1] ?? null;
-
-  const readingIds = orderedItems
-    .filter(({ item }) => item.type === "reading")
-    .map(({ item }) => item.id);
-  const kcUnlocked = readingIds.every((id) => completed.has(id));
-
-  const progressPct = Math.round(
-    (orderedItems.filter(({ item }) => completed.has(item.id)).length /
-      orderedItems.length) *
-      100
-  );
+  const totalSteps = 1 + kcs.length;
+  const doneSteps =
+    (contentDone ? 1 : 0) + kcs.filter((k) => kcStates[k.kc.id]?.passed).length;
+  const progressPct = Math.round((doneSteps / totalSteps) * 100);
 
   const helpContext: TicketContext = {
     programId,
@@ -109,31 +95,26 @@ export default function UnitShell({
     unitTitle: unit.title,
   };
 
-  const selectItem = useCallback(
-    (itemId: string) => {
-      setSelectedItemId(itemId);
-      // Keep the URL shareable/reload-safe without a server round-trip.
-      window.history.replaceState(null, "", `?item=${itemId}`);
-    },
-    []
-  );
+  const selectView = useCallback((next: string) => {
+    setView(next);
+    // Keep the URL shareable/reload-safe without a server round-trip.
+    window.history.replaceState(null, "", `?view=${next}`);
+  }, []);
 
-  /** "Go to Next Item" — completing a reading is the act of advancing. */
+  /** "Go to Next" — completing the reading is the act of advancing. */
   async function completeAndAdvance() {
     if (advancing) return;
-    const item = current.item;
 
-    if (item.type === "reading" && !completed.has(item.id)) {
+    if (!contentDone) {
       setAdvancing(true);
       try {
         const res = await fetch("/api/progress", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ itemId: item.id }),
+          body: JSON.stringify({ unitId: unit.id }),
         });
         if (res.ok) {
           const data = (await res.json()) as { unitStatus: StudentUnitStatus };
-          setCompleted((prev) => new Set(prev).add(item.id));
           setUnitStatus(data.unitStatus);
         }
       } finally {
@@ -141,75 +122,80 @@ export default function UnitShell({
       }
     }
 
-    if (nextEntry) selectItem(nextEntry.item.id);
+    if (kcs[0]) selectView(kcs[0].kc.id);
     else router.push(`/programs/${programId}`);
   }
 
   /** Called by the KC runner after the attempts API records a result. */
   const onKcResult = useCallback(
-    (kcItemId: string, passed: boolean, newStatus: StudentUnitStatus) => {
+    (kcId: string, passed: boolean, newStatus: StudentUnitStatus) => {
       setUnitStatus(newStatus);
-      if (passed) setCompleted((prev) => new Set(prev).add(kcItemId));
+      setKcStates((prev) => {
+        const previous = prev[kcId];
+        return {
+          ...prev,
+          [kcId]: {
+            attemptCount: previous.attemptCount + 1,
+            failRun: passed ? 0 : previous.failRun + 1,
+            passed: previous.passed || passed,
+          },
+        };
+      });
     },
     []
   );
 
-  const currentKc =
-    current.item.type === "knowledge_check" && current.item.kcId
-      ? kcMap[current.item.kcId]
-      : null;
+  const currentKc = useMemo(
+    () => kcs.find((k) => k.kc.id === view) ?? null,
+    [kcs, view]
+  );
 
   return (
     <div className="flex min-h-0 flex-1 gap-4 px-4 pb-4 pt-4">
-      <SectionRail
+      <UnitRail
         unitTitle={unit.title}
-        sections={sections}
-        selectedItemId={current.item.id}
-        completed={completed}
+        durationMin={unit.durationMin}
+        kcs={kcs.map((k) => ({ id: k.kc.id, title: k.kc.title, questionCount: k.kc.questions.length }))}
+        view={view}
+        contentDone={contentDone}
         kcUnlocked={kcUnlocked}
+        passedKcIds={new Set(kcs.filter((k) => kcStates[k.kc.id]?.passed).map((k) => k.kc.id))}
         collapsed={railCollapsed}
         onToggleCollapsed={() => setRailCollapsed((c) => !c)}
-        onSelect={selectItem}
-        programId={programId}
+        onSelect={selectView}
       />
 
       {/* Center + right panel share one scrolling card row */}
       <div className="flex min-w-0 flex-1 gap-4">
         <div className="cha-card flex min-w-0 flex-1 flex-col overflow-y-auto rounded-2xl">
-          {current.item.type === "reading" ? (
+          {view === "content" ? (
             <ReadingView
               unit={unit}
-              sectionTitle={current.section.title}
-              sectionNumber={current.section.order}
-              item={current.item}
-              isCompleted={completed.has(current.item.id)}
-              isLast={!nextEntry}
+              isCompleted={contentDone}
+              hasKc={kcs.length > 0}
               advancing={advancing}
               onAdvance={completeAndAdvance}
             />
           ) : currentKc ? (
             <KnowledgeCheckRunner
-              key={current.item.id}
-              kcItemId={current.item.id}
+              key={currentKc.kc.id}
               kc={currentKc.kc}
-              initialState={currentKc.state}
+              initialState={kcStates[currentKc.kc.id]}
               unlocked={kcUnlocked}
-              unitStatus={unitStatus}
               helpContext={helpContext}
               onResult={onKcResult}
               onExit={() => router.push(`/programs/${programId}`)}
             />
           ) : (
-            <div className="p-10 text-cha-muted">
-              This item type isn&apos;t available yet.
-            </div>
+            <div className="p-10 text-cha-muted">This view isn&apos;t available.</div>
           )}
 
           <ProgressFooter progressPct={progressPct} unitStatus={unitStatus} />
         </div>
 
         <RightPanel
-          currentItem={current.item as LpItem}
+          unitTitle={unit.title}
+          contentBlocks={unit.contentBlocks}
           unitId={unit.id}
           initialNote={initialNote}
           assignments={assignments}

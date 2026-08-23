@@ -1,103 +1,42 @@
 import type {
-  AssessmentResult,
-  LpItem,
   LpModule,
   LpProgram,
-  LpSection,
   LpUnit,
-  PointsEntry,
   ReadinessLevel,
+  ReadinessResult,
   StudentUnit,
   StudentUnitStatus,
+  TokenEntry,
   UnitGoal,
 } from "@/types";
 
 /* Pure, I/O-free learning-state math (mirrors student-hub/lib/curriculum-utils.ts).
  * Everything takes plain records and returns plain values so it is unit-testable
- * and survives the JSON-store → Postgres swap unchanged. */
+ * and survives the JSON-store → Postgres swap unchanged.
+ *
+ * (2026-08-11: Section/Item are gone — Unit is the leaf content container,
+ * so the item-ordering helpers that used to live here (flattenItems,
+ * nextItem, itemAfter, locateItem, readingItems) have no equivalent and
+ * were removed. See plan Ambiguity #2: there is currently no replacement
+ * signal for "is this unit's content read" below the Unit level — the
+ * progress module (lib/store/progress.ts, app/api/progress/route.ts) now
+ * treats a single client action as marking a whole unit's content done.) */
 
-/* --------------------------- item ordering --------------------------- */
+/* ---------------------------- tokens & locking ------------------------- */
 
-/** All items of a unit in learning order (section order, then item order). */
-export function flattenItems(unit: LpUnit): LpItem[] {
-  return [...unit.sections]
-    .sort((a, b) => a.order - b.order)
-    .flatMap((s) => [...s.items].sort((a, b) => a.order - b.order));
-}
-
-/** Percentage (0–100) of the unit's items the student has completed. */
-export function unitProgress(unit: LpUnit, completedItemIds: Set<string>): number {
-  const items = flattenItems(unit);
-  if (items.length === 0) return 0;
-  const done = items.filter((i) => completedItemIds.has(i.id)).length;
-  return Math.round((done / items.length) * 100);
-}
-
-/** First incomplete item in learning order — powers "Go to Next Item" and
- * resume. Null when every item is done. */
-export function nextItem(
-  unit: LpUnit,
-  completedItemIds: Set<string>
-): LpItem | null {
-  return flattenItems(unit).find((i) => !completedItemIds.has(i.id)) ?? null;
-}
-
-/** The item after `itemId` in learning order (null at the end). */
-export function itemAfter(unit: LpUnit, itemId: string): LpItem | null {
-  const items = flattenItems(unit);
-  const idx = items.findIndex((i) => i.id === itemId);
-  if (idx === -1) return null;
-  return items[idx + 1] ?? null;
-}
-
-export type ItemLocation = {
-  program: LpProgram;
-  module: LpModule;
-  unit: LpUnit;
-  section: LpSection;
-  item: LpItem;
-};
-
-/** Finds where an item lives across all programs (item ids are globally
- * unique). Null if unknown. */
-export function locateItem(
-  programs: LpProgram[],
-  itemId: string
-): ItemLocation | null {
-  for (const program of programs) {
-    for (const module of program.modules) {
-      for (const unit of module.units) {
-        for (const section of unit.sections) {
-          const item = section.items.find((i) => i.id === itemId);
-          if (item) return { program, module, unit, section, item };
-        }
-      }
-    }
-  }
-  return null;
-}
-
-/** Reading items only — unit "Completed" means the content is finished;
- * knowledge checks affect verification, not completion (requirements §4/§6). */
-export function readingItems(unit: LpUnit): LpItem[] {
-  return flattenItems(unit).filter((i) => i.type === "reading");
-}
-
-/* ------------------------- points & locking -------------------------- */
-
-export function pointsBalance(entries: PointsEntry[]): number {
-  return entries.reduce((sum, e) => sum + e.points, 0);
+export function tokensBalance(entries: TokenEntry[]): number {
+  return entries.reduce((sum, e) => sum + e.tokens, 0);
 }
 
 export type UnitAccess = {
   locked: boolean;
-  currentPoints: number;
-  requiredPoints: number;
+  currentTokens: number;
+  requiredTokens: number;
 };
 
-/** Points-based unlocking (decision 2026-07-09): a unit opens once the
- * student's balance reaches its threshold. Verified/completed units never
- * re-lock. */
+/** Token-based unlocking (decision 2026-07-09, renamed §1): a unit opens
+ * once the student's balance reaches its threshold. Verified/completed
+ * units never re-lock. */
 export function unitAccess(
   unit: LpUnit,
   balance: number,
@@ -105,9 +44,9 @@ export function unitAccess(
 ): UnitAccess {
   const started = !!studentUnit;
   return {
-    locked: !started && balance < unit.pointsRequired,
-    currentPoints: balance,
-    requiredPoints: unit.pointsRequired,
+    locked: !started && balance < unit.tokensRequired,
+    currentTokens: balance,
+    requiredTokens: unit.tokensRequired,
   };
 }
 
@@ -123,7 +62,7 @@ export function unitDisplayStatus(
   studentUnit?: StudentUnit
 ): UnitDisplayStatus {
   if (studentUnit) return studentUnit.status;
-  return balance < unit.pointsRequired ? "locked" : "available";
+  return balance < unit.tokensRequired ? "locked" : "available";
 }
 
 export const UNIT_STATUS_LABEL: Record<UnitDisplayStatus, string> = {
@@ -134,6 +73,22 @@ export const UNIT_STATUS_LABEL: Record<UnitDisplayStatus, string> = {
   retake: "Retake",
   verified: "Competent / Verified",
 };
+
+/* ------------------------------ lookup -------------------------------- */
+
+export type UnitLocation = { program: LpProgram; module: LpModule; unit: LpUnit };
+
+/** Finds where a unit lives across all programs (unit ids are globally
+ * unique). Null if unknown. */
+export function locateUnit(programs: LpProgram[], unitId: string): UnitLocation | null {
+  for (const program of programs) {
+    for (const module of program.modules) {
+      const unit = module.units.find((u) => u.id === unitId);
+      if (unit) return { program, module, unit };
+    }
+  }
+  return null;
+}
 
 /* ------------------------ module / program --------------------------- */
 
@@ -274,7 +229,7 @@ export type ReadinessSummary = {
   history: { score: number; level: string | null; submittedAt: string }[];
 };
 
-export function latestReadiness(results: AssessmentResult[]): ReadinessSummary {
+export function latestReadiness(results: ReadinessResult[]): ReadinessSummary {
   const history = [...results]
     .sort((a, b) => a.submittedAt.localeCompare(b.submittedAt))
     .map((r) => ({ score: r.score, level: r.level, submittedAt: r.submittedAt }));

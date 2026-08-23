@@ -7,7 +7,7 @@ import {
   LifeBuoy,
   StickyNote,
 } from "lucide-react";
-import type { LpItem, TicketContext } from "@/types";
+import type { ContentBlock, TicketContext } from "@/types";
 import { blocksToScript } from "@/lib/tts/serialize";
 import HelpModal from "@/components/help/HelpModal";
 
@@ -26,13 +26,15 @@ const TABS: { id: Tab; label: string; icon: typeof FileText }[] = [
 ];
 
 export default function RightPanel({
-  currentItem,
+  unitTitle,
+  contentBlocks,
   unitId,
   initialNote,
   assignments,
   helpContext,
 }: {
-  currentItem: LpItem;
+  unitTitle: string;
+  contentBlocks: ContentBlock[];
   unitId: string;
   initialNote: string;
   assignments: { id: string; title: string; description: string }[];
@@ -67,7 +69,7 @@ export default function RightPanel({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto p-5">
-        {tab === "script" && <ScriptTab item={currentItem} />}
+        {tab === "script" && <ScriptTab title={unitTitle} blocks={contentBlocks} />}
         {tab === "notes" && <NotesTab unitId={unitId} initialNote={initialNote} />}
         {tab === "assignments" && <AssignmentsTab assignments={assignments} />}
       </div>
@@ -79,24 +81,12 @@ export default function RightPanel({
 
 /* ------------------------------ Script ------------------------------ */
 
-function ScriptTab({ item }: { item: LpItem }) {
-  const script = useMemo(
-    () => (item.blocks ? blocksToScript(item.blocks) : ""),
-    [item]
-  );
-
-  if (item.type !== "reading") {
-    return (
-      <p className="text-sm text-cha-muted">
-        The lesson script belongs to reading items — open a reading to see its
-        full text here.
-      </p>
-    );
-  }
+function ScriptTab({ title, blocks }: { title: string; blocks: ContentBlock[] }) {
+  const script = useMemo(() => blocksToScript(blocks), [blocks]);
 
   return (
     <div>
-      <h3 className="text-[13px] font-bold">{item.title}</h3>
+      <h3 className="text-[13px] font-bold">{title}</h3>
       <div className="mt-3 flex flex-col gap-3 text-[13px] leading-relaxed text-cha-muted">
         {script.split("\n\n").map((para, i) => (
           <p key={i}>{para}</p>

@@ -1,17 +1,34 @@
-import { randomUUID } from "crypto";
 import type { KcAttempt } from "@/types";
-import { readStore, writeStore } from "./json-store";
+import { prisma } from "@/lib/prisma";
 
-const FILE = "lp-kc-attempts.json";
+function toKcAttempt(row: {
+  id: string;
+  studentId: string;
+  kcId: string;
+  attemptNo: number;
+  answers: unknown;
+  score: unknown;
+  passed: boolean;
+  createdAt: Date;
+}): KcAttempt {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    kcId: row.kcId,
+    attemptNo: row.attemptNo,
+    answers: row.answers as Record<string, string | null>,
+    score: Number(row.score),
+    passed: row.passed,
+    createdAt: row.createdAt.toISOString(),
+  };
+}
 
-export async function getAttempts(
-  studentId: string,
-  kcId: string
-): Promise<KcAttempt[]> {
-  const all = await readStore<KcAttempt>(FILE);
-  return all
-    .filter((a) => a.studentId === studentId && a.kcId === kcId)
-    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+export async function getAttempts(studentId: string, kcId: string): Promise<KcAttempt[]> {
+  const rows = await prisma.lpKcAttempt.findMany({
+    where: { studentId, kcId },
+    orderBy: { createdAt: "asc" },
+  });
+  return rows.map(toKcAttempt);
 }
 
 export async function recordAttempt(params: {
@@ -21,17 +38,19 @@ export async function recordAttempt(params: {
   score: number;
   passed: boolean;
 }): Promise<KcAttempt> {
-  const all = await readStore<KcAttempt>(FILE);
   const attemptNo =
-    all.filter((a) => a.studentId === params.studentId && a.kcId === params.kcId)
-      .length + 1;
-  const attempt: KcAttempt = {
-    id: randomUUID(),
-    attemptNo,
-    createdAt: new Date().toISOString(),
-    ...params,
-  };
-  all.push(attempt);
-  await writeStore(FILE, all);
-  return attempt;
+    (await prisma.lpKcAttempt.count({
+      where: { studentId: params.studentId, kcId: params.kcId },
+    })) + 1;
+  const row = await prisma.lpKcAttempt.create({
+    data: {
+      studentId: params.studentId,
+      kcId: params.kcId,
+      attemptNo,
+      answers: params.answers,
+      score: params.score,
+      passed: params.passed,
+    },
+  });
+  return toKcAttempt(row);
 }

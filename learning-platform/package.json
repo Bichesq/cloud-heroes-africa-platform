@@ -6,12 +6,16 @@
     "dev": "next dev -p 3001",
     "build": "next build",
     "start": "next start -p 3001",
-    "lint": "eslint"
+    "lint": "eslint",
+    "prisma:generate": "prisma generate",
+    "migrate:lp": "tsx scripts/migrate-to-postgres.ts",
+    "test": "vitest run"
   },
   "dependencies": {
     "@heroui/react": "^3.2.1",
     "@heroui/styles": "^3.2.1",
     "@internationalized/date": "^3.12.2",
+    "@prisma/client": "^6",
     "lucide-react": "^1.23.0",
     "next": "16.2.9",
     "next-auth": "^5.0.0-beta.31",
@@ -25,9 +29,13 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^16",
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
+    "prisma": "^6",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4",
+    "typescript": "^5",
+    "vitest": "^2"
   }
 }
