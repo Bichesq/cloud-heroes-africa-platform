@@ -43,6 +43,11 @@ next-env.d.ts
 # local env files
 .env.local
 
+# copied by ../scripts/sync-shared-prisma.mjs — edit prisma-shared/*.prisma
+# instead (docs/plan/2026-08-23-centralize-shared-data.md)
+/prisma/schema/platform-core-models.prisma
+/prisma/schema/student-hub-local-models.prisma
+
 # data files
 data/approved-emails.json
 data/students.json

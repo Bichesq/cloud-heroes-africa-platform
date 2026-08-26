@@ -1,94 +1,80 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
-import type { Student } from "@/types";
-import { sharedDataPath } from "./shared-data";
+import type { Student as PrismaStudent } from "@prisma/client";
+import type { MfaMethod, Passkey, Student } from "@/types";
+import { prisma } from "./prisma";
 
-/* Shared student registry (repo-root data/students.json) — the same records
- * Student Hub maintains. LP upserts on login (mirror of student-hub
- * lib/mock-api.ts) and otherwise only reads. Profile editing stays in
- * Student Hub. */
-
-const FILE = sharedDataPath("students.json");
+/* Shared student registry. Prisma-backed (model in
+ * prisma-shared/platform-core-models.prisma) — replaces the repo-root
+ * data/students.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. student-hub is the SOLE
+ * authoritative writer for Student rows (2026-08-24 decision in that plan)
+ * — upsertStudent below calls student-hub's
+ * /api/integration/students API instead of writing to Postgres directly,
+ * fixing the pre-existing split-brain-writer problem where both apps
+ * independently upserted the same row. getStudent stays a direct Prisma
+ * read — LP's own relational access to Student is unaffected. */
 
 /** Matches student-hub's DEFAULT_PROGRAM_ID so the two surfaces agree on the
  * default enrollment. */
 export const DEFAULT_PROGRAM_ID = "cloud-practitioner";
 
-/** Fill defaults for fields added after a record was written. */
-function normalize(s: Student): Student {
+function toStudent(row: PrismaStudent): Student {
   return {
-    ...s,
-    photoPublic: s.photoPublic ?? true,
-    countryPublic: s.countryPublic ?? true,
-    mfaMethods: s.mfaMethods ?? [],
-    passkeys: s.passkeys ?? [],
-    activeProgramId: s.activeProgramId ?? DEFAULT_PROGRAM_ID,
-    status: s.status ?? "active",
+    id: row.id,
+    approvedEmailId: row.approvedEmailId,
+    email: row.email,
+    givenName: row.givenName,
+    familyName: row.familyName,
+    legalName: row.legalName ?? undefined,
+    displayName: row.displayName ?? undefined,
+    phone: row.phone ?? undefined,
+    alternateEmail: row.alternateEmail ?? undefined,
+    birthDate: row.birthDate ?? undefined,
+    city: row.city ?? undefined,
+    country: row.country ?? undefined,
+    timezone: row.timezone ?? undefined,
+    track: row.track ?? undefined,
+    avatarUrl: row.avatarUrl ?? undefined,
+    photoPublic: row.photoPublic,
+    countryPublic: row.countryPublic,
+    mfaMethods: (row.mfaMethods as MfaMethod[]) ?? [],
+    passkeys: (row.passkeys as Passkey[]) ?? [],
+    activeProgramId: row.activeProgramId ?? undefined,
+    status: row.status,
+    lastLogin: row.lastLogin.toISOString(),
+    profileCompletedAt: row.profileCompletedAt ? row.profileCompletedAt.toISOString() : null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
   };
 }
 
-async function read(): Promise<Student[]> {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    return (JSON.parse(raw) as Student[]).map(normalize);
-  } catch {
-    return [];
-  }
-}
-
-async function write(students: Student[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(students, null, 2));
-}
-
-// Called on every login — creates Student on first login,
-// updates lastLogin on subsequent logins (same contract as Student Hub).
+// Called on every login — creates Student on first login (via student-hub's
+// API), updates lastLogin on subsequent logins (same contract as before).
 export async function upsertStudent(params: {
   email: string;
   givenName: string;
   familyName: string;
   approvedEmailId: string;
 }): Promise<{ student: Student; isNew: boolean }> {
-  const students = await read();
-  const now = new Date().toISOString();
-  const existing = students.find(
-    (s) => s.email.toLowerCase() === params.email.toLowerCase()
+  const res = await fetch(
+    `${process.env.NEXT_PUBLIC_STUDENT_HUB_URL}/api/integration/students`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-integration-token": process.env.INTEGRATION_TOKEN ?? "",
+      },
+      body: JSON.stringify(params),
+    }
   );
 
-  if (existing) {
-    existing.lastLogin = now;
-    existing.updatedAt = now;
-    await write(students);
-    return { student: existing, isNew: false };
+  if (!res.ok) {
+    throw new Error(`student-hub upsertStudent failed: ${res.status} ${await res.text()}`);
   }
 
-  const newStudent: Student = {
-    id: randomUUID(),
-    approvedEmailId: params.approvedEmailId,
-    email: params.email.toLowerCase(),
-    givenName: params.givenName,
-    familyName: params.familyName,
-    photoPublic: true,
-    countryPublic: true,
-    mfaMethods: [],
-    passkeys: [],
-    activeProgramId: DEFAULT_PROGRAM_ID,
-    status: "active",
-    lastLogin: now,
-    profileCompletedAt: null,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  students.push(newStudent);
-  await write(students);
-  return { student: newStudent, isNew: true };
+  return res.json();
 }
 
 export async function getStudent(email: string): Promise<Student | null> {
-  const students = await read();
-  return (
-    students.find((s) => s.email.toLowerCase() === email.toLowerCase()) ?? null
-  );
+  const row = await prisma.student.findUnique({ where: { email: email.toLowerCase() } });
+  return row ? toStudent(row) : null;
 }

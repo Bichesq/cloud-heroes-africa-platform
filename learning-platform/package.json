@@ -7,8 +7,11 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint",
-    "prisma:generate": "prisma generate",
+    "prisma:sync": "node ../scripts/sync-shared-prisma.mjs",
+    "prisma:generate": "npm run prisma:sync && prisma generate",
+    "prisma:migrate": "npm run prisma:sync && prisma migrate dev",
     "migrate:lp": "tsx scripts/migrate-to-postgres.ts",
+    "migrate:shared": "tsx scripts/migrate-shared-data.ts",
     "test": "vitest run"
   },
   "dependencies": {

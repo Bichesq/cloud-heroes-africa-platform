@@ -25,3 +25,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# copied by ../scripts/sync-shared-prisma.mjs — edit prisma-shared/*.prisma
+# instead (docs/plan/2026-08-23-centralize-shared-data.md)
+/prisma/schema/platform-core-models.prisma
+/prisma/schema/student-hub-local-models.prisma

@@ -1,27 +1,37 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
+import type { SupportTicket as PrismaSupportTicket } from "@prisma/client";
 import type { SupportTicket, TicketContext } from "@/types";
-import { sharedDataPath } from "./shared-data";
+import { prisma } from "./prisma";
 
 /* Trimmed copy of student-hub/lib/support-tickets.ts pointed at the SHARED
- * repo-root store — LP files tickets into the same queue Help Desk reads
- * (requirement §10: LP does not run its own ticketing engine). Only creation
- * lives here; ticket management stays in Student Hub / Help Desk. */
+ * `support_tickets` table (Prisma model in
+ * prisma-shared/platform-core-models.prisma) — replaces the repo-root
+ * data/support-tickets.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. LP files tickets into the
+ * same queue Help Desk reads (requirement §10: LP does not run its own
+ * ticketing engine). Only creation lives here; ticket management stays in
+ * Student Hub / Help Desk. */
 
-const FILE = sharedDataPath("support-tickets.json");
-
-async function readAll(): Promise<SupportTicket[]> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf-8")) as SupportTicket[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(tickets: SupportTicket[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(tickets, null, 2));
+function toSupportTicket(row: PrismaSupportTicket): SupportTicket {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    desk: row.desk,
+    categoryId: row.categoryId,
+    topic: row.topic,
+    description: row.description,
+    preferredChannel: row.preferredChannel,
+    status: row.status,
+    statusLog: row.statusLog as SupportTicket["statusLog"],
+    assignedTo: row.assignedTo,
+    resolvedBy: row.resolvedBy,
+    resolutionSummary: row.resolutionSummary,
+    context: row.context as TicketContext,
+    closedAt: row.closedAt ? row.closedAt.toISOString() : null,
+    contactName: row.contactName,
+    contactEmail: row.contactEmail,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function createTicket(input: {
@@ -32,29 +42,24 @@ export async function createTicket(input: {
   preferredChannel: string | null;
   context: TicketContext;
 }): Promise<SupportTicket> {
-  const all = await readAll();
-  const now = new Date().toISOString();
-  const ticket: SupportTicket = {
-    id: randomUUID(),
-    studentId: input.studentId,
-    desk: "help",
-    categoryId: input.categoryId,
-    topic: input.topic,
-    description: input.description,
-    preferredChannel: input.preferredChannel,
-    status: "open",
-    statusLog: [{ status: "open", at: now }],
-    assignedTo: null,
-    resolvedBy: null,
-    resolutionSummary: null,
-    context: input.context,
-    closedAt: null,
-    contactName: null,
-    contactEmail: null,
-    createdAt: now,
-    updatedAt: now,
-  };
-  all.push(ticket);
-  await writeAll(all);
-  return ticket;
+  const row = await prisma.supportTicket.create({
+    data: {
+      studentId: input.studentId,
+      desk: "help",
+      categoryId: input.categoryId,
+      topic: input.topic,
+      description: input.description,
+      preferredChannel: input.preferredChannel,
+      status: "open",
+      statusLog: [{ status: "open", at: new Date().toISOString() }],
+      assignedTo: null,
+      resolvedBy: null,
+      resolutionSummary: null,
+      context: input.context as object,
+      closedAt: null,
+      contactName: null,
+      contactEmail: null,
+    },
+  });
+  return toSupportTicket(row);
 }

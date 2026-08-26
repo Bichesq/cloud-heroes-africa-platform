@@ -1,0 +1,19 @@
+// student-hub's own Prisma project — generates a client against the SAME
+// `learning_platform` Postgres database learning-platform migrates (topology
+// decision, docs/plan/2026-08-23-centralize-shared-data.md). This project
+// NEVER runs `prisma migrate` — only `prisma generate` (see
+// package.json#scripts and that plan's migration-ownership decision).
+//
+// All models live in sibling files copied in from prisma-shared/ by
+// scripts/sync-shared-prisma.mjs (run automatically by `npm run
+// prisma:generate`) — this file holds only the datasource/generator blocks,
+// which multi-file schema requires to live in exactly one file per project.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

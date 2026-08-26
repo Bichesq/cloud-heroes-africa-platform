@@ -1,16 +1,11 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
+import { prisma } from "./prisma";
 
 /* Append-only audit trail for profile/MFA changes, per the requirements'
  * "Audit & Logging" section: student, fields changed, old/new values,
- * timestamp, actor. JSON-file store to match the rest of the POC. */
-
-/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
- * repo-root data/ directory, not the app-local one. */
-const SHARED_DIR =
-  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
-const FILE = path.join(SHARED_DIR, "audit-log.json");
+ * timestamp, actor. Prisma-backed (model in
+ * prisma-shared/platform-core-models.prisma) — replaces the repo-root
+ * data/audit-log.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. */
 
 export type AuditChange = { field: string; from: unknown; to: unknown };
 
@@ -41,15 +36,15 @@ export async function logAudit(
 ): Promise<void> {
   if (entry.changes.length === 0) return;
   try {
-    let log: AuditEntry[] = [];
-    try {
-      log = JSON.parse(await fs.readFile(FILE, "utf-8"));
-    } catch {
-      // first entry — file doesn't exist yet
-    }
-    log.push({ ...entry, id: randomUUID(), timestamp: new Date().toISOString() });
-    await fs.mkdir(path.dirname(FILE), { recursive: true });
-    await fs.writeFile(FILE, JSON.stringify(log, null, 2));
+    await prisma.auditEntry.create({
+      data: {
+        studentId: entry.studentId,
+        actor: entry.actor,
+        actorRole: entry.actorRole,
+        action: entry.action,
+        changes: entry.changes as object,
+      },
+    });
   } catch (err) {
     console.error("audit log write failed:", err);
   }

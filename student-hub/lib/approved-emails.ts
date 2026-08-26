@@ -1,38 +1,34 @@
-import { promises as fs } from "fs";
-import path from "path";
+import type { ApprovedEmail as PrismaApprovedEmail } from "@prisma/client";
 import type { ApprovedEmail } from "@/types";
+import { prisma } from "./prisma";
 
-/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
- * repo-root data/ directory, not the app-local one. */
-const SHARED_DIR =
-  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
-const FILE = path.join(SHARED_DIR, "approved-emails.json");
+/* Admin-managed allowlist gating Google sign-in on both apps. Prisma-backed
+ * (model in prisma-shared/platform-core-models.prisma) — replaces the
+ * repo-root data/approved-emails.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. Same exported signatures
+ * as before, so callers (auth.config.ts, admin tooling) don't change. */
 
-async function read(): Promise<ApprovedEmail[]> {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    return JSON.parse(raw);
-  } catch {
-    return [];
-  }
-}
-
-async function write(records: ApprovedEmail[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(records, null, 2));
+function toApprovedEmail(row: PrismaApprovedEmail): ApprovedEmail {
+  return {
+    id: row.id,
+    email: row.email,
+    status: row.status,
+    source: row.source,
+    notes: row.notes,
+    createdBy: row.createdBy,
+    createdAt: row.createdAt.toISOString(),
+    updatedBy: row.updatedBy,
+    updatedAt: row.updatedAt ? row.updatedAt.toISOString() : null,
+  };
 }
 
 export async function findApprovedEmail(
   email: string
 ): Promise<ApprovedEmail | null> {
-  const records = await read();
-  return (
-    records.find(
-      (r) =>
-        r.email.toLowerCase() === email.toLowerCase() &&
-        r.status === "approved"
-    ) ?? null
-  );
+  const row = await prisma.approvedEmail.findFirst({
+    where: { email: email.toLowerCase(), status: "approved" },
+  });
+  return row ? toApprovedEmail(row) : null;
 }
 
 export async function revokeEmail(
@@ -40,19 +36,13 @@ export async function revokeEmail(
   updatedBy: string,
   notes?: string
 ): Promise<void> {
-  const records = await read();
-  const index = records.findIndex(
-    (r) => r.email.toLowerCase() === email.toLowerCase()
-  );
-  if (index === -1) return;
-
-  records[index] = {
-    ...records[index],
-    status: "revoked",
-    notes: notes ?? records[index].notes,
-    updatedBy,
-    updatedAt: new Date().toISOString(),
-  };
-
-  await write(records);
+  await prisma.approvedEmail.updateMany({
+    where: { email: email.toLowerCase() },
+    data: {
+      status: "revoked",
+      ...(notes !== undefined ? { notes } : {}),
+      updatedBy,
+      updatedAt: new Date(),
+    },
+  });
 }

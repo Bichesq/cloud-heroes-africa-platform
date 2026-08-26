@@ -1,40 +1,44 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
-import type { Student } from "@/types";
+import type { Prisma, Student as PrismaStudent } from "@prisma/client";
+import type { MfaMethod, Passkey, Student } from "@/types";
+import { prisma } from "./prisma";
 import { DEFAULT_PROGRAM_ID } from "./curriculum";
 
-/* Shared across app surfaces (Student Hub, Learning Platform) — lives in the
- * repo-root data/ directory, not the app-local one. */
-const SHARED_DIR =
-  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
-const FILE = path.join(SHARED_DIR, "students.json");
+/* Student registry. Prisma-backed (model in
+ * prisma-shared/platform-core-models.prisma) — replaces the repo-root
+ * data/students.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. student-hub is the SOLE
+ * authoritative writer for Student rows (2026-08-24 decision in that plan);
+ * learning-platform's own writes go through
+ * app/api/integration/students/route.ts instead of a direct Prisma write. */
 
-/** Fill defaults for fields added after a record was written. */
-function normalize(s: Student): Student {
+function toStudent(row: PrismaStudent): Student {
   return {
-    ...s,
-    photoPublic: s.photoPublic ?? true,
-    countryPublic: s.countryPublic ?? true,
-    mfaMethods: s.mfaMethods ?? [],
-    passkeys: s.passkeys ?? [],
-    activeProgramId: s.activeProgramId ?? DEFAULT_PROGRAM_ID,
-    status: s.status ?? "active",
+    id: row.id,
+    approvedEmailId: row.approvedEmailId,
+    email: row.email,
+    givenName: row.givenName,
+    familyName: row.familyName,
+    legalName: row.legalName ?? undefined,
+    displayName: row.displayName ?? undefined,
+    phone: row.phone ?? undefined,
+    alternateEmail: row.alternateEmail ?? undefined,
+    birthDate: row.birthDate ?? undefined,
+    city: row.city ?? undefined,
+    country: row.country ?? undefined,
+    timezone: row.timezone ?? undefined,
+    track: row.track ?? undefined,
+    avatarUrl: row.avatarUrl ?? undefined,
+    photoPublic: row.photoPublic,
+    countryPublic: row.countryPublic,
+    mfaMethods: (row.mfaMethods as MfaMethod[]) ?? [],
+    passkeys: (row.passkeys as Passkey[]) ?? [],
+    activeProgramId: row.activeProgramId ?? undefined,
+    status: row.status,
+    lastLogin: row.lastLogin.toISOString(),
+    profileCompletedAt: row.profileCompletedAt ? row.profileCompletedAt.toISOString() : null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
   };
-}
-
-async function read(): Promise<Student[]> {
-  try {
-    const raw = await fs.readFile(FILE, "utf-8");
-    return (JSON.parse(raw) as Student[]).map(normalize);
-  } catch {
-    return [];
-  }
-}
-
-async function write(students: Student[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(students, null, 2));
 }
 
 // Called on every login — creates Student on first login,
@@ -45,100 +49,89 @@ export async function upsertStudent(params: {
   familyName: string;
   approvedEmailId: string;
 }): Promise<{ student: Student; isNew: boolean }> {
-  const students = await read();
-  const now = new Date().toISOString();
-  const existing = students.find(
-    (s) => s.email.toLowerCase() === params.email.toLowerCase()
-  );
+  const email = params.email.toLowerCase();
+  const existing = await prisma.student.findUnique({ where: { email } });
 
   if (existing) {
-    // Returning student — update lastLogin only
-    existing.lastLogin = now;
-    existing.updatedAt = now;
-    await write(students);
-    return { student: existing, isNew: false };
+    const updated = await prisma.student.update({
+      where: { email },
+      data: { lastLogin: new Date() },
+    });
+    return { student: toStudent(updated), isNew: false };
   }
 
-  // First login — auto-create Student record
-  const newStudent: Student = {
-    id: randomUUID(),
-    approvedEmailId: params.approvedEmailId,
-    email: params.email.toLowerCase(),
-    givenName: params.givenName,
-    familyName: params.familyName,
-    photoPublic: true,
-    countryPublic: true,
-    mfaMethods: [],
-    passkeys: [],
-    activeProgramId: DEFAULT_PROGRAM_ID,
-    status: "active",
-    lastLogin: now,
-    profileCompletedAt: null,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  students.push(newStudent);
-  await write(students);
-  return { student: newStudent, isNew: true };
+  const created = await prisma.student.create({
+    data: {
+      approvedEmailId: params.approvedEmailId,
+      email,
+      givenName: params.givenName,
+      familyName: params.familyName,
+      photoPublic: true,
+      countryPublic: true,
+      mfaMethods: [],
+      passkeys: [],
+      activeProgramId: DEFAULT_PROGRAM_ID,
+      status: "active",
+      lastLogin: new Date(),
+      profileCompletedAt: null,
+    },
+  });
+  return { student: toStudent(created), isNew: true };
 }
 
 export async function getStudent(email: string): Promise<Student | null> {
-  const students = await read();
-  return (
-    students.find((s) => s.email.toLowerCase() === email.toLowerCase()) ?? null
-  );
+  const row = await prisma.student.findUnique({ where: { email: email.toLowerCase() } });
+  return row ? toStudent(row) : null;
 }
 
 export async function updateStudentProfile(
   email: string,
   profile: Partial<Student>
 ): Promise<Student | null> {
-  const students = await read();
-  const index = students.findIndex(
-    (s) => s.email.toLowerCase() === email.toLowerCase()
-  );
-  if (index === -1) return null;
-
-  const now = new Date().toISOString();
-
-  const merged: Student = {
-    ...students[index],
-    ...profile,
-    email: students[index].email,         // never overwrite email
-    id: students[index].id,               // never overwrite id
-    approvedEmailId: students[index].approvedEmailId, // never overwrite FK
-    updatedAt: now,
-  };
+  const existing = await prisma.student.findUnique({ where: { email: email.toLowerCase() } });
+  if (!existing) return null;
 
   // Completion is judged on the merged record (partial updates — e.g. a
   // single privacy toggle — must not prevent completion). Set once, never reset.
-  merged.profileCompletedAt =
-    students[index].profileCompletedAt ??
+  const merged = { ...toStudent(existing), ...profile };
+  const profileCompletedAt =
+    existing.profileCompletedAt ??
     (merged.legalName && merged.city && merged.country && merged.birthDate && merged.phone
-      ? now
+      ? new Date()
       : null);
 
-  students[index] = merged;
-  await write(students);
-  return students[index];
+  const data: Prisma.StudentUpdateInput = {
+    ...(profile.givenName !== undefined ? { givenName: profile.givenName } : {}),
+    ...(profile.familyName !== undefined ? { familyName: profile.familyName } : {}),
+    ...(profile.legalName !== undefined ? { legalName: profile.legalName } : {}),
+    ...(profile.displayName !== undefined ? { displayName: profile.displayName } : {}),
+    ...(profile.timezone !== undefined ? { timezone: profile.timezone } : {}),
+    ...(profile.alternateEmail !== undefined ? { alternateEmail: profile.alternateEmail } : {}),
+    ...(profile.country !== undefined ? { country: profile.country } : {}),
+    ...(profile.city !== undefined ? { city: profile.city } : {}),
+    ...(profile.phone !== undefined ? { phone: profile.phone } : {}),
+    ...(profile.birthDate !== undefined ? { birthDate: profile.birthDate } : {}),
+    ...(profile.track !== undefined ? { track: profile.track } : {}),
+    ...(profile.avatarUrl !== undefined ? { avatarUrl: profile.avatarUrl } : {}),
+    ...(profile.photoPublic !== undefined ? { photoPublic: profile.photoPublic } : {}),
+    ...(profile.countryPublic !== undefined ? { countryPublic: profile.countryPublic } : {}),
+    ...(profile.mfaMethods !== undefined ? { mfaMethods: profile.mfaMethods as object } : {}),
+    ...(profile.passkeys !== undefined ? { passkeys: profile.passkeys as object } : {}),
+    ...(profile.activeProgramId !== undefined ? { activeProgramId: profile.activeProgramId } : {}),
+    ...(profile.status !== undefined ? { status: profile.status } : {}),
+    profileCompletedAt,
+  };
+
+  const updated = await prisma.student.update({ where: { email: email.toLowerCase() }, data });
+  return toStudent(updated);
 }
 
 export async function banStudent(
   email: string,
   updatedBy: string
 ): Promise<void> {
-  const students = await read();
-  const index = students.findIndex(
-    (s) => s.email.toLowerCase() === email.toLowerCase()
-  );
-  if (index === -1) return;
-
-  students[index] = {
-    ...students[index],
-    status: "banned",
-    updatedAt: new Date().toISOString(),
-  };
-
-  await write(students);
+  await prisma.student.updateMany({
+    where: { email: email.toLowerCase() },
+    data: { status: "banned" },
+  });
 }

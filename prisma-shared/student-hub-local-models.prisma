@@ -1,0 +1,81 @@
+// ============================================================================
+// student-hub's own local models (todos, events, mock program catalog +
+// progress). Live in the shared `learning_platform` Postgres database
+// (topology decision, docs/plan/2026-08-23-centralize-shared-data.md) and
+// migrated exclusively by learning-platform's Prisma project, but declared
+// here — copied into BOTH apps' prisma/schema/ folders by
+// scripts/sync-shared-prisma.mjs — so student-hub's own Prisma Client has
+// typed access without hand-duplicating these 4 models a second time.
+//
+// DO NOT hand-edit the copies under learning-platform/prisma/schema/ or
+// student-hub/prisma/schema/ — edit this file and re-run the sync script.
+// ============================================================================
+
+enum TodoSource {
+  student
+  system
+
+  @@map("todo_source")
+}
+
+// `id` is plain text, not `@db.Uuid` — legacy seed todos use non-UUID ids
+// ("t1", "t2", ...).
+model Todo {
+  id              String     @id @default(uuid())
+  studentId       String     @map("student_id") @db.Uuid
+  title           String
+  dueDate         String?    @map("due_date")
+  link            String?
+  source          TodoSource @default(student)
+  completedAt     DateTime?  @map("completed_at")
+  dismissedAt     DateTime?  @map("dismissed_at")
+  dismissedReason String?    @map("dismissed_reason")
+  createdAt       DateTime   @default(now()) @map("created_at")
+  updatedAt       DateTime   @updatedAt @map("updated_at")
+
+  @@map("todos")
+}
+
+enum LearningEventType {
+  learning
+  community
+  other
+
+  @@map("learning_event_type")
+}
+
+/// Seed/admin content — students don't create events in this POC, so no
+/// studentId and no auto-generated id (ids are hand-authored like "e1").
+model Event {
+  id          String            @id
+  type        LearningEventType
+  title       String
+  description String
+  start       DateTime
+  end         DateTime
+  link        String?
+
+  @@map("events")
+}
+
+/// student-hub's mock program catalog — independent from learning-platform's
+/// real catalog (docs/plan/2026-08-23-centralize-shared-data.md Out of
+/// Scope: reconciling the two is a separate, larger change). Static demo
+/// content read wholesale via getProgram(), so the whole modules/units tree
+/// is stored as one Json blob rather than normalized into real tables.
+model ShMockProgram {
+  id      String @id
+  title   String
+  modules Json   @default("[]")
+
+  @@map("sh_mock_programs")
+}
+
+model ShUnitCompletion {
+  studentId   String   @map("student_id") @db.Uuid
+  unitId      String   @map("unit_id")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  @@id([studentId, unitId])
+  @@map("sh_unit_completions")
+}

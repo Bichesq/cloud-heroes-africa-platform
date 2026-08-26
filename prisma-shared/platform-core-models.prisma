@@ -1,0 +1,171 @@
+// ============================================================================
+// Shared Prisma models — single source of truth for the 4 models used across
+// app surfaces (student-hub, learning-platform), per
+// docs/plan/2026-08-23-centralize-shared-data.md step 1 and
+// docs/shared-schema-audit.md §2.
+//
+// This file has NO `datasource`/`generator` block (multi-file schema, GA
+// since Prisma 6.7.0 — no previewFeatures flag needed at the installed
+// 6.19.3). It is copied — not symlinked — into each consuming app's
+// prisma/schema/ folder by scripts/sync-shared-prisma.mjs, run before every
+// `prisma generate`/`prisma migrate`. Symlinks were the original plan, but
+// this checkout has `core.symlinks=false` and no .gitattributes override
+// (verified 2026-08-26), which would silently degrade a symlink into a
+// plain text file containing the link target — the copy-script fallback the
+// plan calls for is used instead.
+//
+// DO NOT hand-edit the copies under learning-platform/prisma/schema/ or
+// student-hub/prisma/schema/ — edit this file and re-run the sync script.
+//
+// Migration ownership: learning-platform is the sole runner of
+// `prisma migrate` against these tables (see docs/decision-log.md's
+// 2026-08-24 "Shared-data access pattern" entry) — student-hub only ever
+// runs `prisma generate` against this same schema text.
+// ============================================================================
+
+enum ApprovedEmailStatus {
+  approved
+  revoked
+  pending
+
+  @@map("approved_email_status")
+}
+
+enum ApprovedEmailSource {
+  form
+  manual
+  import
+
+  @@map("approved_email_source")
+}
+
+/// Admin-managed allowlist gating Google sign-in on both apps. Read-only in
+/// practice today (bucket B per the audit) — kept as a shared Prisma model
+/// rather than a DTO+API for now since no owning "Administration" app exists
+/// yet to host that endpoint (see the audit's Out-of-scope note).
+model ApprovedEmail {
+  id        String              @id @default(uuid())
+  email     String              @unique
+  status    ApprovedEmailStatus @default(pending)
+  source    ApprovedEmailSource
+  notes     String              @default("")
+  createdBy String              @map("created_by")
+  createdAt DateTime            @default(now()) @map("created_at")
+  updatedBy String?             @map("updated_by")
+  updatedAt DateTime?           @map("updated_at")
+
+  @@map("approved_emails")
+}
+
+enum StudentStatus {
+  active
+  banned
+
+  @@map("student_status")
+}
+
+/// Shared student registry. student-hub is the SOLE authoritative writer
+/// (2026-08-24 decision, docs/plan/2026-08-23-centralize-shared-data.md) —
+/// learning-platform only reads this model directly; its own writes go
+/// through student-hub's /api/integration/students endpoint. mfaMethods/
+/// passkeys stay Json (small, always read/written as a whole array, no
+/// relational query need).
+model Student {
+  id                 String    @id @default(uuid()) @db.Uuid
+  approvedEmailId    String    @map("approved_email_id") @db.Uuid
+  email              String    @unique
+  givenName          String    @map("given_name")
+  familyName         String    @map("family_name")
+  legalName          String?   @map("legal_name")
+  displayName        String?   @map("display_name")
+  phone              String?
+  alternateEmail     String?   @map("alternate_email")
+  birthDate          String?   @map("birth_date")
+  city               String?
+  country            String?
+  timezone           String?
+  track              String?
+  avatarUrl          String?   @map("avatar_url")
+  photoPublic        Boolean   @default(true) @map("photo_public")
+  countryPublic      Boolean   @default(true) @map("country_public")
+  mfaMethods         Json      @default("[]") @map("mfa_methods")
+  passkeys           Json      @default("[]")
+  activeProgramId    String?   @map("active_program_id")
+  status             StudentStatus @default(active)
+  lastLogin          DateTime  @map("last_login")
+  profileCompletedAt DateTime? @map("profile_completed_at")
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  @@map("students")
+}
+
+enum SupportDesk {
+  help
+  service
+
+  @@map("support_desk")
+}
+
+enum TicketStatus {
+  open
+  pending
+  responded
+  resolved
+  cancelled
+
+  @@map("ticket_status")
+}
+
+/// Help Desk / Service Desk tickets. learning-platform only ever creates
+/// tickets (bucket B, write-once — see the audit); student-hub runs the
+/// real ticketing engine (read/list/status-transition) against this same
+/// model. `id` is plain text, not `@db.Uuid` — legacy seed tickets use
+/// non-UUID ids ("st-0001"), unlike ApprovedEmail (all ids freshly
+/// reassigned during migration, see decision above).
+model SupportTicket {
+  id                String        @id @default(uuid())
+  studentId         String?       @map("student_id") @db.Uuid
+  desk              SupportDesk
+  categoryId        String        @map("category_id")
+  topic             String
+  description       String
+  preferredChannel  String?       @map("preferred_channel")
+  status            TicketStatus  @default(open)
+  statusLog         Json          @default("[]") @map("status_log")
+  assignedTo        String?       @map("assigned_to")
+  resolvedBy        String?       @map("resolved_by")
+  resolutionSummary String?       @map("resolution_summary")
+  context           Json          @default("{}")
+  closedAt          DateTime?     @map("closed_at")
+  contactName       String?       @map("contact_name")
+  contactEmail      String?       @map("contact_email")
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  @@map("support_tickets")
+}
+
+enum AuditActorRole {
+  student
+  admin
+
+  @@map("audit_actor_role")
+}
+
+/// Append-only audit trail for profile/MFA/passkey changes. student-hub-only
+/// today (learning-platform has zero references) — kept in this shared file
+/// rather than a student-hub-local one since the audit flagged its future
+/// scope as genuinely ambiguous (bucket C); cheap to move later if
+/// learning-platform never ends up needing it.
+model AuditEntry {
+  id        String         @id @default(uuid())
+  studentId String         @map("student_id") @db.Uuid
+  actor     String
+  actorRole AuditActorRole @map("actor_role")
+  action    String
+  changes   Json           @default("[]")
+  timestamp DateTime       @default(now())
+
+  @@map("audit_log")
+}

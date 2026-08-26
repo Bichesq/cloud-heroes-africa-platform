@@ -1,58 +1,56 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
+import type { Todo as PrismaTodo } from "@prisma/client";
 import type { Todo } from "@/types";
+import { prisma } from "./prisma";
 
-/* JSON-file store for the To Do widget. Business rules (system tasks can't
- * be deleted or have their title edited, only dismissed) are enforced in
- * app/api/todos/route.ts — this module is a plain CRUD store. */
+/* To Do widget store. Prisma-backed (model in
+ * prisma-shared/student-hub-local-models.prisma) — replaces
+ * student-hub/data/todos.json per
+ * docs/plan/2026-08-23-centralize-shared-data.md. Business rules (system
+ * tasks can't be deleted or have their title edited, only dismissed) are
+ * enforced in app/api/todos/route.ts — this module is a plain CRUD store. */
 
-const FILE = path.join(process.cwd(), "data", "todos.json");
-
-async function readAll(): Promise<Todo[]> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf-8")) as Todo[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(todos: Todo[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(todos, null, 2));
+function toTodo(row: PrismaTodo): Todo {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    title: row.title,
+    dueDate: row.dueDate,
+    link: row.link,
+    source: row.source,
+    completedAt: row.completedAt ? row.completedAt.toISOString() : null,
+    dismissed: row.dismissedAt
+      ? { at: row.dismissedAt.toISOString(), reason: row.dismissedReason ?? "" }
+      : null,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function getTodos(studentId: string): Promise<Todo[]> {
-  const all = await readAll();
-  return all.filter((t) => t.studentId === studentId);
+  const rows = await prisma.todo.findMany({ where: { studentId } });
+  return rows.map(toTodo);
 }
 
 export async function getTodo(studentId: string, id: string): Promise<Todo | null> {
-  const all = await readAll();
-  return all.find((t) => t.studentId === studentId && t.id === id) ?? null;
+  const row = await prisma.todo.findFirst({ where: { studentId, id } });
+  return row ? toTodo(row) : null;
 }
 
 export async function createTodo(
   studentId: string,
   input: { title: string; dueDate: string | null; link: string | null }
 ): Promise<Todo> {
-  const all = await readAll();
-  const now = new Date().toISOString();
-  const todo: Todo = {
-    id: randomUUID(),
-    studentId,
-    title: input.title,
-    dueDate: input.dueDate,
-    link: input.link,
-    source: "student",
-    completedAt: null,
-    dismissed: null,
-    createdAt: now,
-    updatedAt: now,
-  };
-  all.push(todo);
-  await writeAll(all);
-  return todo;
+  const row = await prisma.todo.create({
+    data: {
+      studentId,
+      title: input.title,
+      dueDate: input.dueDate,
+      link: input.link,
+      source: "student",
+      completedAt: null,
+    },
+  });
+  return toTodo(row);
 }
 
 export async function patchTodo(
@@ -60,19 +58,32 @@ export async function patchTodo(
   id: string,
   patch: Partial<Pick<Todo, "title" | "dueDate" | "link" | "completedAt" | "dismissed">>
 ): Promise<Todo | null> {
-  const all = await readAll();
-  const idx = all.findIndex((t) => t.studentId === studentId && t.id === id);
-  if (idx === -1) return null;
-  all[idx] = { ...all[idx], ...patch, updatedAt: new Date().toISOString() };
-  await writeAll(all);
-  return all[idx];
+  const existing = await prisma.todo.findFirst({ where: { studentId, id } });
+  if (!existing) return null;
+
+  const row = await prisma.todo.update({
+    where: { id: existing.id },
+    data: {
+      ...(patch.title !== undefined ? { title: patch.title } : {}),
+      ...(patch.dueDate !== undefined ? { dueDate: patch.dueDate } : {}),
+      ...(patch.link !== undefined ? { link: patch.link } : {}),
+      ...(patch.completedAt !== undefined
+        ? { completedAt: patch.completedAt ? new Date(patch.completedAt) : null }
+        : {}),
+      ...(patch.dismissed !== undefined
+        ? {
+            dismissedAt: patch.dismissed ? new Date(patch.dismissed.at) : null,
+            dismissedReason: patch.dismissed ? patch.dismissed.reason : null,
+          }
+        : {}),
+    },
+  });
+  return toTodo(row);
 }
 
 export async function deleteTodo(studentId: string, id: string): Promise<boolean> {
-  const all = await readAll();
-  const idx = all.findIndex((t) => t.studentId === studentId && t.id === id);
-  if (idx === -1) return false;
-  all.splice(idx, 1);
-  await writeAll(all);
+  const existing = await prisma.todo.findFirst({ where: { studentId, id } });
+  if (!existing) return false;
+  await prisma.todo.delete({ where: { id: existing.id } });
   return true;
 }

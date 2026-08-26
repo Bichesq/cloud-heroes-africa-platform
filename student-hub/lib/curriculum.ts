@@ -1,43 +1,30 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { Program, UnitCompletion } from "@/types";
+import { prisma } from "./prisma";
 
-/* JSON-file store for programs (static seed content) and unit completions
- * (student-generated). Isolated here so a future real-LMS integration only
- * needs to replace this file's I/O — lib/curriculum-utils.ts (the pure
- * stats/next-unit logic) and every dashboard consumer stay unchanged. */
-
-const PROGRAMS_FILE = path.join(process.cwd(), "data", "programs.json");
-const PROGRESS_FILE = path.join(process.cwd(), "data", "progress.json");
+/* Mock program catalog (static seed content) and unit completions
+ * (student-generated). Prisma-backed (models in
+ * prisma-shared/student-hub-local-models.prisma) — replaces
+ * student-hub/data/programs.json + progress.json per
+ * docs/plan/2026-08-23-centralize-shared-data.md. Isolated here so a future
+ * real-LMS integration only needs to replace this file's I/O —
+ * lib/curriculum-utils.ts (the pure stats/next-unit logic) and every
+ * dashboard consumer stay unchanged. */
 
 export const DEFAULT_PROGRAM_ID = "cloud-practitioner";
 
-async function readPrograms(): Promise<Program[]> {
-  try {
-    const raw = await fs.readFile(PROGRAMS_FILE, "utf-8");
-    return JSON.parse(raw) as Program[];
-  } catch {
-    return [];
-  }
-}
-
 export async function getProgram(programId: string): Promise<Program | null> {
-  const programs = await readPrograms();
-  return programs.find((p) => p.id === programId) ?? null;
-}
-
-async function readAllCompletions(): Promise<UnitCompletion[]> {
-  try {
-    const raw = await fs.readFile(PROGRESS_FILE, "utf-8");
-    return JSON.parse(raw) as UnitCompletion[];
-  } catch {
-    return [];
-  }
+  const row = await prisma.shMockProgram.findUnique({ where: { id: programId } });
+  if (!row) return null;
+  return { id: row.id, title: row.title, modules: row.modules as Program["modules"] };
 }
 
 export async function getCompletions(studentId: string): Promise<UnitCompletion[]> {
-  const all = await readAllCompletions();
-  return all.filter((c) => c.studentId === studentId);
+  const rows = await prisma.shUnitCompletion.findMany({ where: { studentId } });
+  return rows.map((r) => ({
+    studentId: r.studentId,
+    unitId: r.unitId,
+    completedAt: r.completedAt.toISOString(),
+  }));
 }
 
 /** Records a unit as complete. Idempotent — completing an already-complete
@@ -46,17 +33,13 @@ export async function markUnitComplete(
   studentId: string,
   unitId: string
 ): Promise<UnitCompletion> {
-  const all = await readAllCompletions();
-  const existing = all.find((c) => c.studentId === studentId && c.unitId === unitId);
-  if (existing) return existing;
+  const existing = await prisma.shUnitCompletion.findUnique({
+    where: { studentId_unitId: { studentId, unitId } },
+  });
+  if (existing) {
+    return { studentId, unitId, completedAt: existing.completedAt.toISOString() };
+  }
 
-  const entry: UnitCompletion = {
-    studentId,
-    unitId,
-    completedAt: new Date().toISOString(),
-  };
-  all.push(entry);
-  await fs.mkdir(path.dirname(PROGRESS_FILE), { recursive: true });
-  await fs.writeFile(PROGRESS_FILE, JSON.stringify(all, null, 2));
-  return entry;
+  const row = await prisma.shUnitCompletion.create({ data: { studentId, unitId } });
+  return { studentId, unitId, completedAt: row.completedAt.toISOString() };
 }

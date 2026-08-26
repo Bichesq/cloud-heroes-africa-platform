@@ -9,8 +9,14 @@
     "preferredChannel": null,
     "status": "pending",
     "statusLog": [
-      { "status": "open", "at": "2026-07-17T09:12:00.000Z" },
-      { "status": "pending", "at": "2026-07-17T09:12:00.000Z" }
+      {
+        "status": "open",
+        "at": "2026-07-17T09:12:00.000Z"
+      },
+      {
+        "status": "pending",
+        "at": "2026-07-17T09:12:00.000Z"
+      }
     ],
     "assignedTo": "Kwame (Volunteer Mentor)",
     "resolvedBy": null,
@@ -39,8 +45,14 @@
     "preferredChannel": "Email",
     "status": "responded",
     "statusLog": [
-      { "status": "open", "at": "2026-07-14T14:05:00.000Z" },
-      { "status": "responded", "at": "2026-07-15T11:30:00.000Z" }
+      {
+        "status": "open",
+        "at": "2026-07-14T14:05:00.000Z"
+      },
+      {
+        "status": "responded",
+        "at": "2026-07-15T11:30:00.000Z"
+      }
     ],
     "assignedTo": "Allen (Service Desk)",
     "resolvedBy": "Allen (Service Desk)",
@@ -68,7 +80,12 @@
     "description": "I applied a few weeks ago and haven't heard back. When I try to sign in with Google it just redirects me to the registration form again. Can someone check whether my application went through?",
     "preferredChannel": "Email",
     "status": "open",
-    "statusLog": [{ "status": "open", "at": "2026-07-18T16:40:00.000Z" }],
+    "statusLog": [
+      {
+        "status": "open",
+        "at": "2026-07-18T16:40:00.000Z"
+      }
+    ],
     "assignedTo": null,
     "resolvedBy": null,
     "resolutionSummary": null,
@@ -78,5 +95,37 @@
     "contactEmail": "amara.nwosu.applicant@gmail.com",
     "createdAt": "2026-07-18T16:40:00.000Z",
     "updatedAt": "2026-07-18T16:40:00.000Z"
+  },
+  {
+    "id": "8369a10c-af3c-4356-be17-be3bca20f49e",
+    "studentId": "9a6f0c2e-4d1b-4e8a-b3d7-52c19e7a8f41",
+    "desk": "help",
+    "categoryId": "programs-lessons",
+    "topic": "A good working example of a cloud",
+    "description": "I am wondering about a practical application of cloud knowledge",
+    "preferredChannel": null,
+    "status": "open",
+    "statusLog": [
+      {
+        "status": "open",
+        "at": "2026-08-23T13:26:18.532Z"
+      }
+    ],
+    "assignedTo": null,
+    "resolvedBy": null,
+    "resolutionSummary": null,
+    "context": {
+      "programId": "cloud-practitioner",
+      "programTitle": "Cloud Practitioner",
+      "moduleId": "lp-m1",
+      "moduleTitle": "Cloud For Beginners",
+      "unitId": "lp-m1-u1",
+      "unitTitle": "What is the Cloud?"
+    },
+    "closedAt": null,
+    "contactName": null,
+    "contactEmail": null,
+    "createdAt": "2026-08-23T13:26:18.532Z",
+    "updatedAt": "2026-08-23T13:26:18.532Z"
   }
 ]

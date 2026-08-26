@@ -1,16 +1,21 @@
-import { promises as fs } from "fs";
-import path from "path";
 import type { LearningEvent } from "@/types";
+import { prisma } from "./prisma";
 
-/* Read-only JSON-file store for the shared events calendar (seed/admin
- * content — students don't create events in this POC). */
-
-const FILE = path.join(process.cwd(), "data", "events.json");
+/* Shared events calendar (seed/admin content — students don't create events
+ * in this POC). Prisma-backed (model in
+ * prisma-shared/student-hub-local-models.prisma) — replaces
+ * student-hub/data/events.json per
+ * docs/plan/2026-08-23-centralize-shared-data.md. */
 
 export async function getEvents(): Promise<LearningEvent[]> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf-8")) as LearningEvent[];
-  } catch {
-    return [];
-  }
+  const rows = await prisma.event.findMany();
+  return rows.map((r) => ({
+    id: r.id,
+    type: r.type,
+    title: r.title,
+    description: r.description,
+    start: r.start.toISOString(),
+    end: r.end.toISOString(),
+    link: r.link,
+  }));
 }

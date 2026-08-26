@@ -1,6 +1,4 @@
-import { promises as fs } from "fs";
-import path from "path";
-import { randomUUID } from "crypto";
+import type { SupportTicket as PrismaSupportTicket } from "@prisma/client";
 import type {
   SupportTicket,
   TicketContext,
@@ -9,44 +7,53 @@ import type {
 } from "@/types";
 import { getProgram } from "@/lib/curriculum";
 import { nextIncompleteUnit } from "@/lib/curriculum-utils";
+import { prisma } from "./prisma";
 
-/* JSON-file store for Help Desk / Service Desk tickets (mirrors lib/todos.ts).
- * Business rules (which transitions a student may trigger, closure requiring
- * a resolution summary + consent) are enforced in app/api/support/route.ts —
- * this module is a plain CRUD store plus status-log bookkeeping. */
+/* Help Desk / Service Desk ticket store. Prisma-backed (model in
+ * prisma-shared/platform-core-models.prisma) — replaces the repo-root
+ * data/support-tickets.json JSON store per
+ * docs/plan/2026-08-23-centralize-shared-data.md. Business rules (which
+ * transitions a student may trigger, closure requiring a resolution summary
+ * + consent) are enforced in app/api/support/route.ts — this module is a
+ * plain CRUD store plus status-log bookkeeping, same as before. */
 
-/* Shared across app surfaces — Learning Platform files tickets into the same
- * store (repo-root data/), so Help Desk sees one queue. */
-const SHARED_DIR =
-  process.env.SHARED_DATA_DIR ?? path.resolve(process.cwd(), "..", "data");
-const FILE = path.join(SHARED_DIR, "support-tickets.json");
-
-async function readAll(): Promise<SupportTicket[]> {
-  try {
-    return JSON.parse(await fs.readFile(FILE, "utf-8")) as SupportTicket[];
-  } catch {
-    return [];
-  }
-}
-
-async function writeAll(tickets: SupportTicket[]): Promise<void> {
-  await fs.mkdir(path.dirname(FILE), { recursive: true });
-  await fs.writeFile(FILE, JSON.stringify(tickets, null, 2));
+function toSupportTicket(row: PrismaSupportTicket): SupportTicket {
+  return {
+    id: row.id,
+    studentId: row.studentId,
+    desk: row.desk,
+    categoryId: row.categoryId,
+    topic: row.topic,
+    description: row.description,
+    preferredChannel: row.preferredChannel,
+    status: row.status,
+    statusLog: row.statusLog as SupportTicket["statusLog"],
+    assignedTo: row.assignedTo,
+    resolvedBy: row.resolvedBy,
+    resolutionSummary: row.resolutionSummary,
+    context: row.context as TicketContext,
+    closedAt: row.closedAt ? row.closedAt.toISOString() : null,
+    contactName: row.contactName,
+    contactEmail: row.contactEmail,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function getTickets(studentId: string): Promise<SupportTicket[]> {
-  const all = await readAll();
-  return all
-    .filter((t) => t.studentId === studentId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rows = await prisma.supportTicket.findMany({
+    where: { studentId },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(toSupportTicket);
 }
 
 export async function getTicket(
   studentId: string,
   id: string
 ): Promise<SupportTicket | null> {
-  const all = await readAll();
-  return all.find((t) => t.studentId === studentId && t.id === id) ?? null;
+  const row = await prisma.supportTicket.findFirst({ where: { studentId, id } });
+  return row ? toSupportTicket(row) : null;
 }
 
 export async function createTicket(input: {
@@ -61,31 +68,27 @@ export async function createTicket(input: {
   contactName?: string | null;
   contactEmail?: string | null;
 }): Promise<SupportTicket> {
-  const all = await readAll();
-  const now = new Date().toISOString();
-  const ticket: SupportTicket = {
-    id: randomUUID(),
-    studentId: input.studentId,
-    desk: input.desk,
-    categoryId: input.categoryId,
-    topic: input.topic,
-    description: input.description,
-    preferredChannel: input.preferredChannel,
-    status: "open",
-    statusLog: [{ status: "open", at: now }],
-    assignedTo: null,
-    resolvedBy: null,
-    resolutionSummary: null,
-    context: input.context,
-    closedAt: null,
-    contactName: input.contactName ?? null,
-    contactEmail: input.contactEmail ?? null,
-    createdAt: now,
-    updatedAt: now,
-  };
-  all.push(ticket);
-  await writeAll(all);
-  return ticket;
+  const now = new Date();
+  const row = await prisma.supportTicket.create({
+    data: {
+      studentId: input.studentId,
+      desk: input.desk,
+      categoryId: input.categoryId,
+      topic: input.topic,
+      description: input.description,
+      preferredChannel: input.preferredChannel,
+      status: "open",
+      statusLog: [{ status: "open", at: now.toISOString() }],
+      assignedTo: null,
+      resolvedBy: null,
+      resolutionSummary: null,
+      context: input.context as object,
+      closedAt: null,
+      contactName: input.contactName ?? null,
+      contactEmail: input.contactEmail ?? null,
+    },
+  });
+  return toSupportTicket(row);
 }
 
 /** Sets a new status, appending to the chronological status-date log only
@@ -96,20 +99,27 @@ export async function setTicketStatus(
   status: TicketStatus,
   extra: Partial<Pick<SupportTicket, "resolutionSummary" | "resolvedBy" | "closedAt">> = {}
 ): Promise<SupportTicket | null> {
-  const all = await readAll();
-  const idx = all.findIndex((t) => t.studentId === studentId && t.id === id);
-  if (idx === -1) return null;
+  const existing = await prisma.supportTicket.findFirst({ where: { studentId, id } });
+  if (!existing) return null;
 
   const now = new Date().toISOString();
-  const existing = all[idx];
+  const existingStatusLog = existing.statusLog as SupportTicket["statusLog"];
   const statusLog =
     existing.status === status
-      ? existing.statusLog
-      : [...existing.statusLog, { status, at: now }];
+      ? existingStatusLog
+      : [...existingStatusLog, { status, at: now }];
 
-  all[idx] = { ...existing, ...extra, status, statusLog, updatedAt: now };
-  await writeAll(all);
-  return all[idx];
+  const updated = await prisma.supportTicket.update({
+    where: { id: existing.id },
+    data: {
+      status,
+      statusLog: statusLog as object,
+      ...(extra.resolutionSummary !== undefined ? { resolutionSummary: extra.resolutionSummary } : {}),
+      ...(extra.resolvedBy !== undefined ? { resolvedBy: extra.resolvedBy } : {}),
+      ...(extra.closedAt !== undefined ? { closedAt: extra.closedAt ? new Date(extra.closedAt) : null } : {}),
+    },
+  });
+  return toSupportTicket(updated);
 }
 
 /** Derives the student/program/module/unit context snapshot for a new
