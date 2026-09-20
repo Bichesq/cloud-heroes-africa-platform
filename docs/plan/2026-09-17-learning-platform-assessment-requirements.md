@@ -239,13 +239,107 @@ scoping it — flagging it here since it's in the same Figma file, but it's not 
 
 ## 9. Open questions to resolve before building
 
-1. Question-count inconsistency in the Assessment start screen vs. in-flow screens (10 vs. 24) — confirm
-   real numbers aren't fixed in the design, i.e. fully driven by the assessment's configured question set.
-2. Exit-mid-assessment behavior isn't specified: does it save partial answers, or discard the attempt?
+1. Question-count inconsistency in the Assessment start screen vs. in-flow screens (10 vs. 24) — **still
+   open**, not addressed in the 2026-08-31/09-03/09-07 planning sessions.
+2. Exit-mid-assessment behavior isn't specified: does it save partial answers, or discard the attempt? —
+   **still open**.
 3. Whether "Knowledge Check" (§6.3, per-unit) and "Module Assessment" (§6.4, per-module) share a question
-   bank/schema or are entirely separate content models — the UI treats them as separate editors with
-   different publish workflows, but the Module Assessment's "Import from Bank" suggests a shared pool.
-4. Reconcile the Program → Module → Unit → Section nesting seen here (§1–3 use Module→Unit, §3 introduces
-   Section between Module and Unit) against the schema in
-   `docs/database-design-overview-2026-09-14.md` — the Figma naming isn't fully consistent between pages
-   and should be resolved against whatever the backend already models.
+   bank/schema — **partially resolved 2026-09-07**: the team explicitly extended the randomized-question-
+   bank principle down to per-unit Knowledge Checks (author more questions than shown per attempt, e.g.
+   10–15 for a 5-question check, so retakes can randomize). That's a strong signal they're meant to work
+   the same way, but whether they're literally the same underlying table/schema as Module Assessment
+   questions is still not stated outright — confirm with Bichesq before modeling.
+4. Reconcile the Program → Module → Unit → Section nesting — **resolved**: every planning-meeting
+   discussion of the hierarchy (including 2026-09-07, walking this exact question) describes it as
+   Program → Module → Unit, with no Section entity, consistent with the 2026-08-11 "final, no Section"
+   decision in `decision-log.md`. Treat any "Section" grouping in the Module Content View mockup (§3) as
+   a display-only grouping within a module's unit list, not a persisted schema object.
+
+---
+
+## 10. Amendments from the 2026-08-31 / 2026-09-03 / 2026-09-07 planning meetings
+
+These decisions (full detail in `decision-log.md` and `jira-v1-planning-doc.md`) change or contradict what
+the raw Figma extraction above shows. Treat this section as authoritative over §1–8 wherever they conflict
+— the sections above describe what's *drawn*, this section describes what the team has since *decided*.
+
+### 10.1 Video is out of V1 — most of §4's Unit View doesn't apply yet
+The Figma Unit View frames (§4) are built around a video-first experience: a player, playback-speed
+control, and a narrator/language selector. The team decided V1 is **data-light: static visuals + local
+TTS, no video or audio files** (video/audio explicitly deferred to V2, reconfirmed 2026-09-07). Build the
+**reading/written unit type first**; treat the video-specific frames as a V2 reference, not a V1 target.
+
+### 10.2 Notes tab: no home in V1
+The Figma `Notes` tab (§4) was designed for the video unit type ("student takes notes while watching").
+Since video is deferred (10.1), Notes has nothing to attach to in V1 and is **descoped** for the reading
+unit type that's actually shipping. An author-provided content **Summary** and/or a lighter **Bookmarks**
+feature were floated as replacements but are not committed — don't build Notes as drawn.
+
+### 10.3 Knowledge Check: retake randomization
+Add to §6.3: Knowledge Check question banks should be authored **larger than what's shown per attempt**
+(e.g. 10–15 questions for a 5-question check) so a retake — which reuses the existing per-unit Knowledge
+Check as a pre-assessment "refresher," per the 2026-09-07 decision — can serve a randomized subset instead
+of the exact same questions every time. No separate "practice test" feature is needed.
+
+### 10.4 Program-level bypass — new flow not yet designed
+A V1 requirement with **no corresponding Figma screens**: a privileged admin (e.g. a board member) can
+manually grant a student a bypass of a program's full curriculum, sending them straight to that program's
+own Module/Program-level assessment (reusing §5's assessment engine, not a separate placement test). If
+they fail, they must complete the full program. Needs: an admin "grant bypass" action/screen (not present
+in the `Create Course View (For Admins)` pages extracted for §6), and a way to surface "bypass-eligible"
+state to the learner.
+
+### 10.5 Badges: scope confirmed simpler than what's drawn, timing pushed out
+§7's dashboard/notification frames show granular, real-time achievement badges (e.g. "New Badge Earned:
+Quick Learner... completed 3 modules in one week" — a streak/weekly-activity badge). The actual V1 decision
+is much narrower: **one generic, program-level completion badge**, shareable on social media, and it isn't
+even a real-time feature — it's issued via a **retroactive batch process** run after the fact, once the
+display-name mechanism is finalized (10.6). Don't build the streak/weekly badge system shown in the
+notifications mock for V1.
+
+### 10.6 Preferred name — removed, not just a policy question
+§6 and the earlier Profile-page extraction (from student-hub) show an editable "preferred name" field.
+This is now **removed entirely for V1** (not deferred) — students display whatever name Google's OAuth
+returns, at most choosing between their first name or full name. Do not build a free-text preferred-name
+input; the abuse/moderation risk (an offensive name shown on a shareable badge, see 10.5) was the reason.
+
+### 10.7 MFA: narrower than the Profile page shows
+The Profile page (student-hub, extracted separately) shows "Email OTP Protection," an Authenticator app,
+and a general "Multi-Factor" method in its MFA methods table. The actual V1 decision is **Authenticator
+app only** — Email OTP and SMS OTP are both dropped (cost and low marginal value for a non-financial
+platform). Whether the existing, more detailed Passkey story (provisional delay, dual-email notice, revoke)
+still ships alongside Authenticator was not explicitly revisited and is flagged as open in the decision
+log. A new, previously undefined requirement: session/"stay signed in" duration of roughly **one week**
+between required re-authentications.
+
+### 10.8 Profile completion: soft gate, not a hard block
+§7 doesn't show this explicitly, but it's a real reversal worth flagging: profile completion is a **soft
+gate** (persistent reminder), not a hard block on platform access. The exact required-field list (birthday?
+country? photo?) is still undecided.
+
+### 10.9 Help Desk: several §8 flows are now wrong as drawn
+The Helpdesk pages extracted for §8 need real changes before they match V1 decisions:
+- **"Reopen Ticket" must be removed.** The `student-ticket-detail-activity-log` and
+  `support-chat-resolved-no-reopen` frames show a reopen action / "do not allow reopen" checkbox. V1
+  removes reopen entirely: a student with a lingering issue opens a **new** ticket referencing the old
+  ticket number, and staff use a **new ticket-search feature** (by student or ticket number — not present
+  in the extracted frames) to pull up history.
+- **The post-closure satisfaction survey must be removed for V1.** The
+  `notifications-screen-after-support-ticket-closed` frame shows "How was your support experience? ...
+  Submit Feedback" — this exact feature is cut from V1 (2026-09-07).
+- **"Download Logs" / PDF export is cut from V1** — deprioritize this control if it's still in the build
+  target for the initial release.
+- **Pending status is confirmed correct as drawn** (`admin-ticket-detail-pending-state` already exists in
+  the file) — just note it's broader than "awaiting fix confirmation": Pending covers any case where staff
+  are waiting on the requester for anything, including more information.
+- **No Service Desk system in V1.** A locked-out student (can't reach the in-app ticket form) instead
+  emails a Help Desk address (e.g. `helpdesk@cloudheroesafrica.com`), which lands in the same shared queue.
+  A distinct Service Desk experience is V2.
+- **Community/Stack-Overflow-style board is walked back for V1** — none of the extracted Help Desk frames
+  showed a public community board, so there's no existing design to undo here; just don't build one for V1.
+  A different, undecided idea ("community hours" — students contributing peer support or content-creation
+  time to progress past Intermediate) may replace it in spirit later.
+
+### 10.10 Course ratings/reviews: back out of V1
+§1's "Reviews" counter language and any star-rating UI are **not V1** — this moved into V1 scope on
+2026-08-31 and was reversed back out on 2026-09-07. No design work needed for V1 launch.
