@@ -2,6 +2,12 @@
 
 This file defines how Claude Code should work in this repository.
 
+## Security (non-negotiable)
+
+Before writing or editing any code here, read `SECURITY.md` at the repo root
+(`../SECURITY.md`) and apply every rule in it, regardless of whether this
+task is explicitly about security.
+
 ## Goal
 
 Implement CHA platform pages in a **Next.js App Router** codebase using:

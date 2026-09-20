@@ -1,3 +1,16 @@
+## Security: SECURITY.md
+
+**IMPORTANT: Before writing or editing any application code in this project — in
+any app (`student-hub/`, `learning-platform/`, or any added later), for any
+task, not just ones explicitly about security — you MUST read `SECURITY.md`
+at the repo root and apply every rule in it.** SECURITY.md's own instruction
+is that it covers all code regardless of whether the request mentions
+security, and that violations should be flagged and corrected before
+presenting code as final, without waiting to be asked.
+
+Re-read `SECURITY.md` if it's been a while since your last check within a
+long session — don't rely on having internalized it once at the start.
+
 ## Skill: Build Page From Screenshot
 
 **IMPORTANT: Whenever creating, building, or reproducing any page, screen, or
