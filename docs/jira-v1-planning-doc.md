@@ -25,6 +25,28 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 > on each reversal. Rows changed by that session are marked "2026-09-07". Kris introduced a "V+" rule during
 > this session: if a nominally-V1 feature turns out to cause real trouble, bump it to V2 rather than debate
 > it further.
+>
+> **2026-09-14 update:** Bichesq presented the current database architecture
+> ([Fathom recording](https://fathom.video/share/cxWAz1A2Lr-pDRxSxswFao5uwzZp5Sgn)) — single shared Postgres
+> across Student Hub/Learning Platform, split by domain (Identity, Content, Progress, Testing & Assessment,
+> Support, Catalog). This closes out the long-open "Database final selection" cross-cutting blocker below.
+> The session also reconfirmed assessment save-and-resume is cut, and raised (but did not decide) three new
+> questions: Knowledge Check difficulty tagging, JSON-vs-Markdown content storage, and a missing "Event"
+> entity for scheduled live sessions — see `decision-log.md` §3/§4 (rows dated 2026-09-14).
+>
+> **2026-09-17 update:** Eddie walked the team through updated Instructor Portal / Learning Management
+> screens ([Fathom recording](https://fathom.video/share/Umsh7G-oco43TsUtYpvVea5V5WnG8yLK)) — Unit Editor
+> (Markdown-driven, native S3 image upload), Knowledge Check bank/editor (versioned uploads, cross-unit
+> reuse cut), publish-time validation, and the Director/Owner/Contributor role model. A PR-style
+> publish-review workflow was explicitly deferred beyond V1. See `decision-log.md` §2 (rows dated
+> 2026-09-17).
+>
+> **2026-09-21 update:** Kris and Bichesq walked through the actual built Unit View
+> ([Fathom recording](https://fathom.video/share/sxL-zyBxfLyrDyVvYRAKTbyaMJKHPvu4)) instead of the static
+> mockup, and found real UX problems: a duplicate content panel and TTS controls that scrolled out of
+> view. Fixing those led to a bigger structural change — units now break into ~6-12 "Topics" with
+> per-topic progress, a new sub-unit layer (distinct from the settled no-Section Program→Module→Unit
+> hierarchy). See `decision-log.md` §2/§3/§4 (rows dated 2026-09-21).
 
 ---
 
@@ -76,11 +98,21 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 | LP as separate app: own nav, handshake from Student Hub, shared auth | V1 | Decided | 2026-07-06 |
 | Content hierarchy: Program → Module → Unit (final, no Section) | V1 | Decided | 2026-07-02 (orig.), 2026-08-11 (final) |
 | Data-light delivery: static visuals + local TTS, no video/audio files | V1 | Decided | 2026-07-06 |
+| Content storage format: JSON vs. Markdown files (possibly S3-stored) — implementation detail, doesn't change the V1 scope above | Needs decision | Working Assumption | 2026-09-14 — proposed for simplicity; needs the existing TTS pause/pacing tuning re-verified against MD-sourced rendered output before switching |
+| Event entity (scheduled live sessions — support/office-hours, guest speakers — with student attendance) | Needs decision | Open | 2026-09-14 — genuinely missing from the data model; relates to the still-open program-level support channel and V2 calendar items |
 | Multiple creators/instructors credited per unit/program — creators are fixed once a program is created (list only grows if someone adds new content later); instructors can rotate over time (e.g. ~every 6 months) | V1 | Decided | 2026-07-06, refined 2026-09-07 |
 | Instructor/creator rotation audit log | Needs decision | Open | 2026-09-07 |
 | Unit view: main content + secondary tabs. Knowledge Check tab sits at the end of the unit content. Notes tab is descoped for written/reading content (it was designed for video, itself deferred to V2); a content Summary and/or Bookmarks were floated as alternatives, not committed | V1 (Notes removed for written content) | Decided (alternatives are Working Assumption) | 2026-07-09, revised 2026-09-07 |
 | Unit view: remove redundant heading, author info, nav arrows | V1 | Decided | 2026-07-16 |
 | Sidebar toggle icon (existing Student Hub icon, not hamburger) | V1 | Decided | 2026-07-16 |
+| Unit view: remove the duplicate right-side lesson-script panel (leftover from the video-based design; redundant with the middle content now that V1 is text-only) | V1 | Decided | 2026-09-21 |
+| Unit view: TTS controls fixed in place while scrolling (were scrolling out of view with the content) | V1 | Decided | 2026-09-21 |
+| Unit content structure: Topics — a unit breaks into ~6-12 Topics (target ~10), each a smaller digestible chunk; a new sub-unit layer, distinct from the settled Program→Module→Unit (no Section) hierarchy | V1 | Decided | 2026-09-21 |
+| Unit progress: per-topic granularity (e.g. 10 topics → 10% each) instead of a single 0%/100% flip; 100% still gated on passing the Knowledge Check | V1 | Decided | 2026-09-21 |
+| Topic navigation mechanism: separate per-topic views vs. one scrollable page with an anchor/jump list | Needs decision | Open | 2026-09-21 |
+| Unit view: program/module header collapses in "learning mode" (unit view), reappears on navigating back out | V1 | Decided | 2026-09-21 |
+| Unit content: multiple images per topic allowed (not capped at one slide) | V1 (proposed) | Working Assumption | 2026-09-21 — Kris in favor, not put to full group confirmation |
+| Search control scope: top-nav catalogue-wide search, not scoped to a single unit's content | V1 | Decided | 2026-09-21 |
 | Token-based unit unlock (complete unit → tokens → threshold to start next) | V1 | Decided | 2026-07-09 |
 | Progression currency renamed points → tokens (schema/UI) | V1 | Decided | 2026-08-10/11 |
 | Embedded Help button per unit, sends context (student/program/module/unit) to Help Desk | V1 | Decided | 2026-06-04, per requirements doc |
@@ -119,7 +151,8 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 | Program-level assessments: high-level guidance only, no detailed review | V1 (proposed) | Decided | 2026-08-20 |
 | Per-assessment config: allow/deny unanswered submission; program-level must allow it | V1 (proposed) | Decided | 2026-08-20 |
 | Server-enforced time limits + auto-submit | V1 (proposed) | Decided | design session 2026-08-11 |
-| Save-and-resume (progressive answer persistence) | V1 (proposed) | Decided | design session 2026-08-11 |
+| Save-and-resume — cut. A network-interrupted attempt is lost / deemed incomplete, not resumable | Out of scope | Decided (reversed) | design session 2026-08-11 proposed it; confirmed cut 2026-09-14 ("pretty categorical") |
+| Incomplete-attempt handling: reconnection grace window + "deemed incomplete" policy + proactive student comms | Needs decision | Open | 2026-09-14 |
 | Forward-only navigation gated by answer/flag | V1 (proposed) | Decided (reaffirmed: flagging alone satisfies the gate, distinct from answering) | 2026-08-20, 2026-09-03 |
 | Readiness/competency gate before module assessment attempt | V1 (proposed) | Decided (mechanism Open) | 2026-08-20 |
 | Program-level bypass assessment: an admin-granted bypass routes a student straight into that program's existing summative (Program-level) assessment — no separate placement-test engine needed | V1 (proposed) | Decided (grant mechanism Open) | 2026-08-31 |
@@ -129,12 +162,14 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 | Questions palette: no maximize/expanded view in V1; auto-scrolls to current question; resizable/scrollable for large question counts (50+); scrollable or dropdown on mobile | V1 (proposed) | Decided | 2026-09-03 |
 | **"Report Question" flagging during attempt + post-submit comment prompt** — distinct from "review flagged/unanswered questions," which is in-attempt navigation, not a defect report | **V2/Backlog** | **Decided (deferred)** | **2026-09-07 (reconfirmed; earlier placeholder citation resolved)** |
 | Practical/file-upload assessment submissions | Out of scope (dropped) | Decided | 2026-08-11 |
-| Advanced question types (drag-drop, matching, short-answer, code eval) | V2/Backlog | Decided (deferred beyond V1) | 2026-08-06 |
+| Advanced question types (drag-drop, matching, short-answer) | V2/Backlog | Decided (deferred beyond V1) | 2026-08-06 |
+| `Code` question type — tension: 2026-08-06 deferred "code eval" to V2 as an "advanced question type," but requirements §6.4 lists `Code` as one of three question types (MC/Multi/Code) for the Module Assessment matrix, and `docs/plan/2026-09-20-learning-platform-v1-build.md` treats it as V1-scoped missing work. Re-raised 2026-09-21 (manual vs. automated/exact-answer grading), still unresolved either way | Needs decision | Open | 2026-08-06, 2026-09-20, 2026-09-21 — reconcile V1-vs-V2 scope explicitly before building either direction |
 | Practical/presentation assignments at module or program level | Out of scope (deprioritized indefinitely) | Decided | 2026-09-07 — grading doesn't scale (e.g. 50 submitted files per cohort) without a defined review mechanism, not even prioritized for V2 planning yet |
 | Retake-cooldown formula | Needs decision | Open | 2026-08-20; 2026-09-07 leaned toward a progressive curve capped around a week, exact formula still undecided |
 | Confidence-level / readiness self-rating capture | Out of scope (dropped) | Decided | 2026-09-07 — self-report judged unreliable; the separate objective performance-based readiness widget (knowledge checks + assessments) is unaffected and stays |
 | Pre-assessment module review/knowledge-check gate | V1 (proposed) | Decided | 2026-09-07 — resolved by reusing the existing per-unit Knowledge Check retake as a refresher; no separate practice-test feature needed |
 | Knowledge Check question banks oversized for randomized retakes (e.g. author 10–15 questions for a 5-question check) | V1 (proposed) | Decided | 2026-09-07 — extends the 2026-08-06 randomized-bank principle down to per-unit Knowledge Checks |
+| Knowledge Check difficulty tagging (Easy/Medium/Difficult) — proposed as creator/internal-only (not shown to students), cross-checked later against real per-question pass/fail rates | Needs decision | Working Assumption | 2026-09-14 — Kris flagged the extra-work cost (bigger banks, tagging pipeline) against unclear value; not adopted yet |
 | Student ratings/satisfaction on assessments | V2/Backlog (Phase 2) | Decided (deferred) | 2026-06-01 |
 
 ## Epic: Help Desk
@@ -179,10 +214,24 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 > thumbnail, description, authors, instructors) via simple fields/dropdowns. Eddie will build a simple
 > (not polished) front-end for it once Bichesq specifies the exact fields, rather than leaving it
 > database-view-only. Nobody outside the content-creation team touches this in V1.
+>
+> **2026-09-17 update:** the actual screens Eddie built go well beyond "minimal" — Markdown-driven unit
+> content with native S3 image handling, a versioned Knowledge Check bank/editor, publish-time validation,
+> and a three-tier Director/Owner/Contributor role model. See `docs/plan/2026-09-21-learning-management-authoring-app.md`,
+> which independently decided this ships as a full requirements-§6.5-scoped surface rather than the minimal
+> Sep-7 version — this session's screens are consistent with, and predate, that call.
 
 | Story | Fix Version | Status (per log) | Notes / Source |
 |---|---|---|---|
 | Program/module/unit authoring & management — minimal internal upload+metadata form (see note above) | V1 (minimal internal tool) | Decided (concrete V1 spec, not just scope) | 2026-06-08, spec'd 2026-09-07 |
+| Unit Editor: Markdown-file-driven unit content, parsed and previewed on upload | V1 | Decided | 2026-09-17 |
+| Unit Editor: images uploaded to S3 natively through the interface (not a manual S3-link-paste step) | V1 | Decided | 2026-09-17 |
+| Knowledge Check bank/editor: versioned uploads (never silently overwritten; a wrong upload is fixed by deleting that version) | V1 | Decided | 2026-09-17 |
+| Knowledge Check reuse across units/programs — cut; a KC stays specific to its one unit | Out of scope | Decided | 2026-09-17 |
+| Publish-time completeness validation (e.g. a unit can't publish without an associated Knowledge Check) | V1 | Decided | 2026-09-17 |
+| PR-style publish review/approval workflow | V2+ (deferred) | Decided | 2026-09-17 — V1 authors publish directly; flagged as a real future need once volunteers get access, since one person could otherwise hold every authoring role on a program unchecked |
+| Authoring roles: Program Director (platform-wide) → Program Owner (one program) → Program Contributor (unit-level content); assigned by name, not email | V1 | Decided | 2026-09-17 |
+| Program Director/Owner fields are add-able lists (multiple directors/owners supported), matching the Contributors list pattern | V1 | Decided | 2026-09-17 — cheap future-proofing for the review-workflow gap above |
 | Assessment & Knowledge Check authoring — explicitly owned by whoever creates the course; Help Desk admins must not have this capability | V1 | Decided (scope only, no UI spec; ownership clarified 2026-08-31) | 2026-06-08, 2026-08-31 |
 | Admin bypass grant: a privileged-only action (e.g. board members) that grants a student a program bypass | V1 | Decided (policy only, mechanism Open) | 2026-08-31 |
 | Learning-materials metadata administration | V1 (minimal internal tool) | Decided (scope only, no UI spec) | 2026-06-08 |
@@ -190,7 +239,7 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 | Microsoft SSO auth for volunteers/authors — if SSO proves too complex short-term, a private/internal-network-restricted access path is an acceptable stopgap (only Bichesq/Eddie use this tool initially) | V1 | Decided | 2026-06-08, fallback option added 2026-09-07 |
 | Owner-based permissions (creator owns program; delegated read/edit/admin; super-admin override) | Needs decision (scope vs. capacity) | Decided | 2026-06-04 |
 | No student-management capability for course creators | Needs decision (scope vs. capacity) | Decided | 2026-06-04 |
-| Content-sharing model for reusing units/modules across programs | Needs decision | Open | flagged in decision-log §5 candidates list |
+| Content-sharing model for reusing whole units/modules across programs — distinct from Knowledge Check reuse specifically, which is cut (see above) | Needs decision | Open | flagged in decision-log §5 candidates list |
 
 ---
 
@@ -198,7 +247,7 @@ A companion file, `jira-import.csv`, has the same content in Jira's CSV-import c
 
 | Item | Fix Version | Status | Notes |
 |---|---|---|---|
-| Database final selection (Postgres vs. NoSQL) | **Blocker — resolve before any estimation** | Open in decision-log §4, despite being treated as settled everywhere else (2026-07-13 Payload abandonment, system design, migration brief, and Bichesq's actual Prisma/Postgres work discussed 2026-09-07) | This needs a formal close-out entry — the team is already building on Postgres/Prisma in practice, so this is increasingly a documentation gap rather than a real open question |
+| Database final selection: Postgres (relational), with one content section as a JSON column — not a NoSQL/document DB | V1 | Decided (resolved) | Formally closed 2026-09-14 via Bichesq's architecture walkthrough; matches `docs/database-design-overview-2026-09-14.md`. No longer a blocker |
 | Shared-data access pattern (Prisma direct access vs. narrow API) | V1 | Decided | 2026-08-24 |
 | English-only for V1 | V1 | Decided | 2026-07-16 |
 | Error monitoring: Sentry (free tier) for error tracking, tracing, and alerting | V1 | Decided | 2026-09-07 |
