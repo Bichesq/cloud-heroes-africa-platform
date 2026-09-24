@@ -1,0 +1,18 @@
+// learning-management's Prisma project — generates a client against the SAME
+// shared learning_platform database. This project NEVER runs
+// `prisma migrate` (learning-platform is the sole migration runner —
+// docs/shared-schema-audit.md §4); package.json#prisma:migrate refuses.
+//
+// All models live in sibling files copied in from prisma-shared/ by
+// scripts/sync-shared-prisma.mjs (run by `npm run prisma:generate`) —
+// including lp-core-models.prisma, whose Lp* models this app authors.
+// This file holds only the generator/datasource blocks.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

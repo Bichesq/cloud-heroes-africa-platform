@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Draft — open questions 2–9 resolved 2026-09-24; awaiting approval to start sub-step 1
+**Status:** Approved 2026-09-24 — sub-step 1 implemented; sub-step 2 next (awaiting Entra credentials + first Owners/Directors)
 
 ## Context
 
@@ -344,3 +344,30 @@ The original questions below are kept for the record.
   Open questions section). #5 and #7 were made concrete at the same time: local-disk storage behind
   an interface, plus the specific schema changes for each Figma field gap. Status: awaiting approval
   to start sub-step 1.
+- 2026-09-24: plan approved; **sub-step 1 implemented** (branch `feat/lp-learner-ui-rebuild`).
+  - Pure relocation of `lp-core.prisma` → `prisma-shared/lp-core-models.prisma`. LP's
+    generator/datasource moved to `learning-platform/prisma/schema/schema.prisma`. Verified no-op:
+    `migrate diff` shows only the 10 known DB-only student FKs. Committed alone.
+  - RBAC migration `…_author_program_roles`: `LpAuthor` (email + Entra `oid`),
+    `LpProgramContributor` (editor/reviewer/viewer), Instructor/Director/Owner lists, and
+    `creatorAuthorId` on `LpProgram` and `LpUnit`. Student-FK drops stripped by hand; 10 constraints
+    verified.
+  - `learning-management/` scaffold on port 3002. Microsoft Entra ID only, with a tenant-specific
+    issuer plus an explicit `tid` check, failing closed without a tenant. Its own `AUTH_SECRET`,
+    `lm.*` cookie names (no collision with the learner apps' `authjs.*` on localhost), 8h sessions.
+    `LpAuthor` upsert binds the Entra oid and refuses an oid mismatch.
+  - Default-deny proxy plus nonce-based CSP and security headers (new here; learning-platform has
+    no CSP yet — follow-up). `prisma:migrate` refuses to run.
+  - Sign-in page (design-system Login layout) and the authoring shell from the Figma Programs frame,
+    with the Figma logo asset. The Programs landing lists the author's programs read-only; the full
+    table is sub-step 2.
+  - Bootstrap script `npm run bootstrap:roles` for the first Owners/Directors; validates input and
+    has not been run.
+  - Verified: tsc/eslint clean, 9 tests (tenant check, cookie isolation, CSP); runtime: `/` → 307
+    `/signin`, CSP nonce on every script, only `lm.*` cookies, sign-in without a tenant →
+    `/signin?error=Configuration`. **Not verified:** a real Microsoft sign-in (no Entra
+    credentials yet).
+  - Divergence from the plan: the parent plan put Director/Owner "fields" on Settings & Access; built
+    as lists per the 2026-09-17 decision already recorded here. Helpdesk tabs, notifications, search
+    and the theme toggle from the Figma header are deferred to the sub-steps that give them
+    something to do.
