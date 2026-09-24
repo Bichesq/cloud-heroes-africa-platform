@@ -28,6 +28,25 @@ Plan: `docs/plan/2026-09-21-learning-management-authoring-app.md`.
 Without a tenant ID, sign-in fails closed (`/signin?error=Configuration`). It never falls back
 to Microsoft's multi-tenant endpoint.
 
+## Development login (no Microsoft credentials)
+
+Entra credentials exist only in production. For development, add to `.env`:
+
+```
+LM_DEV_LOGIN=1
+LM_DEV_EMAILS="bichesq@gmail.com"
+```
+
+The sign-in page then shows a **Development only** email form for the listed addresses. Guards
+(`lib/dev-login.ts`, unit-tested):
+- It only works when `NODE_ENV` isn't production **and** `LM_DEV_LOGIN=1`. Otherwise the provider
+  isn't registered at all.
+- The allowlist is checked twice: in the provider and in the sign-in callback.
+- The app **refuses to start** in production if `LM_DEV_LOGIN` is set.
+
+Dev sign-in skips the Microsoft tenant check, so test the real Entra flow (e.g. against a mock
+OIDC server) before production.
+
 ## First Owners / Directors
 
 The four seeded programs have no Owner or Director yet. Bootstrap them once; after that, Settings &

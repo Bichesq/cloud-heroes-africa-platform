@@ -12,11 +12,39 @@
  *  - short-lived staff sessions (8h).
  */
 import type { NextAuthConfig } from "next-auth";
+import Credentials from "next-auth/providers/credentials";
 import MicrosoftEntraID from "next-auth/providers/microsoft-entra-id";
 import { authCookies, sessionMaxAge } from "@/lib/auth-cookies";
+import {
+  assertDevLoginNotInProduction,
+  DEV_LOGIN_PROVIDER_ID,
+  isDevLoginEnabled,
+  resolveDevLoginEmail,
+} from "@/lib/dev-login";
 import { issuerForTenant } from "@/lib/tenant";
 
+// Stops the app if the dev-login flag leaks into production (lib/dev-login.ts).
+assertDevLoginNotInProduction(process.env);
+
 const secure = process.env.NODE_ENV === "production";
+
+/* Development-only email login for listed addresses (lib/dev-login.ts).
+ * Not registered at all unless dev login is enabled. authorize() does no DB
+ * work (edge-safe); the signIn callback in lib/auth.ts re-checks the
+ * allowlist and upserts the LpAuthor. */
+const devLoginProviders = isDevLoginEnabled(process.env)
+  ? [
+      Credentials({
+        id: DEV_LOGIN_PROVIDER_ID,
+        name: "Development login",
+        credentials: { email: { label: "Email", type: "email" } },
+        authorize(credentials) {
+          const email = resolveDevLoginEmail(credentials?.email, process.env);
+          return email ? { id: email, email, name: "" } : null;
+        },
+      }),
+    ]
+  : [];
 
 export const authConfigEdge: NextAuthConfig = {
   providers: [
@@ -27,6 +55,7 @@ export const authConfigEdge: NextAuthConfig = {
       // the provider is misconfigured and sign-in must fail closed.
       issuer: issuerForTenant(process.env.AUTH_MICROSOFT_ENTRA_ID_TENANT_ID) ?? "https://login.microsoftonline.com/invalid-tenant/v2.0",
     }),
+    ...devLoginProviders,
   ],
   session: { strategy: "jwt", maxAge: sessionMaxAge },
   jwt: { maxAge: sessionMaxAge },

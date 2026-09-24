@@ -37,6 +37,17 @@ export async function upsertAuthorOnSignIn(identity: AllowedIdentity): Promise<{
   });
 }
 
+/** Development-only (lib/dev-login.ts): create/find the author by email.
+ * Never touches entraOid, so a real Microsoft sign-in later binds it. */
+export async function upsertDevAuthor(email: string): Promise<{ id: string } | null> {
+  return prisma.lpAuthor.upsert({
+    where: { email },
+    create: { email },
+    update: {},
+    select: { id: true },
+  });
+}
+
 export async function findAuthorIdByEmail(email: string): Promise<string | null> {
   const row = await prisma.lpAuthor.findUnique({ where: { email }, select: { id: true } });
   return row?.id ?? null;

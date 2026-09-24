@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-step 1 implemented; sub-step 2 next (awaiting Entra credentials + first Owners/Directors)
+**Status:** Approved 2026-09-24 — sub-step 1 implemented; sub-step 2 next
 
 ## Context
 
@@ -371,3 +371,13 @@ The original questions below are kept for the record.
     as lists per the 2026-09-17 decision already recorded here. Helpdesk tabs, notifications, search
     and the theme toggle from the Figma header are deferred to the sub-steps that give them
     something to do.
+- 2026-09-24: **dev authentication decided** (Bichesq): Entra credentials only in production. For
+  development, a guarded email login (`lib/dev-login.ts`, option 1 of 4 considered: dev
+  Credentials login / local mock OIDC server / personal Azure tenant / reusing the learner Google
+  client). Enabled only when `NODE_ENV` isn't production and `LM_DEV_LOGIN=1`, for `LM_DEV_EMAILS`
+  addresses only; the app refuses to start in production if the flag is set. Dev author
+  `bichesq@gmail.com` bootstrapped as Owner + Director of all four seeded programs. Verified end to
+  end: listed email → session → Programs page lists 4 programs; an unlisted email, a forged cookie,
+  and a token under the learner `authjs.*` cookie name are all refused. **Before production:**
+  exercise the real Entra flow once (a mock OIDC server is the suggested route) — dev login skips
+  the tenant check.

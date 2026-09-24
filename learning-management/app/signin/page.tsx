@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { Alert, Button } from "@heroui/react";
+import { AuthError } from "next-auth";
+import { Alert, Button, Chip, Input, Label, TextField } from "@heroui/react";
 import { ArrowRight } from "lucide-react";
 import { auth, signIn } from "@/lib/auth";
+import { DEV_LOGIN_PROVIDER_ID, isDevLoginEnabled } from "@/lib/dev-login";
 
 export const metadata: Metadata = {
   title: "Sign in — Cloud Heroes Africa Learning Management",
@@ -13,11 +15,33 @@ export const metadata: Metadata = {
  * LoginScreen.jsx): brand + headline + actions on the left, the community
  * illustration on a canvas panel on the right. Microsoft SSO is the only
  * method (2026-06-08 decision) — no email/password field, no Google.
- * Errors are deliberately generic (SECURITY.md §4). */
+ * Errors are deliberately generic (SECURITY.md §4).
+ *
+ * In development only, a "Development login" form is added for the emails in
+ * LM_DEV_EMAILS (lib/dev-login.ts). Microsoft credentials exist only in
+ * production. */
 
 async function signInWithMicrosoft() {
   "use server";
   await signIn("microsoft-entra-id", { redirectTo: "/" });
+}
+
+async function signInWithDevEmail(formData: FormData) {
+  "use server";
+  // Guards live in the provider (not registered unless enabled) and in the
+  // signIn callback; this check just avoids a pointless round trip.
+  if (!isDevLoginEnabled(process.env)) redirect("/signin?error=AccessDenied");
+  try {
+    await signIn(DEV_LOGIN_PROVIDER_ID, {
+      email: String(formData.get("email") ?? ""),
+      redirectTo: "/",
+    });
+  } catch (err) {
+    // Same generic message as any failed sign-in (SECURITY.md §4). Re-throw
+    // everything else — including Next's redirect signal on success.
+    if (err instanceof AuthError) redirect("/signin?error=AccessDenied");
+    throw err;
+  }
 }
 
 export default async function SignInPage({
@@ -69,6 +93,24 @@ export default async function SignInPage({
             <ArrowRight size={18} />
           </Button>
         </form>
+
+        {isDevLoginEnabled(process.env) && (
+          <form
+            action={signInWithDevEmail}
+            className="mt-8 flex max-w-[400px] flex-col gap-3 rounded-2xl border border-dashed border-cha-warning p-4"
+          >
+            <Chip size="sm" color="warning" variant="soft" className="self-start">
+              <Chip.Label>Development only</Chip.Label>
+            </Chip>
+            <TextField name="email" type="email" isRequired fullWidth>
+              <Label>Dev email</Label>
+              <Input placeholder="you@example.com" autoComplete="email" />
+            </TextField>
+            <Button type="submit" variant="outline" fullWidth>
+              Development login
+            </Button>
+          </form>
+        )}
 
         <p className="mt-6 max-w-[400px] text-[13px] text-cha-muted">
           For Cloud Heroes Africa staff. Learners sign in on the Learning Platform instead.
