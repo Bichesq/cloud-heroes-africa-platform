@@ -83,11 +83,19 @@ model LpProgram {
   creators  Json     @default("[]")
   published Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
+  /// 2026-09-24 (Phase 4): the single, fixed Creator (2026-07-06 decision).
+  /// `creators` JSON stays for existing data until backfilled.
+  creatorAuthorId String? @map("creator_author_id") @db.Uuid
 
   modules               LpModule[]
   enrollments           LpEnrollment[]
   readinessAssessments  LpReadinessAssessment[]
   standaloneAssessments LpStandaloneAssessment[] @relation("ProgramStandaloneAssessments")
+  creatorAuthor         LpAuthor?                @relation("ProgramCreator", fields: [creatorAuthorId], references: [id], onDelete: SetNull)
+  contributors          LpProgramContributor[]
+  instructors           LpProgramInstructor[]
+  directors             LpProgramDirector[]
+  owners                LpProgramOwner[]
 
   @@map("lp_programs")
 }
@@ -122,6 +130,9 @@ model LpUnit {
   tokensAward    Int     @default(0) @map("tokens_award")
   tokensRequired Int     @default(0) @map("tokens_required")
   creators       Json    @default("[]")
+  /// 2026-09-24 (Phase 4, Q9): per-unit Creator ("owns and maintains this
+  /// unit's content"). `creators` JSON stays until backfilled.
+  creatorAuthorId String? @map("creator_author_id") @db.Uuid
 
   module          LpModule           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   knowledgeChecks LpKnowledgeCheck[]
@@ -131,6 +142,7 @@ model LpUnit {
   notes           LpNote[]
   topics          LpTopic[]
   studentTopics   LpStudentTopic[]
+  creatorAuthor   LpAuthor?          @relation("UnitCreator", fields: [creatorAuthorId], references: [id], onDelete: SetNull)
 
   @@map("lp_units")
 }
@@ -609,4 +621,115 @@ model LpEscalation {
   createdAt    DateTime       @default(now()) @map("created_at")
 
   @@map("lp_escalations")
+}
+
+// ------------------------------------------------------------------
+// Authoring identity + program-scoped roles (2026-09-24, Phase 4 sub-step 1;
+// plan docs/plan/2026-09-21-learning-management-authoring-app.md §2).
+// Written by learning-management (Microsoft SSO), read by learning-platform
+// only for display. An author is internal CHA staff — deliberately NOT a
+// Student row or a role flag on Student (a person can be both).
+// Every role below is scoped to ONE program (requirements §6.5: independent
+// of any global platform role); there is no platform-wide author role
+// (2026-09-24 decision: per-program visibility).
+// ------------------------------------------------------------------
+
+model LpAuthor {
+  id        String   @id @default(uuid()) @db.Uuid
+  /// Lower-cased Microsoft sign-in email.
+  email     String   @unique
+  name      String   @default("")
+  /// Entra ID object id (`oid` claim) — the stable identity if an email
+  /// ever changes; set on first sign-in.
+  entraOid  String?  @unique @map("entra_oid")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  createdPrograms   LpProgram[]            @relation("ProgramCreator")
+  createdUnits      LpUnit[]               @relation("UnitCreator")
+  contributorRoles  LpProgramContributor[] @relation("ContributorAuthor")
+  instructorRoles   LpProgramInstructor[]  @relation("InstructorAuthor")
+  directorRoles     LpProgramDirector[]    @relation("DirectorAuthor")
+  ownerRoles        LpProgramOwner[]       @relation("OwnerAuthor")
+  addedContributors LpProgramContributor[] @relation("ContributorAddedBy")
+  addedInstructors  LpProgramInstructor[]  @relation("InstructorAddedBy")
+  addedDirectors    LpProgramDirector[]    @relation("DirectorAddedBy")
+  addedOwners       LpProgramOwner[]       @relation("OwnerAddedBy")
+
+  @@map("lp_authors")
+}
+
+/// Settings & Access authoring roles (§6.5).
+enum LpContributorRole {
+  editor
+  reviewer
+  viewer
+
+  @@map("lp_contributor_role")
+}
+
+/// Contributors table (§6.5): one row per person per program.
+model LpProgramContributor {
+  programId String            @map("program_id")
+  authorId  String            @map("author_id") @db.Uuid
+  role      LpContributorRole
+  addedAt   DateTime          @default(now()) @map("added_at")
+  /// Null for bootstrap/backfill rows.
+  addedById String?           @map("added_by_id") @db.Uuid
+
+  program LpProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  author  LpAuthor  @relation("ContributorAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  addedBy LpAuthor? @relation("ContributorAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@id([programId, authorId])
+  @@index([authorId])
+  @@map("lp_program_contributors")
+}
+
+/// Program Instructors (§6.1) — a list that can change without changing
+/// the Creator; not an authoring permission.
+model LpProgramInstructor {
+  programId String   @map("program_id")
+  authorId  String   @map("author_id") @db.Uuid
+  addedAt   DateTime @default(now()) @map("added_at")
+  addedById String?  @map("added_by_id") @db.Uuid
+
+  program LpProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  author  LpAuthor  @relation("InstructorAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  addedBy LpAuthor? @relation("InstructorAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@id([programId, authorId])
+  @@index([authorId])
+  @@map("lp_program_instructors")
+}
+
+/// Program Directors — an add/remove list, not a single field (2026-09-17).
+model LpProgramDirector {
+  programId String   @map("program_id")
+  authorId  String   @map("author_id") @db.Uuid
+  addedAt   DateTime @default(now()) @map("added_at")
+  addedById String?  @map("added_by_id") @db.Uuid
+
+  program LpProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  author  LpAuthor  @relation("DirectorAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  addedBy LpAuthor? @relation("DirectorAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@id([programId, authorId])
+  @@index([authorId])
+  @@map("lp_program_directors")
+}
+
+/// Program Owners — an add/remove list, not a single field (2026-09-17).
+model LpProgramOwner {
+  programId String   @map("program_id")
+  authorId  String   @map("author_id") @db.Uuid
+  addedAt   DateTime @default(now()) @map("added_at")
+  addedById String?  @map("added_by_id") @db.Uuid
+
+  program LpProgram @relation(fields: [programId], references: [id], onDelete: Cascade)
+  author  LpAuthor  @relation("OwnerAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  addedBy LpAuthor? @relation("OwnerAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
+
+  @@id([programId, authorId])
+  @@index([authorId])
+  @@map("lp_program_owners")
 }
