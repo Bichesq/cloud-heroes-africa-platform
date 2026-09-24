@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Draft — awaiting review
+**Status:** Draft — open questions 2–9 resolved 2026-09-24; awaiting approval to start sub-step 1
 
 ## Context
 
@@ -226,6 +226,26 @@ own, and gets a revision-log entry.
 
 ## Open questions / assumptions
 
+**Resolved 2026-09-24 (Bichesq accepted the recommendations for #2–#9):**
+
+| # | Resolution |
+|---|---|
+| 2 | Program visibility is **per program**: the Programs list shows only programs where the author is Creator, Instructor, Contributor, Director or Owner. No platform-wide role. |
+| 3 | Review states: `draft` → `in_review` → `published`; a Reviewer's rejection returns it to **`draft`**, with the reviewer's comment stored. No separate `changes_requested` state. |
+| 4 | **No global allowlist.** Microsoft SSO restricted to the CHA organisation tenant is the sign-in boundary. A signed-in author with no program rows sees an empty Programs list. |
+| 5 | V1 media storage is **local disk outside the web root**, behind a small storage interface (`put`/`get`/`delete`), served through an authenticated route. It uses randomized filenames and content (magic-byte) + size validation. A cloud backend (S3/Azure Blob) plugs in later behind the same interface. |
+| 6 | The `.md` upload imports **unit content and Topics only** in V1; KCs and assessments are authored in their own editors. Topic separator: **each `## ` heading starts a new topic**, and text before the first `##` belongs to topic 1. Import shows a dry-run preview before writing. |
+| 7a | KC question weight: add `pointsPossible Decimal @default(1)` to `LpKcQuestionBankItem`, matching `LpQuestionBankItem`. |
+| 7b | Attempts Allowed: add `maxAttempts Int?` to `LpStandaloneAssessment` (null = unlimited). It's a **cap in addition to** the 2026-08-06 progressive cooldown. At the cap, the learner is blocked and pointed to support, and staff can grant one more attempt. |
+| 7c | Time limit becomes optional: `timeLimitSeconds Int?` (null = untimed, the Figma toggle off). |
+| 7d | **Code questions are out of V1 authoring** until decision-log open item 32 (grading) is settled; the type is hidden in the picker. |
+| 7e | **One KC per unit** is enforced with a unique constraint on `LpKnowledgeCheck.unitId` (dev data checked: at most one per unit today). |
+| 8 | **Per-unit publishing**: edits to a published unit are saved as a draft copy and only reach learners on **Publish Unit** (the Figma's Save Draft / Publish Unit). Learners' progress on republish: removed topics are ignored and a completed unit is never downgraded (already how the progress code works). |
+| 9 | Unit-level Creator becomes a real **`LpUnit.creatorAuthorId` → `LpAuthor`** relation; the untyped `creators` JSON is kept only for existing data until backfilled. |
+
+The original questions below are kept for the record.
+
+
 1. ~~Are Director/Owner separate `LpProgram` fields, or `LpProgramContributor` rows with those role
    values?~~ **Resolved 2026-09-17**: neither — they're their own multi-add/remove lists
    (`LpProgramDirector`/`LpProgramOwner`), matching the Contributors list's UI/shape but kept as distinct
@@ -320,3 +340,7 @@ own, and gets a revision-log entry.
   (cross-cutting: live-content editing, upload validation, Markdown sanitization, audit log, rate
   limiting). Added Open Questions #6–#9 (import scope, Figma-vs-schema field gaps, draft vs. live,
   unit Creator) and a Markdown-import risk. Status unchanged: draft, awaiting review.
+- 2026-09-24: Open Questions #2–#9 resolved with the recommended options (table at the top of the
+  Open questions section). #5 and #7 were made concrete at the same time: local-disk storage behind
+  an interface, plus the specific schema changes for each Figma field gap. Status: awaiting approval
+  to start sub-step 1.
