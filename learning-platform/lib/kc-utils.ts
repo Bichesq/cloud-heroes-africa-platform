@@ -1,4 +1,4 @@
-import type { KcAttempt, KnowledgeCheck } from "@/types";
+import type { KcAttempt } from "@/types";
 
 /* Pure Knowledge Check scoring + failure-flow math. The retake/escalation
  * policy (fail → "Retake", second fail → notify a team member) is the
@@ -12,23 +12,34 @@ export type AttemptScore = {
   passed: boolean;
 };
 
+/** 2026-09-21 (plan Phase 3): scores against the server-pinned snapshot for
+ * this specific attempt (`snapshot`, keyed by attemptQuestionId), not
+ * against a KnowledgeCheck's full question list — there's no longer a full
+ * list, and re-deriving from the snapshot (rather than trusting whatever
+ * question ids the client's `answers` happens to include) is what makes
+ * grading authoritative: a client can't shrink/reorder which questions
+ * "count" by only submitting a subset. */
 export function scoreAttempt(
-  kc: KnowledgeCheck,
+  snapshot: { attemptQuestionId: string; correctOptionId: string }[],
+  passThreshold: number,
   answers: Record<string, string | null>
 ): AttemptScore {
-  const total = kc.questions.length;
-  const correctCount = kc.questions.filter(
-    (q) => answers[q.id] === q.correctOptionId
+  const total = snapshot.length;
+  const correctCount = snapshot.filter(
+    (q) => answers[q.attemptQuestionId] === q.correctOptionId
   ).length;
   const score = total === 0 ? 0 : correctCount / total;
-  return { correctCount, total, score, passed: score >= kc.passThreshold };
+  return { correctCount, total, score, passed: score >= passThreshold };
 }
 
 export type AttemptOutcome = "verified" | "retake" | "escalate";
 
 /** What this attempt means for the unit: pass → Competent/Verified; first
  * fail → Retake; second consecutive fail → Retake + team escalation. A pass
- * resets the failure run, so only fails since the last pass count. */
+ * resets the failure run, so only fails since the last pass count.
+ * `previousAttempts` must be submitted attempts only (score/passed non-null)
+ * — an in_progress attempt has `passed: null`, which would misread as a
+ * fail here. */
 export function nextAttemptOutcome(
   previousAttempts: KcAttempt[],
   passed: boolean

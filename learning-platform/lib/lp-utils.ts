@@ -121,6 +121,69 @@ export function moduleStats(
   };
 }
 
+export type ModuleGate = {
+  locked: boolean;
+  /** What the previous module still owes, when locked; null when unlocked. */
+  reason: "prerequisite_assessment" | "prerequisite_units" | null;
+};
+
+/**
+ * Sequential module gating (requirements §2: "module unlocks only once its
+ * prerequisite module (or its assessment) is passed"). The first module is
+ * always unlocked. Module N unlocks once module N-1 is "cleared": if N-1 has
+ * a Module Assessment, cleared means the student has a passed attempt for
+ * it; otherwise, cleared means every unit in N-1 is completed/verified.
+ *
+ * Deliberately read-computed from the same sources their own writes already
+ * commit atomically elsewhere (`LpAssessmentAttempt.passed` via
+ * `gradeAndSubmitAttempt`'s transaction, `LpStudentUnit.status` via
+ * `setUnitStatus`) rather than a separately stored "module unlocked" flag —
+ * so there is no second write that can fall out of sync with the pass/fail
+ * result. This is the actual fix for the "automatic unlock trigger didn't
+ * fire" scenario (requirements §8, plan doc Phase 2): there's no trigger to
+ * fail, because there's nothing to write — the lock state is always exactly
+ * as fresh as the attempt/unit records it's derived from.
+ *
+ * `moduleAssessmentPassed` maps moduleId → whether the student has passed
+ * that module's assessment, for every module that HAS one; a module with no
+ * entry is treated as having no Module Assessment (falls back to the
+ * unit-completion rule).
+ */
+export function moduleGates(
+  modules: LpModule[],
+  studentUnits: Map<string, StudentUnit>,
+  moduleAssessmentPassed: Map<string, boolean>
+): Map<string, ModuleGate> {
+  const ordered = [...modules].sort((a, b) => a.order - b.order);
+  const gates = new Map<string, ModuleGate>();
+  let previousCleared = true;
+  let previousHadAssessment = false;
+
+  for (const mod of ordered) {
+    gates.set(mod.id, {
+      locked: !previousCleared,
+      reason: previousCleared
+        ? null
+        : previousHadAssessment
+          ? "prerequisite_assessment"
+          : "prerequisite_units",
+    });
+
+    const hasAssessment = moduleAssessmentPassed.has(mod.id);
+    const cleared = hasAssessment
+      ? (moduleAssessmentPassed.get(mod.id) ?? false)
+      : (() => {
+          const stats = moduleStats(mod, studentUnits);
+          return stats.totalUnits > 0 && stats.completedUnits === stats.totalUnits;
+        })();
+
+    previousCleared = cleared;
+    previousHadAssessment = hasAssessment;
+  }
+
+  return gates;
+}
+
 export type ProgramStats = {
   totalUnits: number;
   completedUnits: number;

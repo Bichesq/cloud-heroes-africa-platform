@@ -1,8 +1,12 @@
+import { Label, ProgressBar } from "@heroui/react";
 import type { StudentUnitStatus } from "@/types";
 
-/* Bottom progress strip (mockup: "Progress ... 2%") plus a compact unit
- * status word — visible even in focus mode, per the design evaluation's
- * minimized-sidebar recommendation. */
+/* Unit progress, pinned to the bottom-right corner of the content card
+ * (Figma "Unit View (Reading - Learning Material)" ProgressBar node, 241×43:
+ * "Progress" extra-bold / "n%" medium above a 22px orange-on-zinc track) —
+ * outside the card's scroll area, so it's visible at all times (2026-09-24).
+ * The compact unit status word on the left isn't in the frame; it's kept
+ * from the design evaluation's minimized-sidebar recommendation. */
 
 const STATUS_TEXT: Record<StudentUnitStatus, { label: string; className: string }> = {
   in_progress: { label: "In progress", className: "text-cha-orange" },
@@ -21,21 +25,17 @@ export default function ProgressFooter({
   const status = unitStatus ? STATUS_TEXT[unitStatus] : null;
 
   return (
-    <div className="mt-auto border-t border-cha-border px-8 py-4 sm:px-10">
-      <div className="flex items-center justify-between text-sm">
-        <span className={`font-semibold ${status?.className ?? "text-cha-faint"}`}>
-          {status?.label ?? "Not started"}
-        </span>
-        <span className="font-bold">
-          Progress <span className="ml-2">{progressPct}%</span>
-        </span>
-      </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-cha-surface-2">
-        <div
-          className="h-full rounded-full bg-cha-orange transition-all"
-          style={{ width: `${Math.max(progressPct, 2)}%` }}
-        />
-      </div>
+    <div className="flex shrink-0 items-end justify-between gap-4 border-t border-cha-border px-8 py-3 sm:px-10">
+      <p className={`pb-0.5 text-[13px] font-semibold ${status?.className ?? "text-cha-faint"}`}>
+        {status?.label ?? "Not started"}
+      </p>
+      <ProgressBar value={progressPct} size="lg" className="w-[240px] shrink-0">
+        <Label className="text-xs font-extrabold text-cha-ink">Progress</Label>
+        <ProgressBar.Output className="text-xs font-medium text-cha-ink" />
+        <ProgressBar.Track className="h-5.5">
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
     </div>
   );
 }

@@ -33,7 +33,7 @@ async function buildAttemptPayload(
     attemptQuestions.map((q) => q.questionBankItemId)
   );
   const bankById = new Map(bankItems.map((b) => [b.id, b]));
-  const answerByQuestionId = new Map(answers.map((a) => [a.attemptQuestionId, a.selectedOptionIds]));
+  const answerByQuestionId = new Map(answers.map((a) => [a.attemptQuestionId, a]));
 
   return {
     attemptId,
@@ -43,10 +43,12 @@ async function buildAttemptPayload(
     timeLimitSeconds,
     questions: attemptQuestions.map((q) => {
       const bankItem = bankById.get(q.questionBankItemId);
+      const answer = answerByQuestionId.get(q.id);
       return {
         attemptQuestionId: q.id,
         orderIndex: q.orderIndex,
-        selectedOptionIds: answerByQuestionId.get(q.id) ?? [],
+        selectedOptionIds: answer?.selectedOptionIds ?? [],
+        flagged: answer?.flagged ?? false,
         ...(bankItem ? toPublicQuestionBankItem(bankItem) : null),
       };
     }),

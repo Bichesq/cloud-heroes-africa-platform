@@ -86,6 +86,19 @@ export async function getStandaloneAssessmentsForScope(params: {
   return rows.map(toAssessment);
 }
 
+/** Module Assessments for the given modules (Phase 2 gating) — one row per
+ * module that has one; a module with no Module Assessment is simply absent
+ * from the result. */
+export async function getModuleAssessmentsForModules(
+  moduleIds: string[]
+): Promise<LpStandaloneAssessment[]> {
+  if (moduleIds.length === 0) return [];
+  const rows = await prisma.lpStandaloneAssessment.findMany({
+    where: { moduleId: { in: moduleIds } },
+  });
+  return rows.map(toAssessment);
+}
+
 export async function getQuestionBank(assessmentId: string): Promise<LpQuestionBankItem[]> {
   const rows = await prisma.lpQuestionBankItem.findMany({ where: { assessmentId } });
   return rows.map(toBankItem);

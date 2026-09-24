@@ -11,6 +11,7 @@ import {
 const saveAnswerSchema = z.strictObject({
   attemptQuestionId: z.string().min(1),
   selectedOptionIds: z.array(z.string()),
+  flagged: z.boolean().optional(),
 });
 
 /* PATCH — save an answer during an in-progress attempt (save-and-resume,
@@ -45,7 +46,11 @@ export async function PATCH(
     );
   }
 
-  await saveAnswer(parsed.data.attemptQuestionId, parsed.data.selectedOptionIds);
+  await saveAnswer(
+    parsed.data.attemptQuestionId,
+    parsed.data.selectedOptionIds,
+    parsed.data.flagged
+  );
   await touchLastSaved(attemptId);
 
   return NextResponse.json({ ok: true });

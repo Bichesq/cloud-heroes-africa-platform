@@ -1,47 +1,74 @@
 "use client";
 
 import { useMemo } from "react";
-import { ArrowRight, Check } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Button, Separator } from "@heroui/react";
+import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import type { ContentBlock, UnitTopic } from "@/types";
 import { blocksToScript } from "@/lib/tts/serialize";
 import { useSpeech } from "@/lib/tts/useSpeech";
 import BlockRenderer from "./BlockRenderer";
 import TtsControlBar from "./TtsControlBar";
 import type { UnitMeta } from "./UnitShell";
 
-/* Canonical reading-material lesson view (mockup View 1, adjusted by the
- * 2026-07-16 decisions: no "Learning Material" heading, no author info, no
- * prev/next arrows). Static hero visual + local TTS + content blocks +
- * "Go to Next".
+/* Reading lesson view — Figma "Unit View (Reading - Learning Material)":
+ * topic title · static illustration (data-light stand-in for the video
+ * player; no video chrome in V1) · controls row (Previous/Next + local TTS)
+ * · "Topic i of n › topic" trail · reading. (The Figma's per-topic
+ * "Unit N: title" heading was dropped 2026-09-24 — the rail carries it.)
  *
- * (2026-08-11: Section/Item are gone — a Unit's contentBlocks ARE the
- * reading, so there is no more per-item title/section breadcrumb below the
- * unit heading itself.) */
+ * The Figma frame puts the reading text in a narrow right-hand column; that
+ * column was the duplicate "Lesson Script" panel removed on Sept 21, so the
+ * reading renders here in the main column instead. Previous/Next come back
+ * (they were dropped 2026-07-16 when a unit was one page) because they now
+ * move between Topics. */
 
 export default function ReadingView({
   unit,
+  topic,
+  topicNumber,
+  topicCount,
+  blocks,
   isCompleted,
-  hasKc,
   advancing,
-  onAdvance,
+  prevHref,
+  nextLabel,
+  onNext,
 }: {
   unit: UnitMeta;
+  topic: UnitTopic | null;
+  topicNumber: number;
+  topicCount: number;
+  blocks: ContentBlock[];
   isCompleted: boolean;
-  hasKc: boolean;
   advancing: boolean;
-  onAdvance: () => void;
+  prevHref: string | null;
+  nextLabel: string;
+  onNext: () => void;
 }) {
   const speech = useSpeech();
+  const title = topic?.name ?? unit.title;
+  const description = topic?.description || unit.description;
   const script = useMemo(
-    () => [unit.title, blocksToScript(unit.contentBlocks)].join("\n\n"),
-    [unit]
+    () => [title, blocksToScript(blocks)].join("\n\n"),
+    [title, blocks]
+  );
+
+  const nav = (
+    <TopicNav
+      prevHref={prevHref}
+      nextLabel={nextLabel}
+      advancing={advancing}
+      onNext={() => {
+        speech.stop();
+        onNext();
+      }}
+    />
   );
 
   return (
     <div className="flex flex-col px-8 pb-6 pt-7 sm:px-10">
-      <h1 className="font-display text-2xl font-extrabold">
-        <span className="text-cha-orange">Unit {unit.order}: </span>
-        {unit.title}
-      </h1>
+      <h1 className="font-display text-[28px] font-extrabold leading-tight">{title}</h1>
 
       {/* Static hero visual (data-light replacement for the video player) */}
       {unit.heroImage && (
@@ -53,37 +80,83 @@ export default function ReadingView({
         />
       )}
 
-      {/* Local TTS controls */}
-      <div className="mt-4">
+      {/* Controls row: topic navigation + local TTS. Sticky (Sept 21, Kris):
+          in the drawn order it sits under the illustration, so without this
+          it scrolled away and pausing/adjusting speed mid-read meant
+          scrolling back up. It pins to the top of the reading card instead. */}
+      <div className="sticky top-0 z-10 -mx-8 mt-4 flex flex-wrap items-center justify-between gap-3 border-b border-cha-border bg-cha-surface px-8 py-3 sm:-mx-10 sm:px-10">
+        {nav}
         <TtsControlBar speech={speech} script={script} />
       </div>
 
-      {/* Content blocks */}
-      <div className="mt-6 border-t border-cha-border pt-6">
-        {unit.contentBlocks.length > 0 ? (
-          <BlockRenderer blocks={unit.contentBlocks} />
-        ) : (
-          <p className="text-cha-muted">{unit.description}</p>
+      {/* 2026-09-24 (Bichesq): no "Unit N: title" heading per topic — the
+          rail's unit title (with its orange "Unit N:") already says which
+          unit this is. */}
+      <div className="mt-7">
+        {topic && (
+          <p className="text-[15px] font-semibold text-cha-muted">
+            Topic {topicNumber} of {topicCount}
+            <span className="mx-1.5 text-cha-faint">›</span>
+            {topic.name}
+          </p>
         )}
       </div>
 
-      {/* Advance — the only navigation control (2026-07-16) */}
-      <div className="mt-10 flex items-center justify-end gap-3">
-        {isCompleted && (
+      <Separator className="my-5" />
+
+      {description && <p className="text-cha-muted">{description}</p>}
+
+      {/* Content blocks */}
+      {blocks.length > 0 && (
+        <div className="mt-6">
+          <BlockRenderer blocks={blocks} />
+        </div>
+      )}
+
+      {/* Repeated at the end so a long topic doesn't force a scroll back up */}
+      <div className="mt-10 flex flex-wrap items-center justify-between gap-3">
+        {isCompleted ? (
           <span className="flex items-center gap-1.5 text-sm font-semibold text-cha-success">
             <Check size={16} />
-            Completed
+            Unit reading completed
           </span>
+        ) : (
+          <span />
         )}
-        <button
-          onClick={onAdvance}
-          disabled={advancing}
-          className="flex items-center gap-2 rounded-lg bg-cha-ocean px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cha-ocean/90 disabled:opacity-60"
-        >
-          {hasKc ? "Continue to Knowledge Check" : "Finish unit"}
-          <ArrowRight size={16} />
-        </button>
+        {nav}
       </div>
+    </div>
+  );
+}
+
+function TopicNav({
+  prevHref,
+  nextLabel,
+  advancing,
+  onNext,
+}: {
+  prevHref: string | null;
+  nextLabel: string;
+  advancing: boolean;
+  onNext: () => void;
+}) {
+  const router = useRouter();
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button
+        size="sm"
+        variant="outline"
+        isDisabled={!prevHref}
+        onPress={() => prevHref && router.push(prevHref)}
+      >
+        <ArrowLeft size={15} />
+        Previous
+      </Button>
+      <Button size="sm" isPending={advancing} onPress={onNext}>
+        {nextLabel}
+        <ArrowRight size={15} />
+      </Button>
     </div>
   );
 }

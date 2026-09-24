@@ -4,6 +4,7 @@ import type {
   LpAssessmentAttempt,
   LpAttemptAnswer,
   LpAttemptQuestion,
+  LpQuestionReport,
   WeakTopic,
 } from "@/types";
 
@@ -59,13 +60,33 @@ function toAttemptAnswer(row: {
   attemptQuestionId: string;
   selectedOptionIds: unknown;
   pointsEarned: unknown;
+  flagged: boolean;
   answeredAt: Date;
 }): LpAttemptAnswer {
   return {
     attemptQuestionId: row.attemptQuestionId,
     selectedOptionIds: row.selectedOptionIds as string[],
     pointsEarned: row.pointsEarned === null ? null : Number(row.pointsEarned),
+    flagged: row.flagged,
     answeredAt: row.answeredAt.toISOString(),
+  };
+}
+
+function toQuestionReport(row: {
+  id: string;
+  attemptId: string;
+  questionBankItemId: string;
+  studentId: string;
+  detail: string;
+  createdAt: Date;
+}): LpQuestionReport {
+  return {
+    id: row.id,
+    attemptId: row.attemptId,
+    questionBankItemId: row.questionBankItemId,
+    studentId: row.studentId,
+    detail: row.detail,
+    createdAt: row.createdAt.toISOString(),
   };
 }
 
@@ -102,6 +123,26 @@ export async function getSubmittedAttempts(
 
 export async function countAttempts(assessmentId: string, studentId: string): Promise<number> {
   return prisma.lpAssessmentAttempt.count({ where: { assessmentId, studentId } });
+}
+
+/** Assessment ids (from the given set) for which this student has at least
+ * one submitted, passed attempt — used for module-gating (Phase 2). */
+export async function getPassedAssessmentIds(
+  studentId: string,
+  assessmentIds: string[]
+): Promise<Set<string>> {
+  if (assessmentIds.length === 0) return new Set();
+  const rows = await prisma.lpAssessmentAttempt.findMany({
+    where: {
+      studentId,
+      assessmentId: { in: assessmentIds },
+      status: "submitted",
+      passed: true,
+    },
+    select: { assessmentId: true },
+    distinct: ["assessmentId"],
+  });
+  return new Set(rows.map((r) => r.assessmentId));
 }
 
 export async function createAttempt(params: {
@@ -158,17 +199,34 @@ export async function getAttemptAnswers(attemptId: string): Promise<LpAttemptAns
 }
 
 /** Upsert by attemptQuestionId — supports save-and-resume. selectedOptionIds
- * and pointsEarned stay hidden from the client until submission. */
+ * and pointsEarned stay hidden from the client until submission. `flagged`
+ * is optional so a Flag-for-Review toggle doesn't have to resend the
+ * current answer selection, and vice versa. */
 export async function saveAnswer(
   attemptQuestionId: string,
-  selectedOptionIds: string[]
+  selectedOptionIds: string[],
+  flagged?: boolean
 ): Promise<LpAttemptAnswer> {
   const row = await prisma.lpAttemptAnswer.upsert({
     where: { attemptQuestionId },
-    create: { attemptQuestionId, selectedOptionIds },
-    update: { selectedOptionIds, answeredAt: new Date() },
+    create: { attemptQuestionId, selectedOptionIds, flagged: flagged ?? false },
+    update: {
+      selectedOptionIds,
+      answeredAt: new Date(),
+      ...(flagged !== undefined ? { flagged } : {}),
+    },
   });
   return toAttemptAnswer(row);
+}
+
+export async function createQuestionReport(params: {
+  attemptId: string;
+  questionBankItemId: string;
+  studentId: string;
+  detail: string;
+}): Promise<LpQuestionReport> {
+  const row = await prisma.lpQuestionReport.create({ data: params });
+  return toQuestionReport(row);
 }
 
 export async function touchLastSaved(attemptId: string): Promise<void> {

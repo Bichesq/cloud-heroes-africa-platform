@@ -1,17 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { Button, Chip, Label, ProgressBar, Radio, RadioGroup } from "@heroui/react";
 import {
   ArrowRight,
   BadgeCheck,
   CheckCircle2,
-  Circle,
   LifeBuoy,
   Lock,
+  PartyPopper,
   RotateCcw,
   XCircle,
 } from "lucide-react";
-import type { KnowledgeCheck, StudentUnitStatus, TicketContext } from "@/types";
+import type { KcAttemptQuestionView, KnowledgeCheck, StudentUnitStatus, TicketContext } from "@/types";
 import HelpModal from "@/components/help/HelpModal";
 import type { KcClientState } from "./UnitShell";
 
@@ -21,11 +22,18 @@ import type { KcClientState } from "./UnitShell";
  * "Skip" option. End states implement the failure flow: pass →
  * Competent/Verified, fail → Retake, second fail → team escalation notice.
  *
- * Per-question feedback grades locally for immediacy (POC tradeoff: question
- * data includes the key); the attempts API re-scores server-side and its
- * verdict is the one that moves unit status. */
+ * 2026-09-21 (plan Phase 3): the question list is no longer a static prop —
+ * each attempt is started via POST .../attempts/start, which randomly draws
+ * from the KC's question bank server-side and snapshots the selection
+ * against a new attempt row *before* returning it here (see that route's
+ * comment for why — it's what lets the submit route grade authoritatively
+ * against a server-pinned set instead of trusting the client). Per-question
+ * feedback still grades locally for immediacy (POC tradeoff, kept as-is:
+ * the started attempt's questions ship with `correctOptionId` inline, same
+ * as the old fixed list did); the submit call re-scores server-side against
+ * the snapshot and its verdict is the one that moves unit status. */
 
-type Phase = "locked" | "intro" | "question" | "submitting" | "result";
+type Phase = "locked" | "intro" | "starting" | "question" | "submitting" | "result" | "error";
 
 type SubmitResponse = {
   attemptNo: number;
@@ -58,6 +66,8 @@ export default function KnowledgeCheckRunner({
   onExit: () => void;
 }) {
   const [phase, setPhase] = useState<Phase>(!unlocked ? "locked" : "intro");
+  const [attemptId, setAttemptId] = useState<string | null>(null);
+  const [questions, setQuestions] = useState<KcAttemptQuestionView[]>([]);
   const [questionIndex, setQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | null>>({});
   const [picked, setPicked] = useState<string | null>(null);
@@ -65,19 +75,47 @@ export default function KnowledgeCheckRunner({
   const [helpOpen, setHelpOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const question = kc.questions[questionIndex];
-  const isLastQuestion = questionIndex === kc.questions.length - 1;
-  const progressPct = Math.round((questionIndex / kc.questions.length) * 100);
+  const question = questions[questionIndex];
+  const isLastQuestion = questionIndex === questions.length - 1;
+  const progressPct =
+    questions.length === 0 ? 0 : Math.round((questionIndex / questions.length) * 100);
+
+  /** Starts (or resumes) an attempt: draws a random question set server-side
+   * and snapshots it before anything is shown here — see the route/file
+   * comments above for why. */
+  async function start() {
+    setPhase("starting");
+    setError(null);
+    const res = await fetch(`/api/knowledge-checks/${kc.id}/attempts/start`, {
+      method: "POST",
+    });
+    if (!res.ok) {
+      setError(
+        res.status === 409
+          ? "This Knowledge Check has no questions authored yet."
+          : "Couldn't start the Knowledge Check. Please try again."
+      );
+      setPhase("error");
+      return;
+    }
+    const data = (await res.json()) as { attemptId: string; questions: KcAttemptQuestionView[] };
+    setAttemptId(data.attemptId);
+    setQuestions(data.questions);
+    setQuestionIndex(0);
+    setAnswers({});
+    setPicked(null);
+    setPhase("question");
+  }
 
   function pick(optionId: string) {
     if (picked !== null) return; // answer is final until next question
     setPicked(optionId);
-    setAnswers((prev) => ({ ...prev, [question.id]: optionId }));
+    setAnswers((prev) => ({ ...prev, [question.attemptQuestionId]: optionId }));
   }
 
   async function advance(skip = false) {
     const nextAnswers = skip
-      ? { ...answers, [question.id]: null }
+      ? { ...answers, [question.attemptQuestionId]: null }
       : answers;
     if (skip) setAnswers(nextAnswers);
 
@@ -93,7 +131,7 @@ export default function KnowledgeCheckRunner({
     const res = await fetch(`/api/knowledge-checks/${kc.id}/attempts`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ answers: nextAnswers }),
+      body: JSON.stringify({ attemptId, answers: nextAnswers }),
     });
     if (!res.ok) {
       setPhase("question");
@@ -107,11 +145,8 @@ export default function KnowledgeCheckRunner({
   }
 
   function restart() {
-    setQuestionIndex(0);
-    setAnswers({});
-    setPicked(null);
     setResult(null);
-    setPhase("question");
+    void start();
   }
 
   /* ---------------- locked / intro / result states ---------------- */
@@ -135,7 +170,7 @@ export default function KnowledgeCheckRunner({
         </h1>
         <div className="mt-6 max-w-xl">
           <p className="text-cha-muted">
-            {kc.questions.length} questions · pass mark{" "}
+            {kc.questionsPerAttempt} questions · pass mark{" "}
             {Math.round(kc.passThreshold * 100)}%. Passing marks this unit{" "}
             <span className="font-semibold text-cha-success">Competent / Verified</span>.
             You can skip a question and it will simply count as unanswered.
@@ -156,13 +191,42 @@ export default function KnowledgeCheckRunner({
           )}
         </div>
         <div className="mt-8">
-          <button
-            onClick={() => setPhase("question")}
-            className="flex items-center gap-2 rounded-full bg-cha-orange px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-cha-orange-strong"
-          >
+          <Button size="lg" onPress={() => void start()}>
             {initialState.attemptCount > 0 ? "Start retake" : "Start Knowledge Check"}
             <ArrowRight size={16} />
-          </button>
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (phase === "starting") {
+    return (
+      <CenterState
+        icon={<RotateCcw size={36} className="animate-spin text-cha-faint" />}
+        title="Preparing your Knowledge Check…"
+        body="Selecting a fresh set of questions."
+      />
+    );
+  }
+
+  if (phase === "error") {
+    return (
+      <div className="flex flex-1 flex-col px-8 pb-6 pt-7 sm:px-10">
+        <h1 className="font-display text-2xl font-extrabold">
+          <span className="text-cha-ocean">Knowledge Check: </span>
+          {kc.title}
+        </h1>
+        {error && (
+          <p role="alert" className="mt-4 text-sm font-medium text-red-500">
+            {error}
+          </p>
+        )}
+        <div className="mt-6 flex items-center gap-3">
+          <Button onPress={() => void start()}>Try again</Button>
+          <Button variant="ghost" onPress={onExit}>
+            Back to program
+          </Button>
         </div>
       </div>
     );
@@ -222,27 +286,14 @@ export default function KnowledgeCheckRunner({
           )}
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-            {!result.passed && (
-              <button
-                onClick={restart}
-                className="rounded-full bg-cha-orange px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-cha-orange-strong"
-              >
-                Try again
-              </button>
-            )}
-            <button
-              onClick={() => setHelpOpen(true)}
-              className="flex items-center gap-2 rounded-full border border-cha-border bg-cha-surface px-6 py-3 text-sm font-bold text-cha-ink transition-colors hover:bg-cha-surface-2"
-            >
+            {!result.passed && <Button onPress={restart}>Try again</Button>}
+            <Button variant="outline" onPress={() => setHelpOpen(true)}>
               <LifeBuoy size={16} />
               Get help
-            </button>
-            <button
-              onClick={onExit}
-              className="rounded-full px-6 py-3 text-sm font-semibold text-cha-muted transition-colors hover:bg-cha-surface-2"
-            >
+            </Button>
+            <Button variant="ghost" onPress={onExit}>
               Back to program
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -252,6 +303,16 @@ export default function KnowledgeCheckRunner({
   }
 
   /* ------------------------- question phase ------------------------- */
+
+  if (!question) {
+    return (
+      <CenterState
+        icon={<RotateCcw size={36} className="animate-spin text-cha-faint" />}
+        title="Preparing your Knowledge Check…"
+        body="Selecting a fresh set of questions."
+      />
+    );
+  }
 
   const showFeedback = picked !== null;
   const isCorrect = picked === question.correctOptionId;
@@ -263,75 +324,73 @@ export default function KnowledgeCheckRunner({
           <span className="text-cha-ocean">Knowledge Check: </span>
           {kc.title}
         </h1>
-        <span className="shrink-0 rounded-full bg-cha-orange px-4 py-1.5 text-xs font-bold text-white">
-          Knowledge Check
-        </span>
+        <Chip color="accent" variant="primary" className="shrink-0">
+          <Chip.Label>Knowledge Check</Chip.Label>
+        </Chip>
       </div>
 
       {/* Progress bar (2026-07-16 modernization) */}
-      <div className="mt-4">
-        <div className="flex items-center justify-between text-xs font-semibold text-cha-muted">
-          <span>
-            Question {questionIndex + 1} of {kc.questions.length}
-          </span>
-          <span>{progressPct}%</span>
-        </div>
-        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-cha-surface-2">
-          <div
-            className="h-full rounded-full bg-cha-orange transition-all"
-            style={{ width: `${Math.max(progressPct, 3)}%` }}
-          />
-        </div>
-      </div>
+      <ProgressBar value={progressPct} size="sm" className="mt-4 w-full">
+        <Label className="text-xs font-semibold text-cha-muted">
+          Question {questionIndex + 1} of {questions.length}
+        </Label>
+        <ProgressBar.Output className="text-xs font-semibold text-cha-muted" />
+        <ProgressBar.Track>
+          <ProgressBar.Fill />
+        </ProgressBar.Track>
+      </ProgressBar>
 
       <div className="mt-6 flex flex-1 gap-6">
         {/* Question card */}
         <div className="min-w-0 flex-1 rounded-2xl bg-cha-surface-2/60 p-6 sm:p-8">
-          <span className="inline-block rounded-full bg-cha-orange px-4 py-1.5 text-xs font-bold text-white">
-            Question {ORDINALS[questionIndex] ?? questionIndex + 1}
-          </span>
+          <Chip color="accent" variant="primary">
+            <Chip.Label>Question {ORDINALS[questionIndex] ?? questionIndex + 1}</Chip.Label>
+          </Chip>
 
           <p className="mt-5 font-display text-xl font-bold leading-snug">
             {question.prompt}
           </p>
 
-          <div className="mt-6 flex flex-col gap-2.5" role="radiogroup" aria-label="Answer options">
+          <RadioGroup
+            aria-label="Answer options"
+            value={picked}
+            onChange={pick}
+            isReadOnly={showFeedback}
+            className="mt-6 flex flex-col gap-2.5"
+          >
             {question.options.map((option, oi) => {
               const chosen = picked === option.id;
               const correct = option.id === question.correctOptionId;
               const showAsCorrect = showFeedback && correct;
               const showAsWrong = showFeedback && chosen && !correct;
               return (
-                <button
+                <Radio
                   key={option.id}
-                  role="radio"
-                  aria-checked={chosen}
-                  disabled={showFeedback}
-                  onClick={() => pick(option.id)}
-                  className={`flex items-center gap-3 rounded-xl border-2 bg-cha-surface px-4 py-3 text-left text-sm font-medium transition-colors ${
+                  value={option.id}
+                  className={`rounded-xl border-2 bg-cha-surface px-4 py-3 text-sm font-medium transition-colors ${
                     showAsCorrect
                       ? "border-cha-success"
                       : showAsWrong
                         ? "border-cha-danger"
-                        : chosen
-                          ? "border-cha-blue"
-                          : "border-cha-border hover:border-cha-faint"
+                        : "border-cha-border hover:border-cha-faint"
                   } ${showFeedback && !chosen && !correct ? "opacity-60" : ""}`}
                 >
-                  {showAsCorrect ? (
-                    <CheckCircle2 size={18} className="shrink-0 fill-cha-success text-white" />
-                  ) : showAsWrong ? (
-                    <XCircle size={18} className="shrink-0 fill-cha-danger text-white" />
-                  ) : (
-                    <Circle size={17} className="shrink-0 text-cha-faint" />
-                  )}
-                  <span>
+                  <Radio.Content className="flex items-center gap-3">
+                    {showAsCorrect ? (
+                      <CheckCircle2 size={18} className="shrink-0 fill-cha-success text-white" />
+                    ) : showAsWrong ? (
+                      <XCircle size={18} className="shrink-0 fill-cha-danger text-white" />
+                    ) : (
+                      <Radio.Control>
+                        <Radio.Indicator />
+                      </Radio.Control>
+                    )}
                     {String.fromCharCode(65 + oi)}.) {option.label}
-                  </span>
-                </button>
+                  </Radio.Content>
+                </Radio>
               );
             })}
-          </div>
+          </RadioGroup>
 
           {error && (
             <p role="alert" className="mt-4 text-sm font-medium text-red-500">
@@ -341,28 +400,24 @@ export default function KnowledgeCheckRunner({
 
           <div className="mt-8 flex items-center justify-end gap-3">
             {!showFeedback && (
-              <button
-                onClick={() => advance(true)}
-                disabled={phase === "submitting"}
-                className="flex items-center gap-1.5 rounded-lg bg-cha-eclipse/70 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cha-eclipse disabled:opacity-60 dark:bg-cha-surface-2 dark:text-cha-muted"
+              <Button
+                variant="secondary"
+                isDisabled={phase === "submitting"}
+                onPress={() => advance(true)}
               >
                 Skip
                 <ArrowRight size={15} />
-              </button>
+              </Button>
             )}
             {showFeedback && (
-              <button
-                onClick={() => advance()}
-                disabled={phase === "submitting"}
-                className="flex items-center gap-2 rounded-lg bg-cha-ocean px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-cha-ocean/90 disabled:opacity-60"
-              >
+              <Button isPending={phase === "submitting"} onPress={() => advance()}>
                 {phase === "submitting"
                   ? "Submitting…"
                   : isLastQuestion
                     ? "Finish Knowledge Check"
                     : "Go to Next Question"}
                 <ArrowRight size={16} />
-              </button>
+              </Button>
             )}
           </div>
         </div>
@@ -371,6 +426,10 @@ export default function KnowledgeCheckRunner({
         <div className="hidden w-[260px] shrink-0 lg:block">
           {showFeedback ? (
             <div className="rounded-2xl bg-cha-surface-2/60 p-5">
+              {/* Figma "Knowledge Check done" frame: confetti on a correct answer */}
+              {isCorrect && (
+                <PartyPopper size={40} aria-hidden className="mb-3 text-cha-orange" />
+              )}
               <h3
                 className={`font-display text-lg font-extrabold ${
                   isCorrect ? "text-cha-success" : "text-cha-danger"
@@ -389,13 +448,10 @@ export default function KnowledgeCheckRunner({
             </div>
           )}
 
-          <button
-            onClick={() => setHelpOpen(true)}
-            className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl border border-cha-border px-4 py-2.5 text-[13px] font-semibold text-cha-muted transition-colors hover:bg-cha-surface-2 hover:text-cha-ink"
-          >
+          <Button fullWidth variant="outline" className="mt-4" onPress={() => setHelpOpen(true)}>
             <LifeBuoy size={15} />
             Stuck? Get help
-          </button>
+          </Button>
         </div>
       </div>
 

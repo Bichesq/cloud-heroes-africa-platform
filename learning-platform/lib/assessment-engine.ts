@@ -22,20 +22,27 @@ function shuffle<T>(items: T[]): T[] {
  * Thin-bank fallback: if a difficulty bucket can't fill its share (e.g. a
  * bank migrated from a small fixed-question list, all one difficulty), the
  * shortfall is topped up from whatever's left so an attempt still returns
- * a full question set instead of erroring. */
-export function selectQuestions(
-  bank: LpQuestionBankItem[],
+ * a full question set instead of erroring.
+ *
+ * Generic (2026-09-21, plan Phase 3 step 3) so Knowledge Checks reuse the
+ * exact same selection logic as Standalone Assessments — the Sep 7 decision
+ * KCs should work the same way as Assessments — rather than duplicating it.
+ * KC callers pass `difficultyMix: {}` (no difficulty weighting is asked for
+ * KCs), which falls straight through to the uniform-shuffle fallback below,
+ * i.e. plain random selection. */
+export function selectQuestions<T extends { id: string; difficulty: QuestionDifficulty }>(
+  bank: T[],
   questionsPerAttempt: number,
   difficultyMix: Record<string, number>
-): LpQuestionBankItem[] {
-  const byDifficulty = new Map<QuestionDifficulty, LpQuestionBankItem[]>();
+): T[] {
+  const byDifficulty = new Map<QuestionDifficulty, T[]>();
   for (const item of bank) {
     const bucket = byDifficulty.get(item.difficulty) ?? [];
     bucket.push(item);
     byDifficulty.set(item.difficulty, bucket);
   }
 
-  const selected: LpQuestionBankItem[] = [];
+  const selected: T[] = [];
   const usedIds = new Set<string>();
 
   for (const [difficulty, count] of Object.entries(difficultyMix)) {

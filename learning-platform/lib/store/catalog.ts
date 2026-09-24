@@ -2,12 +2,14 @@ import { prisma } from "@/lib/prisma";
 import type {
   ContentBlock,
   CreatorRef,
-  KcQuestion,
+  KcOption,
+  KcQuestionBankItem,
   KnowledgeCheck,
   LpModule,
   LpProgram,
   LpReadinessAssessment,
   LpUnit,
+  QuestionDifficulty,
 } from "@/types";
 
 /* Published learning content, authored by Learning Management. LP only
@@ -26,7 +28,14 @@ type UnitRow = {
   tokensAward: number;
   tokensRequired: number;
   creators: unknown;
-  contentBlocks: { id: string; order: number; type: string; payload: unknown }[];
+  contentBlocks: {
+    id: string;
+    order: number;
+    type: string;
+    payload: unknown;
+    topicId: string | null;
+  }[];
+  topics: { id: string; name: string; description: string; order: number | null }[];
 };
 
 type ModuleRow = {
@@ -50,7 +59,20 @@ function toUnit(unit: UnitRow): LpUnit {
     creators: (unit.creators ?? []) as CreatorRef[],
     contentBlocks: [...unit.contentBlocks]
       .sort((a, b) => a.order - b.order)
-      .map((b) => ({ id: b.id, order: b.order, type: b.type, payload: b.payload }) as ContentBlock),
+      .map(
+        (b) =>
+          ({
+            id: b.id,
+            order: b.order,
+            type: b.type,
+            payload: b.payload,
+            topicId: b.topicId,
+          }) as ContentBlock
+      ),
+    topics: unit.topics
+      .filter((t): t is typeof t & { order: number } => t.order !== null)
+      .sort((a, b) => a.order - b.order)
+      .map((t) => ({ id: t.id, name: t.name, description: t.description, order: t.order })),
   };
 }
 
@@ -69,7 +91,15 @@ export async function getPrograms(): Promise<LpProgram[]> {
     where: { published: true },
     include: {
       modules: {
-        include: { units: { include: { contentBlocks: true } } },
+        include: {
+          units: {
+            include: {
+              contentBlocks: true,
+              // Only navigable topics — tag-only rows have a null order.
+              topics: { where: { order: { not: null } } },
+            },
+          },
+        },
       },
     },
   });
@@ -98,14 +128,14 @@ function toKnowledgeCheck(kc: {
   unitId: string;
   title: string;
   passThreshold: unknown;
-  questions: unknown;
+  questionsPerAttempt: number;
 }): KnowledgeCheck {
   return {
     id: kc.id,
     unitId: kc.unitId,
     title: kc.title,
     passThreshold: Number(kc.passThreshold),
-    questions: kc.questions as KcQuestion[],
+    questionsPerAttempt: kc.questionsPerAttempt,
   };
 }
 
@@ -118,6 +148,42 @@ export async function getKnowledgeCheck(kcId: string): Promise<KnowledgeCheck | 
 export async function getKnowledgeChecksForUnit(unitId: string): Promise<KnowledgeCheck[]> {
   const rows = await prisma.lpKnowledgeCheck.findMany({ where: { unitId } });
   return rows.map(toKnowledgeCheck);
+}
+
+/** Batched form of getKnowledgeChecksForUnit, same pattern as
+ * getModuleAssessmentsForModules — avoids N+1 queries when a page needs
+ * Knowledge Check counts across every unit in a module (Module Content View). */
+export async function getKnowledgeChecksForUnits(unitIds: string[]): Promise<KnowledgeCheck[]> {
+  if (unitIds.length === 0) return [];
+  const rows = await prisma.lpKnowledgeCheck.findMany({ where: { unitId: { in: unitIds } } });
+  return rows.map(toKnowledgeCheck);
+}
+
+function toKcQuestionBankItem(row: {
+  id: string;
+  kcId: string;
+  difficulty: string;
+  prompt: string;
+  options: unknown;
+  correctOptionId: string;
+  explanation: string | null;
+}): KcQuestionBankItem {
+  return {
+    id: row.id,
+    kcId: row.kcId,
+    difficulty: row.difficulty as QuestionDifficulty,
+    prompt: row.prompt,
+    options: row.options as KcOption[],
+    correctOptionId: row.correctOptionId,
+    explanation: row.explanation,
+  };
+}
+
+/** Full question bank for a KC (2026-09-21, plan Phase 3 step 1) —
+ * `selectQuestions` draws a random per-attempt subset from this. */
+export async function getKcQuestionBank(kcId: string): Promise<KcQuestionBankItem[]> {
+  const rows = await prisma.lpKcQuestionBankItem.findMany({ where: { kcId } });
+  return rows.map(toKcQuestionBankItem);
 }
 
 /** Exam Readiness assessment definition (unchanged shape — see brief §3). */

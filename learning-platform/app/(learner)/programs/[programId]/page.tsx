@@ -7,6 +7,7 @@ import { getStudentUnits } from "@/lib/store/progress";
 import { getTokenEntries } from "@/lib/store/tokens";
 import { getGoals } from "@/lib/store/goals";
 import { getResults } from "@/lib/store/readiness-results";
+import { getModuleGatesForProgram } from "@/lib/store/module-access";
 import { latestReadiness, tokensBalance, programStats } from "@/lib/lp-utils";
 import ProgramOverview, { type OverviewUnit } from "./components/ProgramOverview";
 import ReadinessCard from "./components/ReadinessCard";
@@ -44,6 +45,7 @@ export default async function ProgramPage({
   const goalByUnit = new Map(goals.map((g) => [g.unitId, g]));
   const balance = tokensBalance(tokens);
   const stats = programStats(program, studentUnits);
+  const gates = await getModuleGatesForProgram(program.modules, student.id, studentUnits);
 
   const modules = [...program.modules]
     .sort((a, b) => a.order - b.order)
@@ -51,6 +53,7 @@ export default async function ProgramPage({
       id: m.id,
       title: m.title,
       description: m.description,
+      locked: gates.get(m.id)?.locked ?? false,
       units: [...m.units]
         .sort((a, b) => a.order - b.order)
         .map((u): OverviewUnit => {
@@ -68,6 +71,8 @@ export default async function ProgramPage({
             completedAt: su?.completedAt ?? null,
             verifiedAt: su?.verifiedAt ?? null,
             goalTargetDate: goal?.targetDate ?? null,
+            heroImage: u.heroImage,
+            creators: u.creators,
           };
         }),
     }));

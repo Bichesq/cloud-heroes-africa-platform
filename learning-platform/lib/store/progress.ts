@@ -65,3 +65,33 @@ export async function setUnitStatus(
   });
   return toStudentUnit(row);
 }
+
+/* -------------------------- per-topic progress -------------------------- */
+/* 2026-09-24 (plan 2026-09-24-per-topic-unit-progress): a topic is complete
+ * once the student presses Next on it. Callers must already have checked the
+ * topic belongs to the unit and that the student may access the unit. */
+
+export async function getCompletedTopicIds(
+  studentId: string,
+  unitId: string
+): Promise<string[]> {
+  const rows = await prisma.lpStudentTopic.findMany({
+    where: { studentId, unitId },
+    select: { topicId: true },
+  });
+  return rows.map((r) => r.topicId);
+}
+
+/** Idempotent — completing an already-completed topic keeps its first
+ * completion timestamp. */
+export async function markTopicComplete(
+  studentId: string,
+  unitId: string,
+  topicId: string
+): Promise<void> {
+  await prisma.lpStudentTopic.upsert({
+    where: { studentId_topicId: { studentId, topicId } },
+    create: { studentId, unitId, topicId },
+    update: {},
+  });
+}

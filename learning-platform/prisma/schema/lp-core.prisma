@@ -127,24 +127,52 @@ model LpUnit {
   goals           LpUnitGoal[]
   notes           LpNote[]
   topics          LpTopic[]
+  studentTopics   LpStudentTopic[]
 
   @@map("lp_units")
 }
 
 /// A Knowledge Check tests a Unit as a whole. The unit "having" one is
 /// expressed by this table referencing it, not by a type field on the unit.
+/// 2026-09-21 (plan Phase 3 step 1): the old fixed inline `questions` JSON
+/// blob is replaced by a question bank (`LpKcQuestionBankItem`) +
+/// per-attempt randomized selection, mirroring how Standalone Assessments
+/// already work — no data migration needed, the dev DB had zero seeded rows.
 model LpKnowledgeCheck {
-  id            String  @id
-  unitId        String  @map("unit_id")
-  title         String
-  passThreshold Decimal @default(0.7) @map("pass_threshold")
-  /// [{id, prompt, options: [{id, label}], correctOptionId, explanation}]
-  questions     Json    @default("[]")
+  id                  String  @id
+  unitId              String  @map("unit_id")
+  title               String
+  passThreshold       Decimal @default(0.7) @map("pass_threshold")
+  /// How many bank questions are randomly drawn per attempt (brief: "10-15
+  /// authored -> N shown"). No difficulty-mix weighting for KCs, unlike
+  /// Standalone Assessments — not asked for, selection is uniform random.
+  questionsPerAttempt Int     @default(10) @map("questions_per_attempt")
 
-  unit     LpUnit        @relation(fields: [unitId], references: [id], onDelete: Cascade)
-  attempts LpKcAttempt[]
+  unit         LpUnit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  questionBank LpKcQuestionBankItem[]
+  attempts     LpKcAttempt[]
 
   @@map("lp_knowledge_checks")
+}
+
+/// KC question bank item. Deliberately narrower than LpQuestionBankItem: no
+/// `type` (KCs stay single_choice-only for V1, per the "Already built"
+/// scope note in the plan doc — multi_select/Code aren't requested here) and
+/// no `topicId` (nothing in the KC UX consumes a weak-topic rollup the way
+/// Standalone Assessments do, so it isn't mirrored just for shape parity).
+model LpKcQuestionBankItem {
+  id              String             @id @default(uuid()) @db.Uuid
+  kcId            String             @map("kc_id")
+  difficulty      QuestionDifficulty @default(medium)
+  prompt          String
+  options         Json
+  correctOptionId String             @map("correct_option_id")
+  explanation     String?
+
+  knowledgeCheck   LpKnowledgeCheck      @relation(fields: [kcId], references: [id], onDelete: Cascade)
+  attemptQuestions LpKcAttemptQuestion[]
+
+  @@map("lp_kc_question_bank_items")
 }
 
 enum ContentBlockType {
@@ -167,9 +195,14 @@ model LpContentBlock {
   order   Int
   type    ContentBlockType
   payload Json
+  /// 2026-09-23: optional Topic this block belongs to. Null = the unit has
+  /// no Topic breakdown and renders as one flat reading (pre-Topic data).
+  topicId String?          @map("topic_id") @db.Uuid
 
-  unit LpUnit @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  unit  LpUnit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  topic LpTopic? @relation(fields: [topicId], references: [id], onDelete: SetNull)
 
+  @@index([topicId])
   @@map("lp_content_blocks")
 }
 
@@ -229,20 +262,51 @@ model LpStudentUnit {
   @@map("lp_student_units")
 }
 
+/// 2026-09-21 (plan Phase 3): now created at attempt *start* (status
+/// in_progress, score/passed null) so the randomly-selected question set can
+/// be snapshotted (LpKcAttemptQuestion) before the learner answers, the same
+/// way LpAttemptQuestion pins a Standalone Assessment attempt's questions.
+/// This closes a real integrity gap the old submit-only design would have
+/// had once questions came from a bank: without a server-pinned snapshot, a
+/// client could submit an arbitrary subset of "which questions count",
+/// skewing its own score. No save-and-resume of in-progress answers is
+/// implemented (not requested for KCs, unlike Standalone Assessments) — an
+/// abandoned in_progress attempt is just reused (same selection returned) on
+/// the next start call rather than spawning a duplicate.
 model LpKcAttempt {
-  id        String   @id @default(uuid()) @db.Uuid
-  studentId String   @map("student_id") @db.Uuid
-  kcId      String   @map("kc_id")
-  attemptNo Int      @map("attempt_no")
-  answers   Json
-  score     Decimal
-  passed    Boolean
-  createdAt DateTime @default(now()) @map("created_at")
+  id          String        @id @default(uuid()) @db.Uuid
+  studentId   String        @map("student_id") @db.Uuid
+  kcId        String        @map("kc_id")
+  attemptNo   Int           @map("attempt_no")
+  status      AttemptStatus @default(in_progress)
+  /// questionBankItemId(attemptQuestionId) -> chosen optionId, null =
+  /// skipped. Written once, at submit.
+  answers     Json?
+  score       Decimal?
+  passed      Boolean?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  submittedAt DateTime?     @map("submitted_at")
 
-  knowledgeCheck LpKnowledgeCheck @relation(fields: [kcId], references: [id])
+  knowledgeCheck LpKnowledgeCheck      @relation(fields: [kcId], references: [id])
+  questions      LpKcAttemptQuestion[]
 
   @@index([studentId, kcId, createdAt], map: "lp_kc_attempts_student_kc")
   @@map("lp_kc_attempts")
+}
+
+/// Snapshot of which bank items were randomly selected for a specific KC
+/// attempt — mirrors LpAttemptQuestion's role for Standalone Assessments.
+model LpKcAttemptQuestion {
+  id                   String @id @default(uuid()) @db.Uuid
+  attemptId            String @map("attempt_id") @db.Uuid
+  kcQuestionBankItemId String @map("kc_question_bank_item_id") @db.Uuid
+  orderIndex           Int    @map("order_index")
+
+  attempt          LpKcAttempt          @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionBankItem LpKcQuestionBankItem @relation(fields: [kcQuestionBankItemId], references: [id])
+
+  @@unique([attemptId, kcQuestionBankItemId])
+  @@map("lp_kc_attempt_questions")
 }
 
 enum TokenSourceType {
@@ -339,15 +403,42 @@ model LpReadinessResult {
 // per 2026-08-11 decision.
 // ------------------------------------------------------------------
 
+/// A Topic is both the assessment weak-topic tag on question-bank items and
+/// (2026-09-23, Sept 21 Unit → Topic decision) a navigable sub-page of a
+/// Unit. `order` null = tag-only topic, not shown in unit navigation.
 model LpTopic {
-  id     String  @id @default(uuid()) @db.Uuid
-  name   String
-  unitId String? @map("unit_id")
+  id          String  @id @default(uuid()) @db.Uuid
+  name        String
+  unitId      String? @map("unit_id")
+  order       Int?
+  description String  @default("")
 
   unit              LpUnit?              @relation(fields: [unitId], references: [id])
   questionBankItems LpQuestionBankItem[]
+  contentBlocks     LpContentBlock[]
+  studentTopics     LpStudentTopic[]
 
+  @@index([unitId, order])
   @@map("lp_topics")
+}
+
+/// 2026-09-24 (plan 2026-09-24-per-topic-unit-progress): one row per topic a
+/// student has completed (pressed Next on). Drives per-topic ticks and the
+/// unit progress bar; a unit's reading is complete once every navigable
+/// topic has a row. `student_id` → students(id) is a hand-authored DB-only
+/// FK like the others (see 20260826014535_add_student_fk).
+model LpStudentTopic {
+  studentId   String   @map("student_id") @db.Uuid
+  topicId     String   @map("topic_id") @db.Uuid
+  unitId      String   @map("unit_id")
+  completedAt DateTime @default(now()) @map("completed_at")
+
+  topic LpTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  unit  LpUnit  @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@id([studentId, topicId])
+  @@index([studentId, unitId])
+  @@map("lp_student_topics")
 }
 
 model LpStandaloneAssessment {
@@ -401,6 +492,7 @@ model LpQuestionBankItem {
   assessment       LpStandaloneAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   topic            LpTopic?               @relation(fields: [topicId], references: [id])
   attemptQuestions LpAttemptQuestion[]
+  reports          LpQuestionReport[]
 
   @@map("lp_question_bank_items")
 }
@@ -430,6 +522,7 @@ model LpAssessmentAttempt {
 
   assessment LpStandaloneAssessment @relation(fields: [assessmentId], references: [id])
   questions  LpAttemptQuestion[]
+  reports    LpQuestionReport[]
 
   @@unique([assessmentId, studentId, attemptNumber])
   @@index([studentId, assessmentId, attemptNumber], map: "lp_assessment_attempts_student")
@@ -455,16 +548,40 @@ model LpAttemptQuestion {
 /// 1:1 with LpAttemptQuestion; written progressively (upsert) to support
 /// save-and-resume. pointsEarned is numeric to encode multi-select partial
 /// credit; both selectedOptionIds and pointsEarned stay hidden from the
-/// client until submission ("no correctness during attempt").
+/// client until submission ("no correctness during attempt"). `flagged` is
+/// the learner's "Flag for Review" toggle (brief §5.2) — independent of and
+/// persisted the same way as the answer itself, so it survives save/resume.
 model LpAttemptAnswer {
   attemptQuestionId String   @id @map("attempt_question_id") @db.Uuid
   selectedOptionIds Json     @default("[]") @map("selected_option_ids")
   pointsEarned      Decimal? @map("points_earned")
+  flagged           Boolean  @default(false)
   answeredAt        DateTime @default(now()) @map("answered_at")
 
   attemptQuestion LpAttemptQuestion @relation(fields: [attemptQuestionId], references: [id], onDelete: Cascade)
 
   @@map("lp_attempt_answers")
+}
+
+/// Question-issue reports (brief §5.5) — a learner-flagged problem with a
+/// specific question (wrong answer key, unclear prompt, etc.), collected on
+/// the end-of-flow reporting screen and routed to admins/support. Kept as
+/// its own table rather than reusing SupportTicket: this is
+/// learning-platform-owned assessment-content data, not a Help Desk ticket
+/// (docs/plan/2026-09-20-learning-platform-v1-build.md, Phase 1 step 6).
+model LpQuestionReport {
+  id                 String   @id @default(uuid()) @db.Uuid
+  attemptId          String   @map("attempt_id") @db.Uuid
+  questionBankItemId String   @map("question_bank_item_id") @db.Uuid
+  studentId          String   @map("student_id") @db.Uuid
+  detail             String
+  createdAt          DateTime @default(now()) @map("created_at")
+
+  attempt          LpAssessmentAttempt @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  questionBankItem LpQuestionBankItem  @relation(fields: [questionBankItemId], references: [id])
+
+  @@index([questionBankItemId])
+  @@map("lp_question_reports")
 }
 
 // ------------------------------------------------------------------

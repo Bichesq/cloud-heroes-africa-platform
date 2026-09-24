@@ -1,98 +1,66 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  ClipboardList,
-  FileText,
-  LifeBuoy,
-  StickyNote,
-} from "lucide-react";
-import type { ContentBlock, TicketContext } from "@/types";
-import { blocksToScript } from "@/lib/tts/serialize";
+import { useEffect, useRef, useState } from "react";
+import { Button, Tabs } from "@heroui/react";
+import { ClipboardList, LifeBuoy, StickyNote } from "lucide-react";
+import type { TicketContext } from "@/types";
 import HelpModal from "@/components/help/HelpModal";
 
-/* Right-side secondary panel — the tabs/panels model the design evaluation
- * asked for in place of the mockup's persistent "Learning Material" sidebar:
- * Lesson Script (the reading text — this is a reading panel, NOT a video
- * transcript), Notes, Assignments, and the embedded Help entry. */
-
-type Tab = "script" | "notes" | "assignments" | "help";
-
-const TABS: { id: Tab; label: string; icon: typeof FileText }[] = [
-  { id: "script", label: "Lesson Script", icon: FileText },
-  { id: "notes", label: "Notes", icon: StickyNote },
-  { id: "assignments", label: "Assignments", icon: ClipboardList },
-  { id: "help", label: "Help", icon: LifeBuoy },
-];
+/* Right-side secondary panel — Notes and Assignments tabs plus the embedded
+ * Help entry, keeping non-essential material out of the main area
+ * (decision 2026-07-09).
+ *
+ * 2026-09-23 (plan step 3): the "Lesson Script" tab is removed — it
+ * re-rendered the same reading already shown in the center panel, a leftover
+ * of the video-based design (Sept 21 decision). */
 
 export default function RightPanel({
-  unitTitle,
-  contentBlocks,
   unitId,
   initialNote,
   assignments,
   helpContext,
 }: {
-  unitTitle: string;
-  contentBlocks: ContentBlock[];
   unitId: string;
   initialNote: string;
   assignments: { id: string; title: string; description: string }[];
   helpContext: TicketContext;
 }) {
-  const [tab, setTab] = useState<Tab>("script");
   const [helpOpen, setHelpOpen] = useState(false);
 
   return (
     <aside className="cha-card hidden w-[320px] shrink-0 flex-col overflow-hidden rounded-2xl xl:flex">
-      {/* Tab strip */}
-      <div className="flex border-b border-cha-border">
-        {TABS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => {
-              if (id === "help") setHelpOpen(true);
-              else setTab(id);
-            }}
-            aria-pressed={tab === id && id !== "help"}
-            title={label}
-            className={`flex flex-1 flex-col items-center gap-1 px-2 py-3 text-[11px] font-semibold transition-colors ${
-              tab === id && id !== "help"
-                ? "border-b-2 border-cha-orange text-cha-ink"
-                : "text-cha-muted hover:text-cha-ink"
-            }`}
-          >
-            <Icon size={16} />
-            {label}
-          </button>
-        ))}
-      </div>
+      <Tabs variant="secondary" defaultSelectedKey="notes" className="flex min-h-0 flex-1 flex-col">
+        <Tabs.ListContainer>
+          <Tabs.List aria-label="Unit side panel">
+            <Tabs.Tab id="notes">
+              <StickyNote size={15} />
+              Notes
+              <Tabs.Indicator />
+            </Tabs.Tab>
+            <Tabs.Tab id="assignments">
+              <ClipboardList size={15} />
+              Assignments
+              <Tabs.Indicator />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs.ListContainer>
+        <Tabs.Panel id="notes" className="min-h-0 flex-1 overflow-y-auto p-5">
+          <NotesTab unitId={unitId} initialNote={initialNote} />
+        </Tabs.Panel>
+        <Tabs.Panel id="assignments" className="min-h-0 flex-1 overflow-y-auto p-5">
+          <AssignmentsTab assignments={assignments} />
+        </Tabs.Panel>
+      </Tabs>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-5">
-        {tab === "script" && <ScriptTab title={unitTitle} blocks={contentBlocks} />}
-        {tab === "notes" && <NotesTab unitId={unitId} initialNote={initialNote} />}
-        {tab === "assignments" && <AssignmentsTab assignments={assignments} />}
+      <div className="border-t border-cha-border p-4">
+        <Button fullWidth variant="outline" onPress={() => setHelpOpen(true)}>
+          <LifeBuoy size={15} />
+          Help
+        </Button>
       </div>
 
       <HelpModal isOpen={helpOpen} onOpenChange={setHelpOpen} context={helpContext} />
     </aside>
-  );
-}
-
-/* ------------------------------ Script ------------------------------ */
-
-function ScriptTab({ title, blocks }: { title: string; blocks: ContentBlock[] }) {
-  const script = useMemo(() => blocksToScript(blocks), [blocks]);
-
-  return (
-    <div>
-      <h3 className="text-[13px] font-bold">{title}</h3>
-      <div className="mt-3 flex flex-col gap-3 text-[13px] leading-relaxed text-cha-muted">
-        {script.split("\n\n").map((para, i) => (
-          <p key={i}>{para}</p>
-        ))}
-      </div>
-    </div>
   );
 }
 
