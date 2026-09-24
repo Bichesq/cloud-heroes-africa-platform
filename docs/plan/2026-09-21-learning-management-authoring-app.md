@@ -18,6 +18,11 @@ actual data-model questions (who can even *be* an Editor/Reviewer/Owner if none 
 isolation this needs from the other two apps. This doc exists to resolve those before any code gets
 written, per this project's plan-doc-writer workflow requirement.
 
+**Design source:** the `Create Course View (For Admins)` page of `docs/CHA Platform_4.fig` draws
+seven screens (Programs, Program Setup, Course Structure, **Unit Editor**, Knowledge Check Editor,
+Module Assessment Configuration, Settings & Access). As with the learner rebuild, each screen is
+decoded frame-by-frame and built via `build-page-from-screenshot`, using the file's own assets.
+
 Phases 1–3 of the parent plan are already built in `learning-platform` (Module Assessment learner UI,
 module-gating, KC question bank + randomization) — this phase reads/writes the same `Lp*` Prisma models
 those phases extended.
@@ -25,7 +30,8 @@ those phases extended.
 ## Goal
 
 An internal CHA staff member (Editor/Reviewer/Owner/etc.) can sign in to `learning-management` via
-Microsoft SSO and create/edit a Program's structure (Module → Unit tree), author Knowledge Checks and
+Microsoft SSO and create/edit a Program's structure (Module → Unit tree), author each Unit's content and its Topics
+(the Sept 21 Unit → Topic layer), author Knowledge Checks and
 Module Assessments against the question banks Phase 3 already built, and manage who else has authoring
 access to that specific program — with every action checked against that person's actual role on that
 specific program, not just "is this an authenticated internal user."
@@ -42,8 +48,10 @@ specific program, not just "is this an authenticated internal user."
   this exists today; `Student` is learner-only and `LpProgram.creators` is an untyped `Json` blob with
   no role concept.
 - Microsoft SSO auth, isolated from the Google-OAuth session `learning-platform`/`student-hub` share.
-- Screens: Programs list + Program Setup (§6.1), Course Structure builder (§6.2), Knowledge Check editor
-  (§6.3), Module Assessment editor (§6.4), Settings & Access / Contributors (§6.5).
+- Screens: Programs list + Program Setup (§6.1), Course Structure builder (§6.2), **Unit Editor**
+  (drawn in the Figma and listed in the parent plan's Phase 4 IA, but missing from this doc's first
+  drafts), Knowledge Check editor (§6.3), Module Assessment editor (§6.4), Settings & Access /
+  Contributors (§6.5).
 - Server-side authorization enforcement per screen/action, per SECURITY.md §3 (Broken Access Control).
 
 **Explicitly out of scope for this pass (flagged, not silently dropped):**
@@ -136,17 +144,65 @@ check), scoped to the specific `programId` in the URL, checked against that user
    for name, description, Creator, thumbnail (see Scope note on storage), Instructors multi-add.
 2. **Course Structure builder (§6.2)** — Module/Unit tree, add/reorder, matching existing `order: Int`
    fields already on `LpModule`/`LpUnit`. Editor role required to write; Viewer read-only.
-3. **Knowledge Check editor (§6.3)** — CRUD against `LpKcQuestionBankItem` (Phase 3's bank), draft/version
-   label, direct-publish (no review gate, per §6.3's own text distinguishing it from §6.4).
-4. **Module Assessment editor (§6.4)** — CRUD against `LpQuestionBankItem`, `+ Import from Bank`,
-   `Save Draft` / `Submit for Review`. "Submit for Review" transitions the assessment into a state a
-   Reviewer must act on before it's live — needs a status field (`draft` / `in_review` / `published`)
-   on `LpStandaloneAssessment`, which doesn't exist today (currently no draft/publish state at all on
-   that model — Open Question #3).
-5. **Settings & Access (§6.5)** — Contributors table CRUD (add/remove/change role), plus a Director list
+3. **Unit Editor** (Figma "Unit Editor") — Course Context (program, module), Unit Details (name,
+   description), Creator & Media (Creator, 16:9 PNG/JPG thumbnail), **Content Upload** (a `.md` file,
+   with the drawn note *"Uploading an .md file will auto-generate the course structure, knowledge
+   checks, and module assessments"*), and Delete Unit / Save Draft / Publish Unit. It also produces
+   the unit's **Topics** (`LpTopic.order` + `LpContentBlock.topicId`, added 2026-09-23). Today only
+   test topics exist, so this is the first real way to create them. Assumed mechanism: a topic
+   separator convention in the Markdown file (Kris, 2026-09-21: "put in a separator"). How much the
+   import auto-generates is Open Question #6.
+4. **Knowledge Check editor (§6.3)** — CRUD against `LpKcQuestionBankItem` (Phase 3's bank), draft/version
+   label (Figma: `v1.4 - Draft`), Associated Unit, per-question **Weight (pts)**, answer options with
+   correct indicator, Explanation. Direct-publish (no review gate, per §6.3's own text distinguishing
+   it from §6.4). Schema gaps: see Open Question #7.
+5. **Module Assessment editor (§6.4)** — Figma "Module Assessment Configuration": scope module, name,
+   description, Passing Threshold, **Attempts Allowed**, **Time Limitation** (enable toggle + minutes),
+   and a question matrix (ID & type incl. **Code**, scenario, **Module Area**, Default Weight) with
+   `+ Import from Bank`. CRUD against `LpQuestionBankItem`, `Save Draft` / `Submit for Review`.
+   "Submit for Review" transitions the assessment into a state a Reviewer must act on before it's
+   live — needs a status field (`draft` / `in_review` / `published`) on `LpStandaloneAssessment`,
+   which doesn't exist today (currently no draft/publish state at all on that model — Open Question
+   #3). "Module Area" reuses tag-only `LpTopic` rows (`order` null); the UI must keep these distinct
+   from a unit's navigable topics.
+6. **Settings & Access (§6.5)** — Contributors table CRUD (add/remove/change role), plus a Director list
    and an Owner list with the same add/remove UI (`LpProgramDirector`/`LpProgramOwner`, not single
    fields — see §2), all scoped to the current program and gated to Owner/Director (an Editor shouldn't
    be able to grant themselves Reviewer elsewhere, etc. — least privilege per SECURITY.md §3).
+
+### 5. Build order — six sub-steps, each Figma-first
+
+Same pattern as the learner rebuild (`2026-09-23-learner-ui-figma-rebuild.md`): each sub-step
+decodes its Figma frame(s) first, checks them against the relevant decisions, is reviewable on its
+own, and gets a revision-log entry.
+
+1. **Foundation** — scaffold `learning-management/`, pure relocation of `lp-core.prisma` into
+   `prisma-shared/` (verified no-op: `migrate diff` shows only the known DB-only student-FK drift),
+   then the RBAC models migration, Microsoft SSO with its own secret, and the Owner/Director backfill
+   for the 4 seeded programs.
+2. **Programs + Program Setup + Settings & Access** — these establish the role checks every later
+   screen relies on.
+3. **Course Structure** — Module/Unit tree, add/reorder.
+4. **Unit Editor + Markdown/topic import** — the largest sub-step. Scope per Open Question #6.
+5. **Knowledge Check editor.**
+6. **Module Assessment editor** — including the review-gated publish path.
+
+### 6. Cross-cutting requirements (every sub-step)
+
+- **Editing live content** — learners only see `published` programs, but today nothing stops an
+  edit to an already-published program reaching learners immediately (including adding or removing
+  topics, which changes per-topic progress). Needs an explicit rule: Open Question #8.
+- **Uploads** (thumbnails, unit images, `.md` files) — validate by content (magic bytes), enforce
+  size limits, store outside the web root with randomized filenames (SECURITY.md §10). Storage
+  backend is Open Question #5, which now covers content images, not just thumbnails.
+- **Markdown rendering** — learner pages currently use a small custom renderer that escapes
+  everything, so authored content is safe today. If a full Markdown parser is adopted (Kris's "just
+  make it an MD viewer"), it must sanitize against an allowlist (SECURITY.md §2).
+- **Input validation** — zod `strictObject` on every write route, same as learning-platform.
+- **Audit log** for contributor/role/instructor changes — Kris asked for this (decision-log open
+  item 23). Assumed in scope for sub-step 2 unless you say otherwise.
+- **Rate limiting** — the new write routes join the cross-route follow-up deferred in
+  `2026-09-24-per-topic-unit-progress.md` (Open Question 3 there).
 
 ## Files / modules affected
 
@@ -161,7 +217,11 @@ check), scoped to the specific `programId` in the URL, checked against that user
   synced from `prisma-shared/`).
 - `learning-management/lib/auth.config.ts` — new, Microsoft SSO, own secret (not shared with the other
   two apps).
-- `learning-management/app/**` — the five §6.1–§6.5 screens.
+- `learning-management/app/**` — the six screens (§6.1–§6.5 plus the Unit Editor).
+- A Markdown → Unit/Topic import module (location decided in sub-step 4). It writes `LpUnit`,
+  `LpTopic` (with `order`) and `LpContentBlock` (with `topicId`).
+- Further `lp-core` schema changes pending Open Question #7 (KC question weight, attempt cap,
+  optional time limit, `code` question type, one-KC-per-unit constraint).
 - `learning-platform/prisma/schema/lp-core.prisma` — deleted (superseded by the relocated shared file).
 
 ## Open questions / assumptions
@@ -183,7 +243,30 @@ check), scoped to the specific `programId` in the URL, checked against that user
    zero programs until someone grants them a role? The latter is simpler and arguably sufficient (Entra
    ID/org-account SSO is itself an access boundary), but worth an explicit decision rather than a default.
 5. **Thumbnail upload storage backend** — not decided here (see Scope); needs its own short decision
-   before Program Setup's upload control is wired to something real.
+   before Program Setup's upload control is wired to something real. (2026-09-24: now also covers
+   unit thumbnails and content images, so it's a general media-storage decision.)
+6. **How much does the Unit Editor's `.md` upload auto-generate in V1?** The Figma note says
+   structure, knowledge checks, *and* module assessments. **Recommended: V1 imports the unit's content
+   and Topics only**, and KCs and assessments are authored in their own editors, which already have a
+   bank model and review path. Generating questions from Markdown needs a question syntax plus
+   validation and is a feature of its own. Also confirm the topic separator convention (e.g. each
+   `## ` heading starts a topic, or an explicit marker).
+7. **Figma fields with no schema behind them** — decide each before the migration:
+   (a) KC question **Weight (pts)**: `LpKcQuestionBankItem` has no points field;
+   (b) assessment **Attempts Allowed** (Figma "3 times"): no cap exists today, and the current rule is
+   a cooldown after each fail. Is it a cap, a replacement for the cooldown, or both?
+   (c) **Time Limitation** enable toggle: `timeLimitSeconds` is required, so "off" can't be stored;
+   (d) **Code** question type (Figma Q-104): not in `QuestionType`; still decision-log open item 32
+   (manual vs. automated grading), so a `code` type likely needs a manual-review grading path;
+   (e) Associated Unit implies **one KC per unit**, but the schema allows several. Should it be enforced?
+8. **Draft vs. live for published content** — do edits to a published program go live immediately,
+   or through a draft copy that's published as a whole (Unit Editor's "Save Draft / Publish Unit"
+   suggests per-unit publishing)? Also, what happens to learners' per-topic progress when a
+   published unit's topics change? (The progress code already ignores removed topics and never
+   downgrades a completed unit.)
+9. **Unit-level Creator** — the Unit Editor draws a per-unit Creator ("owns and maintains this unit's
+   content"). Is that an `LpAuthor` relation on `LpUnit` (new), or does `LpUnit.creators` (untyped
+   JSON) stay?
 
 ## Risks / things that could go wrong
 
@@ -208,6 +291,11 @@ check), scoped to the specific `programId` in the URL, checked against that user
   program (the 4 already seeded via `data/lp-programs.json`, see this session's Phase-1-verification
   work) needs a one-off backfill step, not just new-program-forward logic.
 
+- **Markdown import is the riskiest new piece** — malformed or hostile files, silent content loss on
+  re-upload (does "Replace file" wipe topic ids that learners' progress rows point to?), and the
+  auto-generate scope. It gets its own tests and a dry-run preview before anything is written.
+- **Scope size** — comparable to the learner rebuild. The six sub-steps keep each diff reviewable.
+
 ## Out of scope (explicitly deferred)
 
 - Thumbnail storage backend implementation.
@@ -225,3 +313,10 @@ check), scoped to the specific `programId` in the URL, checked against that user
   predates but hadn't incorporated) — Director/Owner are `LpProgramDirector`/`LpProgramOwner`
   multi-add/remove lists, not single nullable `LpProgram` fields. Updated §2, §4.5, and the affected-files
   list accordingly.
+- 2026-09-24: reviewed against the Figma `Create Course View (For Admins)` page, the current schema,
+  and this week's decisions. Added the missing **Unit Editor** screen (Figma + parent-plan IA),
+  including `.md` content upload and Topic authoring (Sept 21 Unit → Topic). Filled in the KC and
+  Module Assessment screens from their Figma frames. Added §5 (six Figma-first sub-steps) and §6
+  (cross-cutting: live-content editing, upload validation, Markdown sanitization, audit log, rate
+  limiting). Added Open Questions #6–#9 (import scope, Figma-vs-schema field gaps, draft vs. live,
+  unit Creator) and a Markdown-import risk. Status unchanged: draft, awaiting review.
