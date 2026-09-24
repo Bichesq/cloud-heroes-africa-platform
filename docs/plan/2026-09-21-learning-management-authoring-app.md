@@ -172,7 +172,7 @@ check), scoped to the specific `programId` in the URL, checked against that user
 
 ### 5. Build order — six sub-steps, each Figma-first
 
-Same pattern as the learner rebuild (`2026-09-23-learner-ui-figma-rebuild.md`): each sub-step
+Same pattern as the learner rebuild (the 2026-09-23 learner UI rebuild, now complete; see git history): each sub-step
 decodes its Figma frame(s) first, checks them against the relevant decisions, is reviewable on its
 own, and gets a revision-log entry.
 
@@ -202,7 +202,7 @@ own, and gets a revision-log entry.
 - **Audit log** for contributor/role/instructor changes — Kris asked for this (decision-log open
   item 23). Assumed in scope for sub-step 2 unless you say otherwise.
 - **Rate limiting** — the new write routes join the cross-route follow-up deferred in
-  `2026-09-24-per-topic-unit-progress.md` (Open Question 3 there).
+  the 2026-09-24 per-topic progress work.
 
 ## Files / modules affected
 

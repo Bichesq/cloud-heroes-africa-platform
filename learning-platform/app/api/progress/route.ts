@@ -14,7 +14,7 @@ const completeUnitSchema = z.strictObject({
  * Knowledge checks are NOT completed here — passing the KC (via the
  * attempts route) is what flips the unit to "verified".
  *
- * 2026-09-24 (plan 2026-09-24-per-topic-unit-progress):
+ * 2026-09-24 (decision-log "Per-topic progress formula"):
  *  - now applies the same token/module gates as the unit page via
  *    resolveUnitAccess — previously a locked unit could be marked complete
  *    (and its tokens awarded) by calling this route directly (SECURITY.md §3);

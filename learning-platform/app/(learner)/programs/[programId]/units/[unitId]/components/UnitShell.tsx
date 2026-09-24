@@ -127,7 +127,7 @@ export default function UnitShell({
     unitStatus === "completed" || unitStatus === "verified" || unitStatus === "retake";
   const kcUnlocked = contentDone;
 
-  // Per-topic progress (plan 2026-09-24-per-topic-unit-progress): each
+  // Per-topic progress (decision-log 2026-09-24 "Per-topic progress formula"): each
   // completed topic fills an equal slice of the reading share (90% when the
   // unit has a KC); only a passed KC takes the bar to 100%.
   const completedCount = unit.topics.filter((t) => completedTopicIds.has(t.id)).length;

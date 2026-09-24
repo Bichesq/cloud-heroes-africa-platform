@@ -67,7 +67,7 @@ export async function setUnitStatus(
 }
 
 /* -------------------------- per-topic progress -------------------------- */
-/* 2026-09-24 (plan 2026-09-24-per-topic-unit-progress): a topic is complete
+/* 2026-09-24 (decision-log "Per-topic progress formula"): a topic is complete
  * once the student presses Next on it. Callers must already have checked the
  * topic belongs to the unit and that the student may access the unit. */
 

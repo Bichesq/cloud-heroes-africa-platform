@@ -14,8 +14,8 @@ import { blocksToScript } from "@/lib/tts/serialize";
 
 /* Left learning rail (Figma "Unit View (Reading …)" left panel): unit title,
  * the unit's Topics (each "Reading · N mins", ticked individually as the
- * student completes it — the Figma rail's per-item tick, plan
- * 2026-09-24-per-topic-unit-progress), then its Knowledge Check(s)
+ * student completes it — the Figma rail's per-item tick, decision-log
+ * 2026-09-24 "Per-topic progress formula"), then its Knowledge Check(s)
  * ("Assessment · N questions").
  * Collapsing it is the focus mode from the "Minimized Side Bar" frame; the
  * toggle is the line-with-arrow icon, not a hamburger (2026-07-16).

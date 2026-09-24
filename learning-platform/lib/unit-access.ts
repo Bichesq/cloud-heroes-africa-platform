@@ -7,7 +7,7 @@ import { locateUnit, tokensBalance } from "@/lib/lp-utils";
 
 /* Single source of truth for "may this student work on this unit?" —
  * shared by the unit/topic pages (load-unit.ts) and the progress API routes
- * (2026-09-24, plan 2026-09-24-per-topic-unit-progress). Before this, only
+ * (2026-09-24, decision-log "Per-topic progress formula"). Before this, only
  * the page enforced the token/module gates, so POST /api/progress could mark
  * a locked unit complete (and award its tokens) by calling the API directly.
  * SECURITY.md §3: every entry point applies the same check, ids from the

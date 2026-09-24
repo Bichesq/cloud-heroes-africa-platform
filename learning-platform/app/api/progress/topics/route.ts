@@ -11,8 +11,8 @@ const completeTopicSchema = z.strictObject({
   topicId: z.uuid(),
 });
 
-/* POST — the student pressed Next on a topic (plan
- * 2026-09-24-per-topic-unit-progress; Sept 21 "per-topic granularity").
+/* POST — the student pressed Next on a topic (decision-log
+ * 2026-09-24 "Per-topic progress formula"; Sept 21 "per-topic granularity").
  * Records the completion; once every navigable topic of the unit is done it
  * runs the same unit-completion cascade as POST /api/progress (status
  * "completed" + tokens). Passing the KC is still what verifies the unit.

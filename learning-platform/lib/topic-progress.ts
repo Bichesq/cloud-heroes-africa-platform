@@ -1,5 +1,5 @@
-/* Pure progress rules for topic-split units (plan
- * 2026-09-24-per-topic-unit-progress, Sept 21 decision "Unit progress:
+/* Pure progress rules for topic-split units (decision-log
+ * 2026-09-24 "Per-topic progress formula", Sept 21 decision "Unit progress:
  * per-topic granularity"). Kept free of I/O so they're unit-tested directly.
  *
  * Formula (approved option A): the reading fills up to READING_SHARE of the

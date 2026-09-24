@@ -3,7 +3,7 @@ import { allTopicsComplete, unitProgressPct } from "@/lib/topic-progress";
 
 const base = { topicCount: 10, completedTopicCount: 0, contentDone: false, kcCount: 1, passedKcCount: 0 };
 
-describe("unitProgressPct (plan 2026-09-24-per-topic-unit-progress, option A)", () => {
+describe("unitProgressPct (decision-log 2026-09-24 'Per-topic progress formula')", () => {
   it("starts at 0%", () => {
     expect(unitProgressPct(base)).toBe(0);
   });
