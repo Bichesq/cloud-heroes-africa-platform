@@ -47,6 +47,7 @@ next-env.d.ts
 # instead (docs/plan/2026-08-23-centralize-shared-data.md)
 /prisma/schema/platform-core-models.prisma
 /prisma/schema/student-hub-local-models.prisma
+/prisma/schema/lp-core-models.prisma
 
 # data files
 data/approved-emails.json

@@ -1,4 +1,16 @@
 // ============================================================================
+// 2026-09-24 (plan 2026-09-21-learning-management-authoring-app, sub-step 1):
+// moved verbatim from learning-platform/prisma/schema/lp-core.prisma into
+// prisma-shared/ so learning-management gets real relational access to the
+// Lp* models. Copied into every app's prisma/schema/ by
+// scripts/sync-shared-prisma.mjs — edit THIS file, never the copies.
+// learning-platform remains the sole `prisma migrate` runner; its
+// generator/datasource blocks now live in learning-platform/prisma/schema/
+// schema.prisma (multi-file schema allows them in exactly one file).
+// The original file header follows unchanged.
+// ============================================================================
+
+// ============================================================================
 // Learning Platform — Prisma schema (v2)
 // Generated from docs/learning-platform/schema.sql §3 in
 // prompts/learning_platform/learning-platform-backend-migration-brief.md.
@@ -53,15 +65,6 @@
 //    chk_standalone_scope CHECK (num_nonnulls(module_id, program_id) = 1);`)
 //    or at the application layer in lib/store — not yet done either way.
 // ============================================================================
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-}
 
 // ------------------------------------------------------------------
 // Content hierarchy: Program → Module → Unit → ContentBlock. Exactly
