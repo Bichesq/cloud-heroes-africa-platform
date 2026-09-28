@@ -143,6 +143,12 @@ model LpUnit {
   /// 2026-09-28 (Phase 4 sub-step 3): null = draft, hidden from learners.
   /// Set by Publish Unit (sub-step 4); existing units were backfilled.
   publishedAt     DateTime? @map("published_at")
+  /// 2026-09-28 (sub-step 4): Unit Editor thumbnail — a Learning Management
+  /// media key (decision #5). `heroImage` stays the learner-facing URL.
+  thumbnailKey       String? @map("thumbnail_key")
+  /// Last published .md import ("global-cloud-infrastructure.md · 24.5 KB").
+  contentSourceName  String? @map("content_source_name")
+  contentSourceBytes Int?    @map("content_source_bytes")
 
   module          LpModule           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   knowledgeChecks LpKnowledgeCheck[]
@@ -153,6 +159,7 @@ model LpUnit {
   topics          LpTopic[]
   studentTopics   LpStudentTopic[]
   creatorAuthor   LpAuthor?          @relation("UnitCreator", fields: [creatorAuthorId], references: [id], onDelete: SetNull)
+  draft           LpUnitDraft?
 
   @@map("lp_units")
 }
@@ -665,6 +672,8 @@ model LpAuthor {
   addedDirectors    LpProgramDirector[]    @relation("DirectorAddedBy")
   addedOwners       LpProgramOwner[]       @relation("OwnerAddedBy")
   auditActions      LpAuthoringAuditEntry[] @relation("AuditActor")
+  unitDraftsEdited  LpUnitDraft[]           @relation("UnitDraftEditor")
+  unitDraftCreators LpUnitDraft[]           @relation("UnitDraftCreator")
   auditSubjects     LpAuthoringAuditEntry[] @relation("AuditSubject")
 
   @@map("lp_authors")
@@ -770,6 +779,8 @@ enum LpAuthoringAuditAction {
   unit_updated
   unit_reordered
   unit_deleted
+  unit_draft_saved
+  unit_published
 
   @@map("lp_authoring_audit_action")
 }
@@ -793,4 +804,33 @@ model LpAuthoringAuditEntry {
 
   @@index([programId, createdAt])
   @@map("lp_authoring_audit_log")
+}
+
+/// Pending Unit Editor changes (decision #8, plan §9): Save Draft writes
+/// here; Publish Unit copies it onto the live LpUnit (and its topics and
+/// content blocks) in one transaction, then deletes it. Learners never read
+/// this table.
+model LpUnitDraft {
+  unitId          String   @id @map("unit_id")
+  title           String
+  description     String   @default("")
+  durationMin     Int      @map("duration_min")
+  tokensAward     Int      @map("tokens_award")
+  tokensRequired  Int      @map("tokens_required")
+  creatorAuthorId String?  @map("creator_author_id") @db.Uuid
+  /// New thumbnail waiting to be published (null = keep the live one).
+  thumbnailKey    String?  @map("thumbnail_key")
+  /// Parsed .md import waiting to be published (null = keep live content):
+  /// { topics: [{ name, blocks: [{ type, payload }] }] } — lib/markdown-import.ts.
+  content         Json?
+  contentSourceName  String? @map("content_source_name")
+  contentSourceBytes Int?    @map("content_source_bytes")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+  updatedById     String?  @map("updated_by_id") @db.Uuid
+
+  unit      LpUnit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  creator   LpAuthor? @relation("UnitDraftCreator", fields: [creatorAuthorId], references: [id], onDelete: SetNull)
+  updatedBy LpAuthor? @relation("UnitDraftEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("lp_unit_drafts")
 }
