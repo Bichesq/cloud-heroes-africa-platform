@@ -11,6 +11,11 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Program Setup posts its thumbnail (≤ 2 MB, lib/image-upload.ts) through
+    // a server action; the default 1 MB body limit would reject it.
+    serverActions: { bodySizeLimit: "3mb" },
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

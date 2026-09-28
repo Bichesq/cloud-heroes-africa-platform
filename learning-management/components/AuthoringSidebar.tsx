@@ -13,29 +13,41 @@ import { AppWindow, CheckCircle, ChartGantt, PencilLine, Settings, type LucideIc
  * Custom composition: this is route navigation, not a selection control, so
  * plain links (same choice as the learner app's unit rail).
  *
- * Sub-step 1: only Programs is live. The five program-scoped screens need a
- * selected program and arrive in sub-steps 2–6, so they render disabled. */
+ * The program-scoped screens link to the program in the URL
+ * (/programs/[programId]/…); with no program selected they render disabled.
+ * Course Structure, Unit Editor and Knowledge Check arrive in sub-steps 3–5.
+ * Links are navigation only — each page checks the author's role itself. */
 
-type NavItem = { label: string; icon: LucideIcon; href?: string };
+type NavItem = { label: string; icon: LucideIcon; segment?: string };
 
 const NAV: NavItem[] = [
-  { label: "Programs", icon: AppWindow, href: "/" },
-  { label: "Program Setup", icon: AppWindow },
+  { label: "Programs", icon: AppWindow },
+  { label: "Program Setup", icon: AppWindow, segment: "setup" },
   { label: "Course Structure", icon: ChartGantt },
   { label: "Unit Editor", icon: PencilLine },
   { label: "Knowledge Check", icon: CheckCircle },
-  { label: "Settings & Access", icon: Settings },
+  { label: "Settings & Access", icon: Settings, segment: "settings" },
 ];
+
+/** "/programs/cloud-practitioner/setup" → "cloud-practitioner". */
+function programIdFrom(pathname: string): string | null {
+  const m = /^\/programs\/([^/]+)\//.exec(pathname);
+  return m && m[1] !== "new" ? m[1] : null;
+}
 
 export default function AuthoringSidebar() {
   const pathname = usePathname();
+  const programId = programIdFrom(pathname);
 
   return (
     <nav aria-label="Authoring" className="w-[284px] shrink-0 bg-cha-canvas px-5 pt-7">
       <p className="text-[11px] font-bold tracking-wide text-cha-faint">AUTHORING</p>
       <ul className="mt-2 flex flex-col gap-2">
-        {NAV.map(({ label, icon: Icon, href }) => {
-          const active = href !== undefined && pathname === href;
+        {NAV.map(({ label, icon: Icon, segment }) => {
+          const href =
+            label === "Programs" ? "/" : segment && programId ? `/programs/${programId}/${segment}` : undefined;
+          const active =
+            label === "Programs" ? pathname === "/" || pathname === "/programs/new" : href !== undefined && pathname === href;
           const base =
             "flex h-[43px] items-center gap-3 rounded-md px-3.5 text-sm outline-none transition-colors focus-visible:ring-4 focus-visible:ring-cha-blue/15";
           return (
@@ -56,7 +68,7 @@ export default function AuthoringSidebar() {
               ) : (
                 <span
                   aria-disabled="true"
-                  title="Choose a program first"
+                  title={programId || !segment ? "Coming in a later step" : "Choose a program first"}
                   className={`${base} cursor-not-allowed font-medium text-cha-ink opacity-55`}
                 >
                   <Icon size={16} aria-hidden />

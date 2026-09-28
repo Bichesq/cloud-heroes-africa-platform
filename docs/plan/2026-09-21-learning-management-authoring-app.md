@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-step 1 implemented; sub-step 2 next
+**Status:** Approved 2026-09-24 — sub-steps 1–2 implemented; sub-step 3 (Course Structure) next
 
 ## Context
 
@@ -204,6 +204,43 @@ own, and gets a revision-log entry.
 - **Rate limiting** — the new write routes join the cross-route follow-up deferred in
   the 2026-09-24 per-topic progress work.
 
+### 7. Sub-step 2 detail — Programs, Program Setup, Settings & Access (decided 2026-09-28)
+
+**Permission rules** (Bichesq, 2026-09-28, recommended options). Every rule is checked on the server
+for the `programId` in the request, in one place (`lib/program-access.ts`):
+
+| Action | Allowed |
+|---|---|
+| See a program (list, Setup read-only, Settings read-only) | any role on it (decision #2) |
+| Create a program | Director on **at least one** program. The creator becomes the new program's Creator, Owner and Director |
+| Edit Program Setup (name, description, thumbnail, Instructors) | Owner, Director, Editor |
+| Change the program's Creator | Owner, Director (creators are fixed by default, 2026-09-07) |
+| Add/remove/change Contributors | Owner, Director |
+| Add/remove Directors and Owners | Director only. The **last Director can't be removed**, so a program is never orphaned |
+
+- **People pickers** list existing `LpAuthor` rows by name (2026-09-17: "assigned by name via
+  dropdown… not free-text email"). Someone new has to sign in once before they can be added.
+- **Audit log**: new append-only `LpAuthoringAuditEntry` (actor, program, action enum, subject
+  author, before/after JSON). It's written in the same transaction as each role, Creator,
+  Instructor, create or setup change.
+- **Thumbnail** (decision #5): `lib/storage` interface with a local-disk backend under
+  `learning-management/storage/` (gitignored, outside `public/`). Files are PNG/JPEG only, checked by
+  magic bytes, 2 MB cap, random UUID names. They're served by
+  `GET /api/programs/[programId]/thumbnail`, which checks the program role and reads the key from
+  the database, never from the URL. Stored in a **new `LpProgram.thumbnailKey`**; `heroImage`
+  stays unchanged because the learner catalogue uses it as a public `<img src>`. Showing authored
+  thumbnails to learners is a follow-up.
+- **Schema** (one migration, `--create-only` with the student-FK drops stripped): `LpProgram.updatedAt`
+  (for "Last Updated"), `LpProgram.thumbnailKey`, `LpAuthoringAuditEntry` + `LpAuthoringAuditAction`.
+- **Routes**: `/` (Programs table), `/programs/new`, `/programs/[programId]/setup`,
+  `/programs/[programId]/settings`. Writes are server actions with zod `strictObject`. "View"
+  opens the program in the learner app (`LM_LEARNER_APP_URL`) only when it's published.
+- **Figma vs. decisions**: Settings & Access draws Director and Owner as single dropdowns; they're
+  built as add/remove lists (2026-09-17). Program Setup has no Instructors control in the frame; it's
+  added below the details as a labelled custom section (§6.1).
+- **Deferred**: rate limiting (cross-route follow-up, §6); deleting programs; publishing a program
+  (publishing is per unit, decision #8).
+
 ## Files / modules affected
 
 - `prisma-shared/lp-core-models.prisma` — new file; content moved from
@@ -381,3 +418,37 @@ The original questions below are kept for the record.
   and a token under the learner `authjs.*` cookie name are all refused. **Before production:**
   exercise the real Entra flow once (a mock OIDC server is the suggested route) — dev login skips
   the tenant check.
+- 2026-09-28: **sub-step 2 implemented** (Programs, Program Setup, Settings & Access). Permission
+  rules decided by Bichesq (§7).
+  - Migration `…_authoring_audit_program_setup`: `LpProgram.updatedAt` + `thumbnailKey`, and
+    `LpAuthoringAuditEntry`. The 10 student-FK drops were stripped by hand; the 10 constraints were
+    verified afterwards. Existing programs' `updatedAt` starts at the migration time, so the list shows
+    "Today" for them until they're next edited.
+  - Rules live in `lib/permissions.ts` (pure) and `lib/program-access.ts` (loads the roles, 404s
+    pages, refuses actions, logs denials). Server actions are in `lib/actions/`. Each one validates
+    with zod, checks the capability on that `programId`, and writes its audit entry in the same
+    transaction. Removing a Director runs Serializable, so the last Director can't be removed even
+    by two removals at once.
+  - Thumbnails: `lib/storage.ts` (local disk under `storage/media`, random UUID keys re-validated
+    before any filesystem call), `lib/image-upload.ts` (magic bytes, 2 MB), and
+    `GET /api/programs/[programId]/thumbnail` (role-checked). The server-action body limit is 3 MB.
+  - The sidebar links Program Setup and Settings & Access to the program in the URL.
+  - **Deviation from the Figma:** the Contributors table is a semantic `<table>`, not HeroUI Table.
+    Inside HeroUI Table cells, pointer presses on overlay triggers (the row's role Select, Remove's
+    AlertDialog) don't open them; only the keyboard does. Links in cells work, so the Programs table
+    stays HeroUI Table.
+  - Verified: tsc and eslint clean; 34 unit tests (20 new). A headless Edge run with four dev
+    authors (Director, Editor, Viewer/Reviewer, outsider) passed all 25 checks:
+    - create with PNG → thumbnail served;
+    - disguised non-image rejected;
+    - setup edit saved;
+    - contributors added, re-roled and removed;
+    - second Director added and removed; last Director protected;
+    - Editor can edit but not change the Creator, manage people or create programs;
+    - Viewer is read-only;
+    - outsider gets 404 on the pages and thumbnail;
+    - a removed contributor loses access at once;
+    - the audit log has one entry per change.
+    The test data was deleted afterwards.
+  - **Not done / follow-ups:** rate limiting (cross-route follow-up); learners don't see authored
+    thumbnails yet (`heroImage` is unchanged); "Last Updated" renders in the server's time zone.
