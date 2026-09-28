@@ -1,3 +1,4 @@
+import { withoutEmptyModules } from "@/lib/lp-utils";
 import { prisma } from "@/lib/prisma";
 import type {
   ContentBlock,
@@ -92,7 +93,11 @@ export async function getPrograms(): Promise<LpProgram[]> {
     include: {
       modules: {
         include: {
+          // Draft units (publishedAt null — Phase 4 sub-step 3) never reach
+          // learners: not in the catalogue, unit pages, progress totals or
+          // resolveUnitAccess, which all start here.
           units: {
+            where: { publishedAt: { not: null } },
             include: {
               contentBlocks: true,
               // Only navigable topics — tag-only rows have a null order.
@@ -114,7 +119,8 @@ export async function getPrograms(): Promise<LpProgram[]> {
     delivery: p.delivery as "self-paced",
     creators: (p.creators ?? []) as CreatorRef[],
     published: p.published,
-    modules: [...p.modules].sort((a, b) => a.order - b.order).map(toModule),
+    // A module shows only once it has a published unit.
+    modules: withoutEmptyModules([...p.modules].sort((a, b) => a.order - b.order).map(toModule)),
   }));
 }
 
@@ -139,9 +145,26 @@ function toKnowledgeCheck(kc: {
   };
 }
 
+/** Only Knowledge Checks on a published unit of a published program exist
+ * for learners — both attempt routes (start, submit) come through here. */
 export async function getKnowledgeCheck(kcId: string): Promise<KnowledgeCheck | null> {
-  const kc = await prisma.lpKnowledgeCheck.findUnique({ where: { id: kcId } });
+  const kc = await prisma.lpKnowledgeCheck.findFirst({
+    where: { id: kcId, unit: PUBLISHED_UNIT_WHERE },
+  });
   return kc ? toKnowledgeCheck(kc) : null;
+}
+
+/** Relation filter: a unit learners may see. */
+const PUBLISHED_UNIT_WHERE = {
+  publishedAt: { not: null },
+  module: { program: { published: true } },
+} as const;
+
+/** Whether learners may see this unit (goals/notes routes take a raw
+ * unitId from the request, SECURITY.md §3). */
+export async function isPublishedUnit(unitId: string): Promise<boolean> {
+  const count = await prisma.lpUnit.count({ where: { id: unitId, ...PUBLISHED_UNIT_WHERE } });
+  return count === 1;
 }
 
 /** All Knowledge Checks belonging to a unit (a Unit may have zero or more). */

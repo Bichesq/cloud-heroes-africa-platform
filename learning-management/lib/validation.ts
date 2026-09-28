@@ -51,3 +51,34 @@ export function slugify(title: string): string {
     .replace(/-+$/g, "");
   return slug || "program";
 }
+
+/* ---- Course Structure (plan §8) ---- */
+
+// Existing ids are seeded slugs ("lp-m1-u1"); new ones are "m-…" / "u-…".
+const STRUCTURE_ID_PATTERN = /^[a-z0-9](?:[a-z0-9-]{0,98}[a-z0-9])?$/;
+export const moduleId = z.string().regex(STRUCTURE_ID_PATTERN);
+export const unitId = z.string().regex(STRUCTURE_ID_PATTERN);
+
+const structureTitle = z
+  .string()
+  .trim()
+  .min(2, "Enter a title of at least 2 characters.")
+  .max(160, "Keep the title under 160 characters.")
+  .refine(noControlChars, "Remove unsupported characters.");
+const structureDescription = z
+  .string()
+  .trim()
+  .max(1000, "Keep the description under 1,000 characters.")
+  .refine(noControlChars, "Remove unsupported characters.");
+
+export const direction = z.enum(["up", "down"]);
+
+export const addModuleSchema = z.strictObject({ programId, title: structureTitle, description: structureDescription });
+export const updateModuleSchema = z.strictObject({ programId, moduleId, title: structureTitle, description: structureDescription });
+export const moveModuleSchema = z.strictObject({ programId, moduleId, direction });
+export const deleteModuleSchema = z.strictObject({ programId, moduleId });
+
+export const addUnitSchema = z.strictObject({ programId, moduleId, title: structureTitle, description: structureDescription });
+export const updateUnitSchema = z.strictObject({ programId, unitId, title: structureTitle, description: structureDescription });
+export const moveUnitSchema = z.strictObject({ programId, unitId, direction });
+export const deleteUnitSchema = z.strictObject({ programId, unitId });

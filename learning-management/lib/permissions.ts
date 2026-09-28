@@ -20,6 +20,8 @@ export type ProgramRoles = {
 export type ProgramCapabilities = {
   view: boolean;
   editSetup: boolean;
+  /** Course Structure: add / edit / reorder / delete modules and units. */
+  editStructure: boolean;
   changeCreator: boolean;
   manageContributors: boolean;
   manageDirectorsOwners: boolean;
@@ -33,6 +35,8 @@ export function capabilitiesFor(r: ProgramRoles): ProgramCapabilities {
   return {
     view: r.isCreator || r.isInstructor || r.contributorRole !== null || ownerOrDirector,
     editSetup: ownerOrDirector || r.contributorRole === "editor",
+    // Same roles as Program Setup (plan §8).
+    editStructure: ownerOrDirector || r.contributorRole === "editor",
     changeCreator: ownerOrDirector,
     manageContributors: ownerOrDirector,
     manageDirectorsOwners: r.isDirector,

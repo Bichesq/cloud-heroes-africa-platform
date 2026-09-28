@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentStudent } from "@/lib/current-student";
+import { isPublishedUnit } from "@/lib/store/catalog";
 import { getGoals, removeGoal, setGoal } from "@/lib/store/goals";
 
 const setGoalSchema = z.strictObject({
@@ -25,6 +26,10 @@ export async function POST(request: Request) {
   const parsed = setGoalSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid goal" }, { status: 400 });
+  }
+
+  if (!(await isPublishedUnit(parsed.data.unitId))) {
+    return NextResponse.json({ error: "Unknown unit" }, { status: 404 });
   }
 
   const goal = await setGoal(student.id, parsed.data.unitId, parsed.data.targetDate);

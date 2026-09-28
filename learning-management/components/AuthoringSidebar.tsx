@@ -15,7 +15,7 @@ import { AppWindow, CheckCircle, ChartGantt, PencilLine, Settings, type LucideIc
  *
  * The program-scoped screens link to the program in the URL
  * (/programs/[programId]/…); with no program selected they render disabled.
- * Course Structure, Unit Editor and Knowledge Check arrive in sub-steps 3–5.
+ * Unit Editor and Knowledge Check arrive in sub-steps 4–5.
  * Links are navigation only — each page checks the author's role itself. */
 
 type NavItem = { label: string; icon: LucideIcon; segment?: string };
@@ -23,7 +23,7 @@ type NavItem = { label: string; icon: LucideIcon; segment?: string };
 const NAV: NavItem[] = [
   { label: "Programs", icon: AppWindow },
   { label: "Program Setup", icon: AppWindow, segment: "setup" },
-  { label: "Course Structure", icon: ChartGantt },
+  { label: "Course Structure", icon: ChartGantt, segment: "structure" },
   { label: "Unit Editor", icon: PencilLine },
   { label: "Knowledge Check", icon: CheckCircle },
   { label: "Settings & Access", icon: Settings, segment: "settings" },

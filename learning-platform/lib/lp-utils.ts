@@ -92,6 +92,12 @@ export function locateUnit(programs: LpProgram[], unitId: string): UnitLocation 
 
 /* ------------------------ module / program --------------------------- */
 
+/** Modules with no (published) units are hidden from learners — Phase 4
+ * sub-step 3: a new module shows once its first unit is published. */
+export function withoutEmptyModules<M extends { units: unknown[] }>(modules: M[]): M[] {
+  return modules.filter((m) => m.units.length > 0);
+}
+
 export type ModuleStats = {
   moduleId: string;
   totalUnits: number;

@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-steps 1–2 implemented; sub-step 3 (Course Structure) next
+**Status:** Approved 2026-09-24 — sub-steps 1–3 implemented; sub-step 4 (Unit Editor) next
 
 ## Context
 
@@ -241,6 +241,44 @@ for the `programId` in the request, in one place (`lib/program-access.ts`):
 - **Deferred**: rate limiting (cross-route follow-up, §6); deleting programs; publishing a program
   (publishing is per unit, decision #8).
 
+### 8. Sub-step 3 detail — Course Structure (decided 2026-09-28)
+
+Figma "Course Structure" frame: page title "Program Structure", a PROGRAM toolbar with
+"+ Add Module", and a tree card of modules. Each module header has a chevron, "Module N: title",
+"N units" and "+ Add Unit". Each unit row has a sequence badge, title, a subtitle, and ↑ / ↓ / Edit.
+
+**Decisions** (Bichesq, 2026-09-28, recommended options):
+
+1. **New units are drafts until published.** New `LpUnit.publishedAt DateTime?`; null means draft.
+   The migration marks every existing unit published. Learners see only published units, and a
+   module shows only once it has at least one. The Unit Editor's Publish Unit (sub-step 4) sets
+   `publishedAt`. Renames and reordering apply immediately.
+2. **Delete**: a module only when it has no units; a unit only while it's a draft (never published),
+   so learner progress is never lost.
+3. **Unit subtitle**: built from real data, "N topics · M min", plus a Draft tag. There's no unit
+   type field (the Figma's "Reading" / "Hands-on lab" was removed from the model on 2026-08-11).
+
+**Permissions**: editing structure uses the same roles as editing Program Setup (Owner, Director,
+Editor). Everyone else with a role sees the tree read-only. Every module and unit id in a request is
+checked to belong to the `programId` being edited (SECURITY.md §3, nested object references).
+
+**Learning Management**
+- Route `/programs/[programId]/structure`; the sidebar's Course Structure links to it.
+- Server actions: add, edit, move up/down and delete, for modules and units. Moves renumber
+  siblings 1..n in one transaction, so duplicate or gapped `order` values heal themselves. Every
+  change bumps the program's `updatedAt` and writes an audit entry (new enum values `module_*` /
+  `unit_*`).
+- Not drawn in the Figma, added as labelled custom composition: module ↑ / ↓ / Edit, matching the
+  unit row buttons; Delete inside the Edit dialogs. Unit Edit opens a small title/description dialog
+  until the Unit Editor exists in sub-step 4.
+- New ids are random (`m-…` / `u-…`), not derived from titles, since titles can change.
+
+**Learning Platform (learner app)**
+- `getPrograms()` drops draft units and modules left with no units. The catalogue, unit pages,
+  progress totals and `resolveUnitAccess` all go through it.
+- The goals and notes routes, and the Knowledge Check attempt route, currently accept any unit id.
+  They now require the unit to be published, in a published program.
+
 ## Files / modules affected
 
 - `prisma-shared/lp-core-models.prisma` — new file; content moved from
@@ -452,3 +490,27 @@ The original questions below are kept for the record.
     The test data was deleted afterwards.
   - **Not done / follow-ups:** rate limiting (cross-route follow-up); learners don't see authored
     thumbnails yet (`heroImage` is unchanged); "Last Updated" renders in the server's time zone.
+- 2026-09-28: **sub-step 3 implemented** (Course Structure). Decisions in §8 (Bichesq).
+  - Migration `…_unit_published_at`: `LpUnit.publishedAt` (null = draft), with all 11 existing
+    units backfilled as published, plus the `module_*` / `unit_*` audit actions. The 10 student-FK
+    drops were stripped and the constraints re-verified. An orphaned `migrate dev` from earlier that
+    day was still holding Prisma's advisory lock and had to be killed first.
+  - Learning Management: `/programs/[programId]/structure` and `lib/actions/course-structure.ts`
+    (add, edit, move and delete for modules and units). Every id is looked up within the program
+    being edited. Moves and deletes renumber siblings 1..n (`lib/ordering.ts`). New `editStructure`
+    capability, with the same roles as Program Setup.
+  - Learning Platform: `getPrograms()` filters draft units and modules with no published units.
+    `getKnowledgeCheck()` only returns KCs on published units of published programs, which covers
+    both attempt routes. The goals and notes routes check `isPublishedUnit()`.
+  - Verified: tsc clean in both apps; eslint clean in Learning Management; 40 Learning Management
+    tests and 49 Learning Platform tests pass. A headless Edge run passed all 27 checks:
+    - add module and units; units are drafts with random ids;
+    - the learner catalogue, the goals/notes guard and the KC lookup all hide the draft unit and
+      module, while a published KC stays visible;
+    - move, rename, and renumbering;
+    - delete blocked for a non-empty module and for a published unit; drafts then the empty
+      module deleted;
+    - the Editor can edit; the Viewer sees Draft tags but no controls; an outsider gets 404;
+    - the real module order was restored and all test data removed.
+  - Pre-existing and not touched: 2 eslint errors in `learning-platform/lib/lp-utils.ts` (a loop
+    variable named `module`) and other lint errors in the learner app's lib hooks.

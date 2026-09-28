@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentStudent } from "@/lib/current-student";
+import { isPublishedUnit } from "@/lib/store/catalog";
 import { getNote, saveNote } from "@/lib/store/notes";
 
 const saveNoteSchema = z.strictObject({
@@ -14,6 +15,7 @@ export async function GET(request: Request) {
 
   const unitId = new URL(request.url).searchParams.get("unitId");
   if (!unitId) return NextResponse.json({ error: "unitId required" }, { status: 400 });
+  if (!(await isPublishedUnit(unitId))) return NextResponse.json({ error: "Unknown unit" }, { status: 404 });
 
   const note = await getNote(student.id, unitId);
   return NextResponse.json(note ?? { unitId, body: "", updatedAt: null });
@@ -26,6 +28,10 @@ export async function POST(request: Request) {
   const parsed = saveNoteSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid note" }, { status: 400 });
+  }
+
+  if (!(await isPublishedUnit(parsed.data.unitId))) {
+    return NextResponse.json({ error: "Unknown unit" }, { status: 404 });
   }
 
   const note = await saveNote(student.id, parsed.data.unitId, parsed.data.body);

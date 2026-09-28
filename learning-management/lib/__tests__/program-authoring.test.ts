@@ -23,6 +23,7 @@ describe("program capabilities (plan §7)", () => {
     expect(capabilitiesFor({ ...none, isDirector: true })).toEqual({
       view: true,
       editSetup: true,
+      editStructure: true,
       changeCreator: true,
       manageContributors: true,
       manageDirectorsOwners: true,
@@ -31,13 +32,20 @@ describe("program capabilities (plan §7)", () => {
 
   it("Owner: setup, Creator and Contributors — not Directors/Owners", () => {
     const c = capabilitiesFor({ ...none, isOwner: true });
-    expect(c).toMatchObject({ view: true, editSetup: true, changeCreator: true, manageContributors: true });
+    expect(c).toMatchObject({ view: true, editSetup: true, editStructure: true, changeCreator: true, manageContributors: true });
     expect(c.manageDirectorsOwners).toBe(false);
   });
 
   it("Editor: edits setup but can't change the Creator or manage people", () => {
     const c = capabilitiesFor({ ...none, contributorRole: "editor" });
-    expect(c).toEqual({ view: true, editSetup: true, changeCreator: false, manageContributors: false, manageDirectorsOwners: false });
+    expect(c).toEqual({
+      view: true,
+      editSetup: true,
+      editStructure: true,
+      changeCreator: false,
+      manageContributors: false,
+      manageDirectorsOwners: false,
+    });
   });
 
   it.each([
@@ -49,6 +57,7 @@ describe("program capabilities (plan §7)", () => {
     expect(capabilitiesFor(roles)).toEqual({
       view: true,
       editSetup: false,
+      editStructure: false,
       changeCreator: false,
       manageContributors: false,
       manageDirectorsOwners: false,
