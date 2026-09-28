@@ -79,6 +79,36 @@ export const moveModuleSchema = z.strictObject({ programId, moduleId, direction 
 export const deleteModuleSchema = z.strictObject({ programId, moduleId });
 
 export const addUnitSchema = z.strictObject({ programId, moduleId, title: structureTitle, description: structureDescription });
-export const updateUnitSchema = z.strictObject({ programId, unitId, title: structureTitle, description: structureDescription });
 export const moveUnitSchema = z.strictObject({ programId, unitId, direction });
 export const deleteUnitSchema = z.strictObject({ programId, unitId });
+
+/* ---- Unit Editor (plan §9) ---- */
+
+const wholeNumber = (max: number, label: string) =>
+  z
+    .string()
+    .trim()
+    .regex(/^\d{1,6}$/, `${label} must be a whole number.`)
+    .transform(Number)
+    .refine((n) => n <= max, `${label} can be at most ${max}.`);
+
+export const unitEditorSchema = z.strictObject({
+  title: structureTitle,
+  description: structureDescription,
+  moduleId,
+  durationMin: wholeNumber(600, "Duration"),
+  tokensAward: wholeNumber(1000, "Tokens awarded"),
+  tokensRequired: wholeNumber(100000, "Tokens required"),
+  // Present only when the author may change the Creator; "" = none.
+  creatorAuthorId: z.union([authorId, z.literal("")]).optional(),
+});
+
+export type UnitEditorInput = z.infer<typeof unitEditorSchema>;
+
+/** Display-only file name for an uploaded .md (never used as a path). */
+export function safeFileName(name: string): string | null {
+  const base = name.split(/[\/]/).pop()?.trim() ?? "";
+  if (!base || base.length > 200 || !noControlChars(base)) return null;
+  if (!/\.(md|markdown)$/i.test(base)) return null;
+  return base;
+}

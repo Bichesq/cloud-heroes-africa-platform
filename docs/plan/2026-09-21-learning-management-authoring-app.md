@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-steps 1–3 implemented; sub-step 4 (Unit Editor) next
+**Status:** Approved 2026-09-24 — sub-steps 1–4 implemented; sub-step 5 (Knowledge Check editor) next
 
 ## Context
 
@@ -279,6 +279,65 @@ checked to belong to the `programId` being edited (SECURITY.md §3, nested objec
 - The goals and notes routes, and the Knowledge Check attempt route, currently accept any unit id.
   They now require the unit to be published, in a published program.
 
+### 9. Sub-step 4 detail — Unit Editor + Markdown import (decided 2026-09-28)
+
+Figma "Unit Editor" frame: Course Context (Program, Module), Unit Details (Unit Name, Description,
+and an empty compact row), Creator & Media (Creator, unit thumbnail), Content Upload (`.md` file,
+"Replace file", and the auto-generate note), then Delete Unit / Save Draft / Publish Unit.
+
+**Decisions** (Bichesq, 2026-09-28, recommended options):
+
+1. **Images in Markdown** are skipped and flagged ("not imported yet") in the preview. Nothing
+   external is ever loaded by learners. Images come with learner-facing media serving (follow-up).
+2. **Re-import keeps progress by heading text**: a `## ` heading matching an existing topic (after
+   normalising case and spacing) keeps that topic's id, so learners keep its progress. New headings
+   become new topics, and topics whose heading disappeared are removed on publish (decision #8). The
+   preview shows kept / new / removed.
+3. **The compact row** holds Duration (pre-filled from the imported text at about 200 words a
+   minute, editable), Tokens awarded and Tokens required. New units default to 10 awarded and 0
+   required, matching the seeded units.
+
+**Draft copy (decision #8).** A new `LpUnitDraft` table (one per unit) holds pending edits: name,
+description, duration, tokens, Creator, thumbnail key, and the parsed import with its file name and
+size.
+- **Save Draft** writes only the draft.
+- **Publish Unit** copies the draft onto the live `LpUnit` in one transaction. It also replaces the
+  unit's navigable topics and content blocks (matching topics by heading), sets `publishedAt` on the
+  first publish, and deletes the draft.
+- Learners only ever read live rows, so nothing changes on the learner side.
+- The Module field is structural like Course Structure moves: saving moves the unit immediately (to
+  the end of the chosen module).
+- The Program is shown read-only; units don't move between programs.
+
+**Markdown import** (`lib/markdown-import.ts`, pure, heavily unit-tested; decision #6):
+- **Topics:** each `## ` starts a topic (and a level-2 heading block). Text before the first `##` is
+  topic 1, named "Introduction".
+- **Blocks:** `### ` becomes a level-3 heading; fenced code becomes a code block; `>` becomes a
+  callout (`[!TIP]` / `[!WARNING]` / `[!NOTE]` set the tone); each other blank-line-separated chunk
+  becomes a rich-text block.
+- **Flagged, kept as plain text:** links, numbered lists, tables and raw HTML, since the learner
+  renderer escapes everything and shows them literally. `# ` headings are dropped with a warning.
+- **Limits:** 1 MB, valid UTF-8 with no control characters (the content check for a text file,
+  SECURITY.md §10), 50 topics, 500 blocks. Topic count outside Kris's 6–12 guidance is a soft note.
+- **Dry-run first:** choosing a file calls a preview action that parses on the server and writes
+  nothing. The same file is parsed again on Save Draft / Publish; the client's copy is never
+  trusted.
+
+**Permissions.** `editStructure` (Owner, Director, Editor) can save, publish, and delete a draft
+unit. Changing the unit Creator needs Owner or Director (`changeCreator`, as for programs, decision
+#9). Others see the editor read-only.
+
+**Schema**: `LpUnitDraft`; `LpUnit.thumbnailKey`, `contentSourceName`, `contentSourceBytes` (for the
+Figma's "file · 24.5 KB" line); audit actions `unit_draft_saved`, `unit_published`.
+
+**Elsewhere**:
+- Course Structure's unit **Edit** now opens the Unit Editor. The rename dialog is removed, so name
+  and content changes both go through the draft.
+- An "Unpublished changes" tag marks units with a pending draft.
+- The sidebar's Unit Editor is enabled when a unit is open.
+
+**Deferred**: images and video in content; learner display of unit thumbnails; rate limiting.
+
 ## Files / modules affected
 
 - `prisma-shared/lp-core-models.prisma` — new file; content moved from
@@ -514,3 +573,43 @@ The original questions below are kept for the record.
     - the real module order was restored and all test data removed.
   - Pre-existing and not touched: 2 eslint errors in `learning-platform/lib/lp-utils.ts` (a loop
     variable named `module`) and other lint errors in the learner app's lib hooks.
+- 2026-09-28: **sub-step 4 implemented** (Unit Editor + Markdown import). Decisions in §9 (Bichesq).
+  - Migration `…_unit_editor_drafts`: `LpUnitDraft`; `LpUnit.thumbnailKey`, `contentSourceName` and
+    `contentSourceBytes`; audit actions `unit_draft_saved` and `unit_published`. The 10 student-FK
+    drops were stripped and re-verified.
+  - `lib/markdown-import.ts` (21 tests): UTF-8/control-character content check, `##` topics,
+    headings, code, callouts with tones, rich text; images skipped and links, numbered lists,
+    tables and HTML flagged; limits; unique topic headings; heading-based topic matching.
+  - `lib/actions/unit-editor.ts`:
+    - server-side dry-run preview;
+    - Save Draft and Publish Unit through the draft copy;
+    - publishing an empty unit is refused;
+    - re-import keeps topic ids by heading, so learner progress survives;
+    - Discard changes;
+    - module moves are immediate;
+    - the unit thumbnail goes through the draft;
+    - media files no longer referenced are deleted.
+  - Route `/programs/[programId]/units/[unitId]`, plus a role-checked unit thumbnail route
+    (`?draft=1` serves the pending image).
+  - Course Structure's unit Edit now opens the Unit Editor (View for read-only roles); the unit
+    rename dialog and `updateUnit` are gone. An "Unpublished changes" tag marks pending drafts. New
+    units default to 10 tokens awarded. The sidebar's Unit Editor is live while a unit is open.
+  - **Deviation from the Figma:** the Content Upload note describes V1 accurately (content and
+    Topics only, decision #6) instead of "auto-generate … knowledge checks, and module assessments".
+    Publish asks for confirmation.
+  - Verified: tsc and eslint clean; 61 Learning Management tests pass. A headless Edge run on an
+    isolated, published test program ran 50 checks. 49 passed; the 50th was a wrong expected
+    message in the test, because the disguised binary `.md` was rejected, just as invalid UTF-8.
+    The checks covered:
+    - draft invisible to learners;
+    - an empty publish refused;
+    - preview writes nothing and flags the image and the link, with no external URL stored;
+    - publish makes the unit and its topics visible;
+    - the v2 re-import keeps the matched topic id and a learner's progress on it, and drops
+      progress on the removed topic;
+    - learners see v1 until v2 is published;
+    - discard; draft and live thumbnails; the immediate module move;
+    - Editor can save and publish but not change the Creator; Viewer is read-only; outsider,
+      cross-program id and thumbnail all 404;
+    - deleting a draft unit.
+    All test data, files and authors were removed.

@@ -15,7 +15,9 @@ import { AppWindow, CheckCircle, ChartGantt, PencilLine, Settings, type LucideIc
  *
  * The program-scoped screens link to the program in the URL
  * (/programs/[programId]/…); with no program selected they render disabled.
- * Unit Editor and Knowledge Check arrive in sub-steps 4–5.
+ * Unit Editor is live while a unit is open (/programs/[id]/units/[unitId]);
+ * units are opened from Course Structure. Knowledge Check arrives in
+ * sub-step 5.
  * Links are navigation only — each page checks the author's role itself. */
 
 type NavItem = { label: string; icon: LucideIcon; segment?: string };
@@ -24,7 +26,7 @@ const NAV: NavItem[] = [
   { label: "Programs", icon: AppWindow },
   { label: "Program Setup", icon: AppWindow, segment: "setup" },
   { label: "Course Structure", icon: ChartGantt, segment: "structure" },
-  { label: "Unit Editor", icon: PencilLine },
+  { label: "Unit Editor", icon: PencilLine, segment: "units" },
   { label: "Knowledge Check", icon: CheckCircle },
   { label: "Settings & Access", icon: Settings, segment: "settings" },
 ];
@@ -45,7 +47,15 @@ export default function AuthoringSidebar() {
       <ul className="mt-2 flex flex-col gap-2">
         {NAV.map(({ label, icon: Icon, segment }) => {
           const href =
-            label === "Programs" ? "/" : segment && programId ? `/programs/${programId}/${segment}` : undefined;
+            label === "Programs"
+              ? "/"
+              : segment === "units"
+                ? programId && pathname.startsWith(`/programs/${programId}/units/`)
+                  ? pathname
+                  : undefined
+                : segment && programId
+                  ? `/programs/${programId}/${segment}`
+                  : undefined;
           const active =
             label === "Programs" ? pathname === "/" || pathname === "/programs/new" : href !== undefined && pathname === href;
           const base =
@@ -68,7 +78,13 @@ export default function AuthoringSidebar() {
               ) : (
                 <span
                   aria-disabled="true"
-                  title={programId || !segment ? "Coming in a later step" : "Choose a program first"}
+                  title={
+                    segment === "units" && programId
+                      ? "Open a unit from Course Structure"
+                      : programId || !segment
+                        ? "Coming in a later step"
+                        : "Choose a program first"
+                  }
                   className={`${base} cursor-not-allowed font-medium text-cha-ink opacity-55`}
                 >
                   <Icon size={16} aria-hidden />

@@ -31,6 +31,7 @@ export default async function CourseStructurePage({ params }: { params: Promise<
               description: true,
               durationMin: true,
               publishedAt: true,
+              draft: { select: { updatedAt: true } },
               // Navigable topics only; tag-only rows (Module Area) have no order.
               _count: { select: { topics: { where: { order: { not: null } } } } },
             },
@@ -63,6 +64,7 @@ export default async function CourseStructurePage({ params }: { params: Promise<
             topics: u._count.topics,
             durationMin: u.durationMin,
             draft: u.publishedAt === null,
+            pendingChanges: u.publishedAt !== null && u.draft !== null,
           })),
         }))}
       />

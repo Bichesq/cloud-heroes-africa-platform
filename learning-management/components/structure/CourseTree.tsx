@@ -1,19 +1,11 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Alert, Button, Chip } from "@heroui/react";
+import Link from "next/link";
+import { Alert, Button, buttonVariants, Chip } from "@heroui/react";
 import { ArrowDown, ArrowUp, ChevronDown, Pencil, Plus } from "lucide-react";
 import StructureDialog, { type DialogConfig } from "@/components/structure/StructureDialog";
-import {
-  addModule,
-  addUnit,
-  deleteModule,
-  deleteUnit,
-  moveModule,
-  moveUnit,
-  updateModule,
-  updateUnit,
-} from "@/lib/actions/course-structure";
+import { addModule, addUnit, deleteModule, moveModule, moveUnit, updateModule } from "@/lib/actions/course-structure";
 import type { FormState } from "@/lib/actions/form-state";
 
 /* Course Structure tree — Figma "Course Structure" frame, Course tree card:
@@ -26,7 +18,8 @@ import type { FormState } from "@/lib/actions/form-state";
  * Added beyond the frame (plan §8, labelled custom composition): module
  * ↑ / ↓ / Edit (same buttons as unit rows), a Draft chip, and the add/edit
  * dialogs. The unit subtitle is "N topics · M min" — units have no type field,
- * so the frame's "Reading" / "Hands-on lab" can't be shown.
+ * so the frame's "Reading" / "Hands-on lab" can't be shown. A unit's Edit
+ * opens the Unit Editor (View for read-only roles).
  *
  * `canEdit` only decides what's rendered; every action re-checks the role. */
 
@@ -37,6 +30,8 @@ export type TreeUnit = {
   topics: number;
   durationMin: number;
   draft: boolean;
+  /** A published unit with a saved, unpublished Unit Editor draft. */
+  pendingChanges: boolean;
 };
 export type TreeModule = { id: string; title: string; description: string; units: TreeUnit[] };
 
@@ -117,23 +112,6 @@ export default function CourseTree({
         setFocus({ moduleId: m.id });
         return addUnit({ programId, moduleId: m.id, ...v });
       },
-    });
-
-  const openEditUnit = (m: TreeModule, u: TreeUnit) =>
-    setDialog({
-      heading: "Edit Unit",
-      submitLabel: "Save",
-      titleLabel: "Unit title",
-      initialTitle: u.title,
-      initialDescription: u.description,
-      note: "Content, topics and publishing come with the Unit Editor.",
-      onSubmit: (v) => {
-        setFocus({ moduleId: m.id, unitId: u.id });
-        return updateUnit({ programId, unitId: u.id, ...v });
-      },
-      onDelete: () => deleteUnit({ programId, unitId: u.id }),
-      deleteLabel: "Delete unit",
-      deleteBlockedReason: u.draft ? null : "Published units can't be deleted, because learners may have progress on them.",
     });
 
   return (
@@ -265,6 +243,11 @@ export default function CourseTree({
                                 Draft
                               </Chip>
                             )}
+                            {u.pendingChanges && (
+                              <Chip size="sm" variant="soft" color="accent">
+                                Unpublished changes
+                              </Chip>
+                            )}
                           </p>
                           <p className="text-[11px] text-cha-muted">{unitSubtitle(u)}</p>
                         </div>
@@ -292,10 +275,15 @@ export default function CourseTree({
                             >
                               <ArrowDown size={14} aria-hidden />
                             </Button>
-                            <Button size="sm" variant="outline" className="rounded-md font-bold" onPress={() => openEditUnit(m, u)}>
+                            <Link href={`/programs/${programId}/units/${u.id}`} className={`${buttonVariants({ size: "sm", variant: "outline" })} rounded-md font-bold`}>
                               Edit
-                            </Button>
+                            </Link>
                           </div>
+                        )}
+                        {!canEdit && (
+                          <Link href={`/programs/${programId}/units/${u.id}`} className={`${buttonVariants({ size: "sm", variant: "outline" })} rounded-md font-bold`}>
+                            View
+                          </Link>
                         )}
                       </li>
                     );

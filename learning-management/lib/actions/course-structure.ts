@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { Prisma, type LpAuthoringAuditAction } from "@prisma/client";
 import { recordAudit } from "@/lib/audit";
+import { mediaStorage } from "@/lib/storage";
 import { moveOneStep, nextOrder, sortSiblings } from "@/lib/ordering";
 import { prisma } from "@/lib/prisma";
 import { AccessDeniedError, requireProgramCapability } from "@/lib/program-access";
@@ -15,7 +16,6 @@ import {
   moveModuleSchema,
   moveUnitSchema,
   updateModuleSchema,
-  updateUnitSchema,
 } from "@/lib/validation";
 import { GENERIC_ERROR, type FormState } from "@/lib/actions/form-state";
 
@@ -25,7 +25,8 @@ import { GENERIC_ERROR, type FormState } from "@/lib/actions/form-state";
  * capability was checked for, so an id from another program is "not found".
  *
  * New units are drafts (publishedAt null) and never reach learners until
- * Publish Unit (sub-step 4). Renames and moves apply immediately. Each change
+ * Publish Unit. Unit names and content are edited in the Unit Editor (via its
+ * draft); module renames and all moves apply immediately. Each change
  * bumps the program's updatedAt and writes an audit entry in the same
  * transaction. */
 
@@ -186,22 +187,9 @@ export async function addUnit(input: unknown): Promise<FormState> {
       const id = newId("u");
       await tx.lpUnit.create({
         // publishedAt stays null: a draft, hidden from learners (plan §8).
-        data: { id, moduleId, title, description, order: nextOrder(siblings), creatorAuthorId: actor },
+        data: { id, moduleId, title, description, order: nextOrder(siblings), creatorAuthorId: actor, tokensAward: 10 },
       });
       await finish(tx, programId, actor, "unit_created", { unitId: id, moduleId, title });
-    }),
-  );
-}
-
-export async function updateUnit(input: unknown): Promise<FormState> {
-  const parsed = updateUnitSchema.safeParse(input);
-  if (!parsed.success) return invalid(parsed.error);
-  const { programId, unitId, title, description } = parsed.data;
-  return run(programId, "unit_update", (actor) =>
-    prisma.$transaction(async (tx) => {
-      const before = await findUnit(tx, programId, unitId);
-      await tx.lpUnit.update({ where: { id: unitId }, data: { title, description } });
-      await finish(tx, programId, actor, "unit_updated", { unitId, before: before.title, after: title });
     }),
   );
 }
@@ -228,18 +216,27 @@ export async function deleteUnit(input: unknown): Promise<FormState> {
   const parsed = deleteUnitSchema.safeParse(input);
   if (!parsed.success) return invalid(parsed.error);
   const { programId, unitId } = parsed.data;
-  return run(programId, "unit_delete", (actor) =>
+  const files: string[] = [];
+  const result = await run(programId, "unit_delete", (actor) =>
     prisma.$transaction(async (tx) => {
       const unit = await findUnit(tx, programId, unitId);
       // Only drafts: a unit that was ever published may carry learner progress.
       if (unit.publishedAt) throw new Refused("Published units can't be deleted.");
+      const media = await tx.lpUnit.findUniqueOrThrow({
+        where: { id: unitId },
+        select: { thumbnailKey: true, draft: { select: { thumbnailKey: true } } },
+      });
       // Topics would be orphaned (optional relation), so remove them first.
       // Learner rows (progress, notes, goals) restrict the delete, so one
-      // that somehow exists makes the whole transaction fail instead.
+      // that somehow exists makes the whole transaction fail instead. The
+      // draft row cascades.
       await tx.lpTopic.deleteMany({ where: { unitId } });
       await tx.lpUnit.delete({ where: { id: unitId } });
       await renumber(tx, "unit", unit.moduleId);
       await finish(tx, programId, actor, "unit_deleted", { unitId, moduleId: unit.moduleId, title: unit.title });
+      for (const key of [media.thumbnailKey, media.draft?.thumbnailKey]) if (key) files.push(key);
     }),
   );
+  if (result?.ok) for (const key of files) await mediaStorage.delete(key);
+  return result;
 }
