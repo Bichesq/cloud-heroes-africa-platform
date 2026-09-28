@@ -140,6 +140,9 @@ model LpUnit {
   /// 2026-09-24 (Phase 4, Q9): per-unit Creator ("owns and maintains this
   /// unit's content"). `creators` JSON stays until backfilled.
   creatorAuthorId String? @map("creator_author_id") @db.Uuid
+  /// 2026-09-28 (Phase 4 sub-step 3): null = draft, hidden from learners.
+  /// Set by Publish Unit (sub-step 4); existing units were backfilled.
+  publishedAt     DateTime? @map("published_at")
 
   module          LpModule           @relation(fields: [moduleId], references: [id], onDelete: Cascade)
   knowledgeChecks LpKnowledgeCheck[]
@@ -759,6 +762,14 @@ enum LpAuthoringAuditAction {
   director_removed
   owner_added
   owner_removed
+  module_created
+  module_updated
+  module_reordered
+  module_deleted
+  unit_created
+  unit_updated
+  unit_reordered
+  unit_deleted
 
   @@map("lp_authoring_audit_action")
 }
