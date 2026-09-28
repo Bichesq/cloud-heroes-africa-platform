@@ -86,6 +86,12 @@ model LpProgram {
   /// 2026-09-24 (Phase 4): the single, fixed Creator (2026-07-06 decision).
   /// `creators` JSON stays for existing data until backfilled.
   creatorAuthorId String? @map("creator_author_id") @db.Uuid
+  /// 2026-09-28 (Phase 4 sub-step 2): Program Setup thumbnail — an opaque
+  /// key into learning-management's media storage (plan decision #5), served
+  /// only through its authenticated route. `heroImage` (public URL used by
+  /// the learner catalogue) is deliberately separate.
+  thumbnailKey    String?  @map("thumbnail_key")
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at")
 
   modules               LpModule[]
   enrollments           LpEnrollment[]
@@ -96,6 +102,7 @@ model LpProgram {
   instructors           LpProgramInstructor[]
   directors             LpProgramDirector[]
   owners                LpProgramOwner[]
+  auditEntries          LpAuthoringAuditEntry[]
 
   @@map("lp_programs")
 }
@@ -654,6 +661,8 @@ model LpAuthor {
   addedInstructors  LpProgramInstructor[]  @relation("InstructorAddedBy")
   addedDirectors    LpProgramDirector[]    @relation("DirectorAddedBy")
   addedOwners       LpProgramOwner[]       @relation("OwnerAddedBy")
+  auditActions      LpAuthoringAuditEntry[] @relation("AuditActor")
+  auditSubjects     LpAuthoringAuditEntry[] @relation("AuditSubject")
 
   @@map("lp_authors")
 }
@@ -732,4 +741,45 @@ model LpProgramOwner {
   @@id([programId, authorId])
   @@index([authorId])
   @@map("lp_program_owners")
+}
+
+/// Learning Management audit trail actions (decision-log open item 23;
+/// plan 2026-09-21 §7).
+enum LpAuthoringAuditAction {
+  program_created
+  program_updated
+  creator_changed
+  thumbnail_changed
+  instructor_added
+  instructor_removed
+  contributor_added
+  contributor_removed
+  contributor_role_changed
+  director_added
+  director_removed
+  owner_added
+  owner_removed
+
+  @@map("lp_authoring_audit_action")
+}
+
+/// Append-only: written in the same transaction as the change it records,
+/// never updated or deleted by application code.
+model LpAuthoringAuditEntry {
+  id              String                 @id @default(uuid()) @db.Uuid
+  programId       String                 @map("program_id")
+  actorAuthorId   String                 @map("actor_author_id") @db.Uuid
+  action          LpAuthoringAuditAction
+  /// The person granted/removed/re-roled, when the action is about one.
+  subjectAuthorId String?                @map("subject_author_id") @db.Uuid
+  /// { before, after } for field changes; role names for role changes.
+  details         Json                   @default("{}")
+  createdAt       DateTime               @default(now()) @map("created_at")
+
+  program LpProgram @relation(fields: [programId], references: [id], onDelete: Restrict)
+  actor   LpAuthor  @relation("AuditActor", fields: [actorAuthorId], references: [id], onDelete: Restrict)
+  subject LpAuthor? @relation("AuditSubject", fields: [subjectAuthorId], references: [id], onDelete: Restrict)
+
+  @@index([programId, createdAt])
+  @@map("lp_authoring_audit_log")
 }
