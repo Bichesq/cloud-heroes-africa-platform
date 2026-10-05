@@ -127,3 +127,29 @@ describe("nextAttemptOutcome (submitted-attempts-only contract)", () => {
     expect(nextAttemptOutcome(previous, false)).toBe("retake");
   });
 });
+
+describe("scoreAttempt weighting (2026-10-05, decision 7a)", () => {
+  it("weights by points: a heavy correct answer outweighs light wrong ones", () => {
+    const snapshot = [
+      { attemptQuestionId: "q1", correctOptionId: "a", points: 10 },
+      { attemptQuestionId: "q2", correctOptionId: "b", points: 5 },
+      { attemptQuestionId: "q3", correctOptionId: "c", points: 5 },
+    ];
+    const r = scoreAttempt(snapshot, 0.5, { q1: "a", q2: "x", q3: null });
+    expect(r).toEqual({ correctCount: 1, total: 3, score: 0.5, passed: true });
+    expect(scoreAttempt(snapshot, 0.51, { q1: "a" }).passed).toBe(false);
+  });
+
+  it("1-point questions score exactly as correct ÷ total", () => {
+    const snapshot = [1, 2, 3, 4].map((n) => ({ attemptQuestionId: `q${n}`, correctOptionId: "a", points: 1 }));
+    expect(scoreAttempt(snapshot, 0.7, { q1: "a", q2: "a", q3: "a" }).score).toBe(0.75);
+  });
+
+  it("treats missing or non-positive points as 1", () => {
+    const snapshot = [
+      { attemptQuestionId: "q1", correctOptionId: "a" },
+      { attemptQuestionId: "q2", correctOptionId: "a", points: 0 },
+    ];
+    expect(scoreAttempt(snapshot, 0.5, { q1: "a" }).score).toBe(0.5);
+  });
+});

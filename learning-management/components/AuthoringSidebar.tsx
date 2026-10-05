@@ -16,8 +16,8 @@ import { AppWindow, CheckCircle, ChartGantt, PencilLine, Settings, type LucideIc
  * The program-scoped screens link to the program in the URL
  * (/programs/[programId]/…); with no program selected they render disabled.
  * Unit Editor is live while a unit is open (/programs/[id]/units/[unitId]);
- * units are opened from Course Structure. Knowledge Check arrives in
- * sub-step 5.
+ * units are opened from Course Structure. Knowledge Check opens the current
+ * unit's KC, or the program's first unit's.
  * Links are navigation only — each page checks the author's role itself. */
 
 type NavItem = { label: string; icon: LucideIcon; segment?: string };
@@ -27,7 +27,7 @@ const NAV: NavItem[] = [
   { label: "Program Setup", icon: AppWindow, segment: "setup" },
   { label: "Course Structure", icon: ChartGantt, segment: "structure" },
   { label: "Unit Editor", icon: PencilLine, segment: "units" },
-  { label: "Knowledge Check", icon: CheckCircle },
+  { label: "Knowledge Check", icon: CheckCircle, segment: "knowledge-check" },
   { label: "Settings & Access", icon: Settings, segment: "settings" },
 ];
 
@@ -37,9 +37,15 @@ function programIdFrom(pathname: string): string | null {
   return m && m[1] !== "new" ? m[1] : null;
 }
 
+/** "/programs/p/units/u-1" or "/programs/p/knowledge-check/u-1" → "u-1". */
+function unitIdFrom(pathname: string): string | null {
+  return /^\/programs\/[^/]+\/(?:units|knowledge-check)\/([^/]+)/.exec(pathname)?.[1] ?? null;
+}
+
 export default function AuthoringSidebar() {
   const pathname = usePathname();
   const programId = programIdFrom(pathname);
+  const unitId = unitIdFrom(pathname);
 
   return (
     <nav aria-label="Authoring" className="w-[284px] shrink-0 bg-cha-canvas px-5 pt-7">
@@ -50,14 +56,20 @@ export default function AuthoringSidebar() {
             label === "Programs"
               ? "/"
               : segment === "units"
-                ? programId && pathname.startsWith(`/programs/${programId}/units/`)
-                  ? pathname
+                ? programId && unitId
+                  ? `/programs/${programId}/units/${unitId}`
                   : undefined
-                : segment && programId
-                  ? `/programs/${programId}/${segment}`
-                  : undefined;
+                : segment === "knowledge-check" && programId
+                  ? `/programs/${programId}/knowledge-check${unitId ? `/${unitId}` : ""}`
+                  : segment && programId
+                    ? `/programs/${programId}/${segment}`
+                    : undefined;
           const active =
-            label === "Programs" ? pathname === "/" || pathname === "/programs/new" : href !== undefined && pathname === href;
+            label === "Programs"
+              ? pathname === "/" || pathname === "/programs/new"
+              : segment === "knowledge-check"
+                ? pathname.startsWith(`/programs/${programId}/knowledge-check`)
+                : href !== undefined && pathname === href;
           const base =
             "flex h-[43px] items-center gap-3 rounded-md px-3.5 text-sm outline-none transition-colors focus-visible:ring-4 focus-visible:ring-cha-blue/15";
           return (

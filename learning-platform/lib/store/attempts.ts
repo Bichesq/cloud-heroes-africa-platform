@@ -72,6 +72,9 @@ export type KcAttemptQuestionSnapshot = {
   options: unknown;
   correctOptionId: string;
   explanation: string | null;
+  /** Question weight (decision 7a). Frozen: Learning Management never edits
+   * a question an attempt has used — it retires and replaces it. */
+  points: number;
 };
 
 /** Creates the attempt row and its question-selection snapshot together, so
@@ -121,6 +124,7 @@ export async function getAttemptQuestionSnapshot(
     options: r.questionBankItem.options,
     correctOptionId: r.questionBankItem.correctOptionId,
     explanation: r.questionBankItem.explanation,
+    points: Number(r.questionBankItem.pointsPossible),
   }));
 }
 

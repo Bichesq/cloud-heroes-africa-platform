@@ -7,7 +7,7 @@ import type { KcAttempt } from "@/types";
 export type AttemptScore = {
   correctCount: number;
   total: number;
-  /** Fraction correct, 0..1. */
+  /** Points earned ÷ points possible, 0..1 (weighted since 2026-10-05). */
   score: number;
   passed: boolean;
 };
@@ -20,16 +20,20 @@ export type AttemptScore = {
  * grading authoritative: a client can't shrink/reorder which questions
  * "count" by only submitting a subset. */
 export function scoreAttempt(
-  snapshot: { attemptQuestionId: string; correctOptionId: string }[],
+  snapshot: { attemptQuestionId: string; correctOptionId: string; points?: number }[],
   passThreshold: number,
   answers: Record<string, string | null>
 ): AttemptScore {
+  // 2026-10-05 (Learning Management plan §10): weighted by each question's
+  // points (decision 7a). A question without points counts 1, so a bank of
+  // 1-point questions scores exactly as correct ÷ total did before.
+  const weight = (q: { points?: number }) => (q.points !== undefined && q.points > 0 ? q.points : 1);
   const total = snapshot.length;
-  const correctCount = snapshot.filter(
-    (q) => answers[q.attemptQuestionId] === q.correctOptionId
-  ).length;
-  const score = total === 0 ? 0 : correctCount / total;
-  return { correctCount, total, score, passed: score >= passThreshold };
+  const correct = snapshot.filter((q) => answers[q.attemptQuestionId] === q.correctOptionId);
+  const possible = snapshot.reduce((sum, q) => sum + weight(q), 0);
+  const earned = correct.reduce((sum, q) => sum + weight(q), 0);
+  const score = possible === 0 ? 0 : earned / possible;
+  return { correctCount: correct.length, total, score, passed: score >= passThreshold };
 }
 
 export type AttemptOutcome = "verified" | "retake" | "escalate";

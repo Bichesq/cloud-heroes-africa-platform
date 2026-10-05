@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-steps 1–4 implemented; sub-step 5 (Knowledge Check editor) next
+**Status:** Approved 2026-09-24 — sub-steps 1–5 implemented; sub-step 6 (Module Assessment editor) next
 
 ## Context
 
@@ -338,6 +338,77 @@ Figma's "file · 24.5 KB" line); audit actions `unit_draft_saved`, `unit_publish
 
 **Deferred**: images and video in content; learner display of unit thumbnails; rate limiting.
 
+### 10. Sub-step 5 detail — Knowledge Check editor (decided 2026-10-05)
+
+Figma "Knowledge Check Editor" frame:
+- a version tag ("v1.4 - Draft");
+- Context & Association: Knowledge Check Name, Associated Unit ("Unit 1.2: …");
+- one card per question: Weight (pts), Question Text, Answer Options & Correct Indicator (A–D,
+  one marked correct), Explanation & Diagnostic Feedback;
+- "+ Add Question Card";
+- Cancel / Save as Draft / Save & Publish.
+
+**Decision** (Bichesq, 2026-10-05, recommended option): **weighted scoring.** A learner's KC score is
+points earned ÷ points possible across the questions drawn for that attempt, compared with the pass
+threshold as today. Existing questions weigh 1 point, so current KCs score exactly as before.
+
+**Answered questions are never edited in place.** Attempts point at bank questions by id, and
+scoring reads the question at submit time (`getAttemptQuestionSnapshot`). Editing an answered
+question in place would therefore regrade past and in-progress attempts. So on publish:
+- a changed question that some attempt has used is **retired** (new `retiredAt`) and replaced by a
+  new bank item;
+- a changed question never used is updated in place;
+- a removed question is retired if it was used and deleted otherwise.
+
+Retired questions are never drawn for new attempts but stay for the attempts that used them.
+
+**Draft and publish** follow the Unit Editor pattern (decision #8). A new `LpKcDraft` (one per unit)
+holds pending edits: name, pass threshold, questions per attempt, and the question list.
+- Save as Draft writes only the draft.
+- Save & Publish applies it in one transaction: creates the KC on first publish, bumps its
+  `version`, applies the question changes above, and deletes the draft.
+- The version tag shows "v{n} · Published", or "v{n+1} · Draft" when a draft is pending.
+- Knowledge Checks publish directly, with no review gate (§6.3, unlike Module Assessments).
+
+**Not in the Figma, added as labelled custom fields:**
+- **Pass threshold** (%, default 70) and **Questions per attempt** (default 10): both already exist
+  and drive learner attempts. Questions per attempt can't exceed the number of active questions.
+- **Associated Unit** switches the page to that unit's Knowledge Check (one per unit, decision 7e)
+  instead of re-assigning the KC.
+
+**Validation** (zod, server-side):
+- 1–100 questions;
+- each question has 2–6 options, exactly one correct, non-empty unique labels, and a weight of
+  1–100 points;
+- prompt ≤ 1,000 characters, explanation ≤ 2,000, no control characters.
+
+Option ids are assigned a, b, c… by position. Difficulty isn't shown; new questions get `medium`,
+since KC draws are uniform random.
+
+**Permissions**: `editStructure` (Owner, Director, Editor) saves and publishes. Everyone else with a
+role sees the editor read-only.
+
+**Schema**:
+- `LpKcQuestionBankItem.pointsPossible Decimal @default(1)` (7a) and `retiredAt`;
+- `LpKnowledgeCheck.version Int @default(1)` and `@@unique([unitId])` (7e; dev data has one per
+  unit);
+- `LpKcDraft`;
+- audit actions `kc_draft_saved` and `kc_published`.
+
+**Learning Platform**:
+- the bank query excludes retired questions;
+- `scoreAttempt` weights by the snapshot's `pointsPossible`, which is frozen because used questions
+  are never edited;
+- tests.
+
+**Routes and navigation**:
+- `/programs/[programId]/knowledge-check/[unitId]`;
+- the sidebar's Knowledge Check goes to the current unit's KC, or the program's first unit;
+- the Unit Editor and Course Structure rows link to it.
+
+**Deferred**: deleting a whole Knowledge Check; reordering questions by drag (↑ / ↓ only); rate
+limiting.
+
 ## Files / modules affected
 
 - `prisma-shared/lp-core-models.prisma` — new file; content moved from
@@ -613,3 +684,33 @@ The original questions below are kept for the record.
       cross-program id and thumbnail all 404;
     - deleting a draft unit.
     All test data, files and authors were removed.
+- 2026-10-05: **sub-step 5 implemented** (Knowledge Check editor). Decision in §10 (Bichesq,
+  weighted scoring).
+  - Migrations `…_kc_editor` and `…_kc_question_position`, written with `prisma migrate diff`.
+    `migrate dev` refuses to run non-interactively when it warns about the new unique index; no
+    unit had more than one KC. Changes: `pointsPossible`, `retiredAt` and `position` on bank
+    questions; KC `version` and one KC per unit; `LpKcDraft`; the KC audit actions. The 10
+    student-FK drops were stripped and the constraints re-verified.
+  - `lib/kc-editor.ts` (11 tests): the strict draft schema and the publish plan. A used question
+    is retired and replaced, an unused one updated in place, and a removed one retired if used,
+    deleted if not.
+  - `lib/actions/kc-editor.ts`: Save as Draft, Save & Publish (one Serializable transaction, with
+    question ids re-checked against the live bank inside it), Discard draft.
+  - Route `/programs/[programId]/knowledge-check/[unitId]`, plus an index page that redirects to
+    the program's first unit. The sidebar is unit-aware: from a unit, Knowledge Check opens that
+    unit's KC, and Unit Editor links back.
+  - Learning Platform: weighted `scoreAttempt` (questions without points count 1, so existing KCs
+    score as before); retired questions are never drawn; the snapshot carries points. 3 new tests.
+  - Fixed during testing: two empty answer options were also reported as duplicates.
+  - Verified: tsc and eslint clean in Learning Management; 72 Learning Management and 52 Learning
+    Platform tests pass. A headless Edge run on an isolated, published test program passed all 35
+    checks:
+    - validation errors;
+    - draft invisible to learners;
+    - v1 published with order, weights and settings;
+    - a simulated learner attempt on Q1 and Q2, then v2: used Q1 retired and replaced, used Q2
+      retired, unused Q3 edited in place under the same id, Q4 added;
+    - the learner bank has 3 live questions and the past attempt still points at the originals;
+    - discard; the Associated Unit switch;
+    - Editor can save and publish; Viewer is read-only; outsider and cross-program ids 404.
+    All test data was removed.

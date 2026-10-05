@@ -205,7 +205,9 @@ function toKcQuestionBankItem(row: {
 /** Full question bank for a KC (2026-09-21, plan Phase 3 step 1) —
  * `selectQuestions` draws a random per-attempt subset from this. */
 export async function getKcQuestionBank(kcId: string): Promise<KcQuestionBankItem[]> {
-  const rows = await prisma.lpKcQuestionBankItem.findMany({ where: { kcId } });
+  // Retired questions (replaced or removed by a published edit in Learning
+  // Management) are never drawn again; attempts that used them keep them.
+  const rows = await prisma.lpKcQuestionBankItem.findMany({ where: { kcId, retiredAt: null } });
   return rows.map(toKcQuestionBankItem);
 }
 
