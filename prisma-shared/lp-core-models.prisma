@@ -160,6 +160,7 @@ model LpUnit {
   studentTopics   LpStudentTopic[]
   creatorAuthor   LpAuthor?          @relation("UnitCreator", fields: [creatorAuthorId], references: [id], onDelete: SetNull)
   draft           LpUnitDraft?
+  kcDraft         LpKcDraft?
 
   @@map("lp_units")
 }
@@ -179,11 +180,15 @@ model LpKnowledgeCheck {
   /// authored -> N shown"). No difficulty-mix weighting for KCs, unlike
   /// Standalone Assessments — not asked for, selection is uniform random.
   questionsPerAttempt Int     @default(10) @map("questions_per_attempt")
+  /// 2026-10-05 (sub-step 5): bumped on every Save & Publish.
+  version             Int     @default(1)
 
   unit         LpUnit                 @relation(fields: [unitId], references: [id], onDelete: Cascade)
   questionBank LpKcQuestionBankItem[]
   attempts     LpKcAttempt[]
 
+  /// One Knowledge Check per unit (decision 7e, 2026-09-24).
+  @@unique([unitId])
   @@map("lp_knowledge_checks")
 }
 
@@ -200,6 +205,14 @@ model LpKcQuestionBankItem {
   options         Json
   correctOptionId String             @map("correct_option_id")
   explanation     String?
+  /// Weight in points (decision 7a); learner scoring is weighted (2026-10-05).
+  pointsPossible  Decimal            @default(1) @map("points_possible")
+  /// Set when a published edit replaces or removes a question that attempts
+  /// already used. Never drawn again; kept for the attempts that used it.
+  retiredAt       DateTime?          @map("retired_at")
+  /// Author-facing order in the Knowledge Check Editor (learners get a
+  /// uniform random draw, so this never affects them).
+  position        Int                @default(0)
 
   knowledgeCheck   LpKnowledgeCheck      @relation(fields: [kcId], references: [id], onDelete: Cascade)
   attemptQuestions LpKcAttemptQuestion[]
@@ -674,6 +687,7 @@ model LpAuthor {
   auditActions      LpAuthoringAuditEntry[] @relation("AuditActor")
   unitDraftsEdited  LpUnitDraft[]           @relation("UnitDraftEditor")
   unitDraftCreators LpUnitDraft[]           @relation("UnitDraftCreator")
+  kcDraftsEdited    LpKcDraft[]             @relation("KcDraftEditor")
   auditSubjects     LpAuthoringAuditEntry[] @relation("AuditSubject")
 
   @@map("lp_authors")
@@ -781,6 +795,8 @@ enum LpAuthoringAuditAction {
   unit_deleted
   unit_draft_saved
   unit_published
+  kc_draft_saved
+  kc_published
 
   @@map("lp_authoring_audit_action")
 }
@@ -833,4 +849,25 @@ model LpUnitDraft {
   updatedBy LpAuthor? @relation("UnitDraftEditor", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@map("lp_unit_drafts")
+}
+
+/// Pending Knowledge Check Editor changes for a unit (plan §10): Save as
+/// Draft writes here; Save & Publish creates/updates the unit's
+/// LpKnowledgeCheck and its question bank in one transaction, then deletes
+/// it. Learners never read this table.
+model LpKcDraft {
+  unitId              String   @id @map("unit_id")
+  title               String
+  passThreshold       Decimal  @map("pass_threshold")
+  questionsPerAttempt Int      @map("questions_per_attempt")
+  /// [{ bankItemId?, prompt, options: [{ id, label }], correctOptionId,
+  ///    explanation, points }] — lib/kc-editor.ts.
+  questions           Json
+  updatedAt           DateTime @updatedAt @map("updated_at")
+  updatedById         String?  @map("updated_by_id") @db.Uuid
+
+  unit      LpUnit    @relation(fields: [unitId], references: [id], onDelete: Cascade)
+  updatedBy LpAuthor? @relation("KcDraftEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+
+  @@map("lp_kc_drafts")
 }
