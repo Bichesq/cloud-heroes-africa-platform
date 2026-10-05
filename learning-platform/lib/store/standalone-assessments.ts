@@ -22,7 +22,9 @@ function toAssessment(row: {
   questionsPerAttempt: number;
   difficultyMix: unknown;
   passThreshold: unknown;
-  timeLimitSeconds: number;
+  timeLimitSeconds: number | null;
+  maxAttempts: number | null;
+  firstPublishedAt: Date | null;
 }): LpStandaloneAssessment {
   return {
     id: row.id,
@@ -34,6 +36,8 @@ function toAssessment(row: {
     difficultyMix: (row.difficultyMix ?? {}) as Record<string, number>,
     passThreshold: Number(row.passThreshold),
     timeLimitSeconds: row.timeLimitSeconds,
+    maxAttempts: row.maxAttempts,
+    firstPublishedAt: row.firstPublishedAt?.toISOString() ?? null,
   };
 }
 
@@ -100,7 +104,9 @@ export async function getModuleAssessmentsForModules(
 }
 
 export async function getQuestionBank(assessmentId: string): Promise<LpQuestionBankItem[]> {
-  const rows = await prisma.lpQuestionBankItem.findMany({ where: { assessmentId } });
+  // Retired questions (replaced or removed by an approved edit in Learning
+  // Management) are never drawn again; attempts that used them keep them.
+  const rows = await prisma.lpQuestionBankItem.findMany({ where: { assessmentId, retiredAt: null } });
   return rows.map(toBankItem);
 }
 

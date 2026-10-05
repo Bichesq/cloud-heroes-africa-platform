@@ -21,8 +21,10 @@ export async function getModuleGatesForProgram(
   );
 
   const moduleAssessmentPassed = new Map<string, boolean>();
+  const firstPublished = new Map<string, string>();
   for (const a of moduleAssessments) {
     if (!a.moduleId) continue;
+    if (a.firstPublishedAt) firstPublished.set(a.moduleId, a.firstPublishedAt);
     const passed = passedIds.has(a.id);
     moduleAssessmentPassed.set(
       a.moduleId,
@@ -30,5 +32,5 @@ export async function getModuleGatesForProgram(
     );
   }
 
-  return moduleGates(modules, studentUnits, moduleAssessmentPassed);
+  return moduleGates(modules, studentUnits, moduleAssessmentPassed, firstPublished);
 }

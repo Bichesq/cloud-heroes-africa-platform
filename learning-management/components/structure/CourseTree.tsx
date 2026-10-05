@@ -19,7 +19,8 @@ import type { FormState } from "@/lib/actions/form-state";
  * ↑ / ↓ / Edit (same buttons as unit rows), a Draft chip, and the add/edit
  * dialogs. The unit subtitle is "N topics · M min" — units have no type field,
  * so the frame's "Reading" / "Hands-on lab" can't be shown. A unit's Edit
- * opens the Unit Editor (View for read-only roles).
+ * opens the Unit Editor (View for read-only roles); each module links to its
+ * Module Assessment.
  *
  * `canEdit` only decides what's rendered; every action re-checks the role. */
 
@@ -177,6 +178,14 @@ export default function CourseTree({
                     {m.units.length} unit{m.units.length === 1 ? "" : "s"}
                   </p>
                 </div>
+                {!canEdit && (
+                  <Link
+                    href={`/programs/${programId}/assessments/${m.id}`}
+                    className={`${buttonVariants({ size: "sm", variant: "outline" })} rounded-md bg-cha-surface font-bold`}
+                  >
+                    Assessment
+                  </Link>
+                )}
                 {canEdit && (
                   <div className="flex shrink-0 items-center gap-2">
                     <Button
@@ -211,6 +220,12 @@ export default function CourseTree({
                     >
                       <Pencil size={14} aria-hidden />
                     </Button>
+                    <Link
+                      href={`/programs/${programId}/assessments/${m.id}`}
+                      className={`${buttonVariants({ size: "sm", variant: "outline" })} rounded-md bg-cha-surface font-bold`}
+                    >
+                      Assessment
+                    </Link>
                     <Button size="sm" variant="outline" className="rounded-md bg-cha-surface font-bold" onPress={() => openAddUnit(m)}>
                       <Plus size={14} aria-hidden />
                       Add Unit

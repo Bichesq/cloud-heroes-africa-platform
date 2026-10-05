@@ -73,6 +73,7 @@ export default async function ModuleAssessmentPage({
         description={assessment.description}
         questionsPerAttempt={assessment.questionsPerAttempt}
         timeLimitSeconds={assessment.timeLimitSeconds}
+        maxAttempts={assessment.maxAttempts}
         hasInProgressAttempt={inProgress !== null}
         lastAttempt={
           submitted[0]

@@ -22,6 +22,9 @@ export type ProgramCapabilities = {
   editSetup: boolean;
   /** Course Structure: add / edit / reorder / delete modules and units. */
   editStructure: boolean;
+  /** Approve / reject Module Assessments submitted for review (plan §11). The
+   * server also refuses a reviewer's own submission. */
+  reviewAssessments: boolean;
   changeCreator: boolean;
   manageContributors: boolean;
   manageDirectorsOwners: boolean;
@@ -37,6 +40,7 @@ export function capabilitiesFor(r: ProgramRoles): ProgramCapabilities {
     editSetup: ownerOrDirector || r.contributorRole === "editor",
     // Same roles as Program Setup (plan §8).
     editStructure: ownerOrDirector || r.contributorRole === "editor",
+    reviewAssessments: ownerOrDirector || r.contributorRole === "reviewer",
     changeCreator: ownerOrDirector,
     manageContributors: ownerOrDirector,
     manageDirectorsOwners: r.isDirector,

@@ -24,6 +24,7 @@ describe("program capabilities (plan §7)", () => {
       view: true,
       editSetup: true,
       editStructure: true,
+      reviewAssessments: true,
       changeCreator: true,
       manageContributors: true,
       manageDirectorsOwners: true,
@@ -32,7 +33,7 @@ describe("program capabilities (plan §7)", () => {
 
   it("Owner: setup, Creator and Contributors — not Directors/Owners", () => {
     const c = capabilitiesFor({ ...none, isOwner: true });
-    expect(c).toMatchObject({ view: true, editSetup: true, editStructure: true, changeCreator: true, manageContributors: true });
+    expect(c).toMatchObject({ view: true, editSetup: true, editStructure: true, reviewAssessments: true, changeCreator: true, manageContributors: true });
     expect(c.manageDirectorsOwners).toBe(false);
   });
 
@@ -42,6 +43,19 @@ describe("program capabilities (plan §7)", () => {
       view: true,
       editSetup: true,
       editStructure: true,
+      reviewAssessments: false,
+      changeCreator: false,
+      manageContributors: false,
+      manageDirectorsOwners: false,
+    });
+  });
+
+  it("Reviewer: read-only, but can review assessments", () => {
+    expect(capabilitiesFor({ ...none, contributorRole: "reviewer" })).toEqual({
+      view: true,
+      editSetup: false,
+      editStructure: false,
+      reviewAssessments: true,
       changeCreator: false,
       manageContributors: false,
       manageDirectorsOwners: false,
@@ -49,7 +63,6 @@ describe("program capabilities (plan §7)", () => {
   });
 
   it.each([
-    ["reviewer", { ...none, contributorRole: "reviewer" as const }],
     ["viewer", { ...none, contributorRole: "viewer" as const }],
     ["instructor", { ...none, isInstructor: true }],
     ["creator only", { ...none, isCreator: true }],
@@ -58,6 +71,7 @@ describe("program capabilities (plan §7)", () => {
       view: true,
       editSetup: false,
       editStructure: false,
+      reviewAssessments: false,
       changeCreator: false,
       manageContributors: false,
       manageDirectorsOwners: false,

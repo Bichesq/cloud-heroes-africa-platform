@@ -35,6 +35,7 @@ export default function AssessmentRunner({
   description,
   questionsPerAttempt,
   timeLimitSeconds,
+  maxAttempts,
   hasInProgressAttempt,
   lastAttempt,
   attemptCount,
@@ -48,7 +49,8 @@ export default function AssessmentRunner({
   heading: string;
   description: string;
   questionsPerAttempt: number;
-  timeLimitSeconds: number;
+  timeLimitSeconds: number | null;
+  maxAttempts: number | null;
   hasInProgressAttempt: boolean;
   lastAttempt: LastAttempt;
   attemptCount: number;
@@ -84,6 +86,14 @@ export default function AssessmentRunner({
     setBusy(true);
     const res = await fetch(`/api/assessments/${assessmentId}/attempts`, { method: "POST" });
     setBusy(false);
+    if (res.status === 403) {
+      const data = await res.json().catch(() => ({}));
+      if (data.code === "attempt_limit") {
+        setError("You've used all your attempts. Use Report an Issue to ask support for another one.");
+        setPhase("pre");
+        return;
+      }
+    }
     if (res.status === 429) {
       const data = await res.json().catch(() => ({}));
       setCooldownUntil(data.nextEligibleAt ?? null);
@@ -262,6 +272,7 @@ export default function AssessmentRunner({
             description={description}
             questionsPerAttempt={questionsPerAttempt}
             timeLimitSeconds={timeLimitSeconds}
+            maxAttempts={maxAttempts}
             attemptCount={attemptCount}
             lastAttempt={lastAttempt}
             hasInProgressAttempt={hasInProgressAttempt || attemptId !== null}

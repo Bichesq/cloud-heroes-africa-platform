@@ -1,7 +1,7 @@
 # Learning Management authoring app — Phase 4 implementation plan
 
 **Date:** 2026-09-21
-**Status:** Approved 2026-09-24 — sub-steps 1–5 implemented; sub-step 6 (Module Assessment editor) next
+**Status:** Approved 2026-09-24 — all six sub-steps implemented (2026-10-05); awaiting review
 
 ## Context
 
@@ -409,6 +409,81 @@ role sees the editor read-only.
 **Deferred**: deleting a whole Knowledge Check; reordering questions by drag (↑ / ↓ only); rate
 limiting.
 
+### 11. Sub-step 6 detail — Module Assessment editor (decided 2026-10-05)
+
+Figma "Module Assessment Configuration":
+- a status tag ("Drafting Rules");
+- General Metadata: Select Scope Module, Assessment Name, Description;
+- Execution Parameters: Passing Threshold %, Attempts Allowed, and Time Limitation as an enable
+  toggle plus minutes;
+- an Assessment Question Matrix (ID & Type, scenario, Module Area, Default Weight) with
+  "+ Import from Bank";
+- Cancel / Save Draft / Submit for Review.
+
+**Decisions** (Bichesq, 2026-10-05, recommended options):
+
+1. **Who approves**: contributors with the Reviewer role, Owners and Directors can approve or reject,
+   but **never their own submission**. With a single author, nothing can be approved until a second
+   person holds a role.
+2. **Import from Bank** copies questions from the Knowledge Checks of the module's units. They are
+   copies, so editing one never changes the other, and each is tagged with that unit's Module Area
+   when one exists. "Add question" writes new single- or multi-select questions.
+3. **Attempt cap (7b)** is enforced in the learner app now. At the cap the learner is blocked and
+   told to contact support. The staff "grant one more attempt" action comes later with the
+   helpdesk/admin tooling.
+4. **New gates don't block existing learners**: a learner who had completed all of a module's
+   units before its assessment was **first published** isn't gated by it, though they can still
+   take it. The existing seeded assessment has no first-publish date and keeps today's behaviour.
+
+**Review flow (decision #3).** A new `LpAssessmentDraft` (one per module) holds pending edits with a
+status of `draft` or `in_review`.
+- **Save Draft** keeps it `draft`. Saving a submission that's `in_review` withdraws it back to
+  `draft`, after a confirmation.
+- **Submit for Review** validates everything and sets `in_review`.
+- A reviewer (decision 1) **approves**, which publishes it in one transaction, or **rejects** with a
+  required comment, which returns it to `draft` with the comment shown.
+- Learners only ever read the live `LpStandaloneAssessment`.
+- On publish:
+  - the version increments;
+  - `firstPublishedAt` is set the first time;
+  - question changes use the Knowledge Check rule: a question an attempt has used is retired and
+    replaced, never edited, since grading reads the live question.
+- One Module Assessment per module (the frame's "Select Scope Module"; dev data has one).
+
+**Fields not in the frame:**
+- **Questions per attempt by difficulty** (easy / medium / difficult counts). These already drive
+  question selection, and each count can't exceed the active questions of that difficulty.
+- Per-question **difficulty** and **type** (single or multi-select). **Code** stays hidden (7d).
+- **Module Area** is chosen from the module's tag-only topics (`order` null, linked to a unit, so
+  weak-topic feedback points back to it). "New area" creates one with a name and a unit.
+- **Attempts Allowed** may be left empty (unlimited); **Time Limitation** off means untimed (7c).
+
+**Schema**:
+- `LpStandaloneAssessment.maxAttempts Int?` (7b), `timeLimitSeconds` made nullable (7c), `version`,
+  `firstPublishedAt`;
+- `LpQuestionBankItem.retiredAt` and `position`;
+- `LpAssessmentDraft` and `LpAssessmentDraftStatus`;
+- audit actions `assessment_draft_saved`, `assessment_submitted`, `assessment_approved`,
+  `assessment_rejected`.
+
+**Learning Platform**:
+- retired questions are never drawn;
+- untimed attempts have no deadline or expiry, and the runner and intro screen say "No time limit";
+- the attempt cap is checked when an attempt starts (an in-progress attempt still resumes), with a
+  "contact support" message, and the intro shows "Attempts allowed";
+- `moduleGates` honours rule 4;
+- tests for each change.
+
+**Permissions**: `editStructure` saves and submits. A new `reviewAssessments` capability (Reviewer,
+Owner, Director) approves and rejects, and the server checks the reviewer isn't the submitter.
+Everyone else with a role sees it read-only.
+
+**Route**: `/programs/[programId]/assessments/[moduleId]`. The sidebar has no Module Assessment item
+in the Figma, so Course Structure's module rows get an "Assessment" link.
+
+**Deferred**: the staff attempt grant; Code questions; program-level (non-module) assessments; rate
+limiting.
+
 ## Files / modules affected
 
 - `prisma-shared/lp-core-models.prisma` — new file; content moved from
@@ -714,3 +789,46 @@ The original questions below are kept for the record.
     - discard; the Associated Unit switch;
     - Editor can save and publish; Viewer is read-only; outsider and cross-program ids 404.
     All test data was removed.
+- 2026-10-05: **sub-step 6 implemented** (Module Assessment editor with review). Decisions in §11
+  (Bichesq).
+  - Migration `…_module_assessment_editor`, written with `prisma migrate diff`:
+    - `timeLimitSeconds` made nullable (7c);
+    - `maxAttempts` (7b), `version` and `firstPublishedAt`;
+    - question `retiredAt` and `position`;
+    - `LpAssessmentDraft` with its `draft` / `in_review` status;
+    - four assessment audit actions.
+    The 10 student-FK drops were stripped and the constraints re-verified.
+  - `lib/assessment-editor.ts` (10 tests): the strict draft schema (single choice / multi-select
+    only, 7d), complete-before-review checks (each difficulty's draw ≤ questions written), and the
+    retire-or-update publish plan, including importing KC questions as copies.
+  - `lib/actions/assessment-editor.ts`:
+    - Save Draft; Submit for Review; saving an in-review draft withdraws it;
+    - Approve / Return with a required comment, never the submitter's own, published in one
+      Serializable transaction that re-validates the stored submission;
+    - Discard;
+    - Module Areas created as tag-only topics on a unit of the module.
+  - Route `/programs/[programId]/assessments/[moduleId]`; Course Structure module rows link to it.
+    New `reviewAssessments` capability (Reviewer, Owner, Director).
+  - Learning Platform:
+    - retired questions are never drawn;
+    - untimed attempts never expire, and the intro shows "No time limit";
+    - the Attempts Allowed cap (403 `attempt_limit`, with a "contact support" message; the intro
+      shows "Attempts Allowed");
+    - `moduleGates` doesn't gate learners who completed the module before the assessment's first
+      publish;
+    - 5 new tests.
+  - Verified: tsc clean in both apps and eslint in Learning Management; 82 Learning Management and
+    57 Learning Platform tests pass. A headless Edge run (Editor, Reviewer, Director, Viewer,
+    outsider) on an isolated, published test program ran 35 checks. 34 passed; the 35th was a
+    psql boolean formatting mismatch in the test, and the values were correct. The checks covered:
+    - a Module Area created; 2 KC questions imported; submit blocked by the difficulty draw;
+    - draft invisible to learners; the Editor can't review;
+    - reject without a comment refused, then returned with a comment the Editor sees;
+    - resubmit and approve: v1 untimed and unlimited, with the first-publish date;
+    - after a simulated learner attempt, the v2 edit retired and replaced the used question, the
+      attempt still points at the original, and learners stayed on v1 until approval;
+    - the submitter can't approve; saving withdraws; discard;
+    - Viewer is read-only; outsider and cross-program ids 404.
+    All test data was removed.
+  - **Not verified in a browser:** the learner-side cap and untimed screens, because the learner
+    app only signs in with Google. Their logic is unit-tested and type-checked.

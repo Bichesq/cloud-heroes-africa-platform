@@ -109,3 +109,47 @@ describe("moduleGates", () => {
     expect(gates.get("m2")).toEqual({ locked: true, reason: "prerequisite_assessment" });
   });
 });
+
+describe("moduleGates: a new assessment doesn't block learners who'd moved on (2026-10-05)", () => {
+  const modules = [module("m1", 0, [unit("u1", 0), unit("u2", 1)]), module("m2", 1, [unit("u3", 0)])];
+  const done = (unitId: string, completedAt: string): StudentUnit => ({
+    ...studentUnit(unitId, "completed"),
+    completedAt,
+  });
+
+  it("completed every unit before the first publish → not gated", () => {
+    const units = new Map([
+      ["u1", done("u1", "2026-09-01T00:00:00.000Z")],
+      ["u2", done("u2", "2026-09-02T00:00:00.000Z")],
+    ]);
+    const gates = moduleGates(modules, units, new Map([["m1", false]]), new Map([["m1", "2026-10-05T00:00:00.000Z"]]));
+    expect(gates.get("m2")).toEqual({ locked: false, reason: null });
+  });
+
+  it("finished a unit after the first publish → must pass the assessment", () => {
+    const units = new Map([
+      ["u1", done("u1", "2026-09-01T00:00:00.000Z")],
+      ["u2", done("u2", "2026-10-06T00:00:00.000Z")],
+    ]);
+    const gates = moduleGates(modules, units, new Map([["m1", false]]), new Map([["m1", "2026-10-05T00:00:00.000Z"]]));
+    expect(gates.get("m2")).toEqual({ locked: true, reason: "prerequisite_assessment" });
+  });
+
+  it("not all units completed → gated", () => {
+    const units = new Map([["u1", done("u1", "2026-09-01T00:00:00.000Z")]]);
+    const gates = moduleGates(modules, units, new Map([["m1", false]]), new Map([["m1", "2026-10-05T00:00:00.000Z"]]));
+    expect(gates.get("m2")?.locked).toBe(true);
+  });
+
+  it("no first-publish date (seeded assessment) → gates everyone, as before", () => {
+    const units = new Map([
+      ["u1", done("u1", "2026-09-01T00:00:00.000Z")],
+      ["u2", done("u2", "2026-09-02T00:00:00.000Z")],
+    ]);
+    expect(moduleGates(modules, units, new Map([["m1", false]])).get("m2")?.locked).toBe(true);
+  });
+
+  it("passing still clears it", () => {
+    expect(moduleGates(modules, new Map(), new Map([["m1", true]]), new Map([["m1", "2026-10-05T00:00:00.000Z"]])).get("m2")?.locked).toBe(false);
+  });
+});

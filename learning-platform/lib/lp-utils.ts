@@ -154,11 +154,18 @@ export type ModuleGate = {
  * that module's assessment, for every module that HAS one; a module with no
  * entry is treated as having no Module Assessment (falls back to the
  * unit-completion rule).
+ *
+ * `assessmentFirstPublished` (2026-10-05, Learning Management plan §11) maps
+ * moduleId → when that module's assessment was first published. A student
+ * who had completed every unit of the module BEFORE then isn't gated by it:
+ * a new assessment never locks learners who had already moved on. Modules
+ * with no entry (e.g. seeded assessments) gate everyone, as before.
  */
 export function moduleGates(
   modules: LpModule[],
   studentUnits: Map<string, StudentUnit>,
-  moduleAssessmentPassed: Map<string, boolean>
+  moduleAssessmentPassed: Map<string, boolean>,
+  assessmentFirstPublished: Map<string, string> = new Map()
 ): Map<string, ModuleGate> {
   const ordered = [...modules].sort((a, b) => a.order - b.order);
   const gates = new Map<string, ModuleGate>();
@@ -177,7 +184,8 @@ export function moduleGates(
 
     const hasAssessment = moduleAssessmentPassed.has(mod.id);
     const cleared = hasAssessment
-      ? (moduleAssessmentPassed.get(mod.id) ?? false)
+      ? (moduleAssessmentPassed.get(mod.id) ?? false) ||
+        completedBefore(mod, studentUnits, assessmentFirstPublished.get(mod.id))
       : (() => {
           const stats = moduleStats(mod, studentUnits);
           return stats.totalUnits > 0 && stats.completedUnits === stats.totalUnits;
@@ -188,6 +196,18 @@ export function moduleGates(
   }
 
   return gates;
+}
+
+/** Every unit of `mod` completed (or verified) strictly before `when`. */
+function completedBefore(mod: LpModule, studentUnits: Map<string, StudentUnit>, when: string | undefined): boolean {
+  if (!when || mod.units.length === 0) return false;
+  const cutoff = new Date(when).getTime();
+  return mod.units.every((u) => {
+    const su = studentUnits.get(u.id);
+    if (su?.status !== "completed" && su?.status !== "verified") return false;
+    const at = su.completedAt ?? su.verifiedAt;
+    return at !== null && new Date(at).getTime() < cutoff;
+  });
 }
 
 export type ProgramStats = {

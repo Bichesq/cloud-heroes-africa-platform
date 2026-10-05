@@ -322,7 +322,13 @@ export type LpStandaloneAssessment = {
   difficultyMix: Record<string, number>;
   /** Fraction correct needed to pass, e.g. 0.75. */
   passThreshold: number;
-  timeLimitSeconds: number;
+  /** null = untimed (decision 7c, 2026-10-05). */
+  timeLimitSeconds: number | null;
+  /** Cap on scored attempts (decision 7b); null = unlimited. */
+  maxAttempts: number | null;
+  /** First approved publish from Learning Management (ISO). Learners who
+   * completed the module before it aren't gated by it; null = gates all. */
+  firstPublishedAt: string | null;
 };
 
 /** V1 scope: single_choice and multi_select only. */
