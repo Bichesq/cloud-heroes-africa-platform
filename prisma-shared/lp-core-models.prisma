@@ -117,6 +117,7 @@ model LpModule {
   program               LpProgram                @relation(fields: [programId], references: [id], onDelete: Cascade)
   units                 LpUnit[]
   standaloneAssessments LpStandaloneAssessment[] @relation("ModuleStandaloneAssessments")
+  assessmentDraft       LpAssessmentDraft?
 
   @@map("lp_modules")
 }
@@ -495,7 +496,17 @@ model LpStandaloneAssessment {
   questionsPerAttempt Int     @map("questions_per_attempt")
   difficultyMix       Json    @default("{}") @map("difficulty_mix")
   passThreshold       Decimal @default(0.75) @map("pass_threshold")
-  timeLimitSeconds    Int     @map("time_limit_seconds")
+  /// 2026-10-05 (sub-step 6, decision 7c): null = untimed.
+  timeLimitSeconds    Int?    @map("time_limit_seconds")
+  /// Decision 7b: cap on scored attempts, in addition to the cooldown.
+  /// null = unlimited.
+  maxAttempts         Int?    @map("max_attempts")
+  /// Bumped on each approved publish.
+  version             Int     @default(1)
+  /// Set on the first approved publish from Learning Management. Learners
+  /// who completed the module before this aren't gated by it (2026-10-05).
+  /// null (seeded data) = gates everyone, as before.
+  firstPublishedAt    DateTime? @map("first_published_at")
 
   module            LpModule?             @relation("ModuleStandaloneAssessments", fields: [moduleId], references: [id])
   program           LpProgram?            @relation("ProgramStandaloneAssessments", fields: [programId], references: [id])
@@ -533,6 +544,11 @@ model LpQuestionBankItem {
   correctOptionIds Json               @map("correct_option_ids")
   pointsPossible   Decimal            @default(1) @map("points_possible")
   explanation      String?
+  /// Set when an approved edit replaces or removes a question attempts
+  /// already used (grading reads the live question). Never drawn again.
+  retiredAt        DateTime?          @map("retired_at")
+  /// Author-facing order in the Module Assessment editor.
+  position         Int                @default(0)
 
   assessment       LpStandaloneAssessment @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
   topic            LpTopic?               @relation(fields: [topicId], references: [id])
@@ -688,6 +704,9 @@ model LpAuthor {
   unitDraftsEdited  LpUnitDraft[]           @relation("UnitDraftEditor")
   unitDraftCreators LpUnitDraft[]           @relation("UnitDraftCreator")
   kcDraftsEdited    LpKcDraft[]             @relation("KcDraftEditor")
+  assessmentDraftsEdited    LpAssessmentDraft[] @relation("AssessmentDraftEditor")
+  assessmentDraftsSubmitted LpAssessmentDraft[] @relation("AssessmentDraftSubmitter")
+  assessmentDraftsReviewed  LpAssessmentDraft[] @relation("AssessmentDraftReviewer")
   auditSubjects     LpAuthoringAuditEntry[] @relation("AuditSubject")
 
   @@map("lp_authors")
@@ -797,6 +816,10 @@ enum LpAuthoringAuditAction {
   unit_published
   kc_draft_saved
   kc_published
+  assessment_draft_saved
+  assessment_submitted
+  assessment_approved
+  assessment_rejected
 
   @@map("lp_authoring_audit_action")
 }
@@ -870,4 +893,45 @@ model LpKcDraft {
   updatedBy LpAuthor? @relation("KcDraftEditor", fields: [updatedById], references: [id], onDelete: SetNull)
 
   @@map("lp_kc_drafts")
+}
+
+/// Module Assessment review states (decision #3, 2026-09-24): a reviewer's
+/// rejection returns the draft to `draft` with their comment.
+enum LpAssessmentDraftStatus {
+  draft
+  in_review
+
+  @@map("lp_assessment_draft_status")
+}
+
+/// Pending Module Assessment changes for a module (plan §11). Learners never
+/// read this table; an approval applies it to LpStandaloneAssessment and its
+/// question bank in one transaction, then deletes it.
+model LpAssessmentDraft {
+  moduleId         String                  @id @map("module_id")
+  status           LpAssessmentDraftStatus @default(draft)
+  title            String
+  description      String                  @default("")
+  passThreshold    Decimal                 @map("pass_threshold")
+  maxAttempts      Int?                    @map("max_attempts")
+  timeLimitSeconds Int?                    @map("time_limit_seconds")
+  /// { easy, medium, difficult } questions drawn per attempt.
+  difficultyMix    Json                    @map("difficulty_mix")
+  /// [{ bankItemId?, type, difficulty, prompt, options, correctIndexes,
+  ///    explanation, points, topicId }] — lib/assessment-editor.ts.
+  questions        Json
+  submittedById    String?                 @map("submitted_by_id") @db.Uuid
+  submittedAt      DateTime?               @map("submitted_at")
+  reviewComment    String?                 @map("review_comment")
+  reviewedById     String?                 @map("reviewed_by_id") @db.Uuid
+  reviewedAt       DateTime?               @map("reviewed_at")
+  updatedAt        DateTime                @updatedAt @map("updated_at")
+  updatedById      String?                 @map("updated_by_id") @db.Uuid
+
+  module      LpModule  @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  updatedBy   LpAuthor? @relation("AssessmentDraftEditor", fields: [updatedById], references: [id], onDelete: SetNull)
+  submittedBy LpAuthor? @relation("AssessmentDraftSubmitter", fields: [submittedById], references: [id], onDelete: SetNull)
+  reviewedBy  LpAuthor? @relation("AssessmentDraftReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@map("lp_assessment_drafts")
 }
