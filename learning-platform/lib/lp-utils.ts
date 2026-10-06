@@ -92,6 +92,12 @@ export function locateUnit(programs: LpProgram[], unitId: string): UnitLocation 
 
 /* ------------------------ module / program --------------------------- */
 
+/** Modules with no (published) units are hidden from learners — Phase 4
+ * sub-step 3: a new module shows once its first unit is published. */
+export function withoutEmptyModules<M extends { units: unknown[] }>(modules: M[]): M[] {
+  return modules.filter((m) => m.units.length > 0);
+}
+
 export type ModuleStats = {
   moduleId: string;
   totalUnits: number;
@@ -119,6 +125,89 @@ export function moduleStats(
     verifiedUnits: verified,
     progressPct: total === 0 ? 0 : Math.round((completed / total) * 100),
   };
+}
+
+export type ModuleGate = {
+  locked: boolean;
+  /** What the previous module still owes, when locked; null when unlocked. */
+  reason: "prerequisite_assessment" | "prerequisite_units" | null;
+};
+
+/**
+ * Sequential module gating (requirements §2: "module unlocks only once its
+ * prerequisite module (or its assessment) is passed"). The first module is
+ * always unlocked. Module N unlocks once module N-1 is "cleared": if N-1 has
+ * a Module Assessment, cleared means the student has a passed attempt for
+ * it; otherwise, cleared means every unit in N-1 is completed/verified.
+ *
+ * Deliberately read-computed from the same sources their own writes already
+ * commit atomically elsewhere (`LpAssessmentAttempt.passed` via
+ * `gradeAndSubmitAttempt`'s transaction, `LpStudentUnit.status` via
+ * `setUnitStatus`) rather than a separately stored "module unlocked" flag —
+ * so there is no second write that can fall out of sync with the pass/fail
+ * result. This is the actual fix for the "automatic unlock trigger didn't
+ * fire" scenario (requirements §8, plan doc Phase 2): there's no trigger to
+ * fail, because there's nothing to write — the lock state is always exactly
+ * as fresh as the attempt/unit records it's derived from.
+ *
+ * `moduleAssessmentPassed` maps moduleId → whether the student has passed
+ * that module's assessment, for every module that HAS one; a module with no
+ * entry is treated as having no Module Assessment (falls back to the
+ * unit-completion rule).
+ *
+ * `assessmentFirstPublished` (2026-10-05, Learning Management plan §11) maps
+ * moduleId → when that module's assessment was first published. A student
+ * who had completed every unit of the module BEFORE then isn't gated by it:
+ * a new assessment never locks learners who had already moved on. Modules
+ * with no entry (e.g. seeded assessments) gate everyone, as before.
+ */
+export function moduleGates(
+  modules: LpModule[],
+  studentUnits: Map<string, StudentUnit>,
+  moduleAssessmentPassed: Map<string, boolean>,
+  assessmentFirstPublished: Map<string, string> = new Map()
+): Map<string, ModuleGate> {
+  const ordered = [...modules].sort((a, b) => a.order - b.order);
+  const gates = new Map<string, ModuleGate>();
+  let previousCleared = true;
+  let previousHadAssessment = false;
+
+  for (const mod of ordered) {
+    gates.set(mod.id, {
+      locked: !previousCleared,
+      reason: previousCleared
+        ? null
+        : previousHadAssessment
+          ? "prerequisite_assessment"
+          : "prerequisite_units",
+    });
+
+    const hasAssessment = moduleAssessmentPassed.has(mod.id);
+    const cleared = hasAssessment
+      ? (moduleAssessmentPassed.get(mod.id) ?? false) ||
+        completedBefore(mod, studentUnits, assessmentFirstPublished.get(mod.id))
+      : (() => {
+          const stats = moduleStats(mod, studentUnits);
+          return stats.totalUnits > 0 && stats.completedUnits === stats.totalUnits;
+        })();
+
+    previousCleared = cleared;
+    previousHadAssessment = hasAssessment;
+  }
+
+  return gates;
+}
+
+/** Every unit of `mod` completed (or verified) strictly before `when`. */
+function completedBefore(mod: LpModule, studentUnits: Map<string, StudentUnit>, when: string | undefined): boolean {
+  if (!when || mod.units.length === 0) return false;
+  const cutoff = new Date(when).getTime();
+  return mod.units.every((u) => {
+    const su = studentUnits.get(u.id);
+    if (su?.status !== "completed" && su?.status !== "verified") return false;
+    const at = su.completedAt ?? su.verifiedAt;
+    return at !== null && new Date(at).getTime() < cutoff;
+  });
 }
 
 export type ProgramStats = {

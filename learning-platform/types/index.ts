@@ -82,13 +82,27 @@ export type CreatorRef = {
 /** Ordered content blocks inside a Unit's body. The union is open by
  * design — a future "video" block (fast-follow per decision 2026-07-16)
  * slots in without schema changes. */
-export type ContentBlock =
+export type ContentBlock = (
   | { id: string; order: number; type: "heading"; payload: { text: string; level?: 2 | 3 } }
   | { id: string; order: number; type: "richtext"; payload: { md: string } }
   | { id: string; order: number; type: "image"; payload: { src: string; alt: string; caption?: string } }
   | { id: string; order: number; type: "code"; payload: { lang: string; code: string } }
   | { id: string; order: number; type: "callout"; payload: { tone: "info" | "tip" | "warning"; md: string } }
-  | { id: string; order: number; type: "video"; payload: { src: string; poster?: string } };
+  | { id: string; order: number; type: "video"; payload: { src: string; poster?: string } }
+) & {
+  /** Topic this block belongs to; null = the unit has no Topic breakdown. */
+  topicId: string | null;
+};
+
+/** A navigable sub-page of a Unit (Sept 21 Unit → Topic decision). Only
+ * topics with an `order` are navigable; tag-only LpTopic rows (assessment
+ * weak-topic labels) are excluded when a unit is loaded. */
+export type UnitTopic = {
+  id: string;
+  name: string;
+  description: string;
+  order: number;
+};
 
 /** Unit is the only level between Module and content — no `type`, no
  * children besides its own ContentBlocks. A Knowledge Check "belongs" to a
@@ -107,6 +121,8 @@ export type LpUnit = {
   tokensRequired: number;
   creators: CreatorRef[];
   contentBlocks: ContentBlock[];
+  /** Ordered navigable topics; empty = one flat reading (pre-Topic data). */
+  topics: UnitTopic[];
 };
 
 export type LpModule = {
@@ -148,7 +164,36 @@ export type KnowledgeCheck = {
   title: string;
   /** Fraction of correct answers needed to pass, e.g. 0.7. */
   passThreshold: number;
-  questions: KcQuestion[];
+  /** How many bank questions are randomly drawn per attempt (2026-09-21:
+   * replaces the old fixed `questions` list — see LpKcQuestionBankItem). */
+  questionsPerAttempt: number;
+};
+
+/** KC question bank item (2026-09-21, plan Phase 3 step 1). Narrower than
+ * LpQuestionBankItem on purpose — single_choice only, no topic linkage (see
+ * the schema's own comment on LpKcQuestionBankItem for why). */
+export type KcQuestionBankItem = {
+  id: string;
+  kcId: string;
+  difficulty: QuestionDifficulty;
+  prompt: string;
+  options: KcOption[];
+  correctOptionId: string;
+  explanation: string | null;
+};
+
+/** What the client receives for one question of a specific KC attempt, keyed
+ * by attemptQuestionId (not the bank item id) so answers submit back against
+ * the server-pinned snapshot. Ships `correctOptionId`/`explanation` inline —
+ * same "no correctness during attempt, but the key itself is visible"
+ * tradeoff KnowledgeCheckRunner already made pre-bank, kept for the existing
+ * immediate per-question feedback UX. Flagged, not silently carried over. */
+export type KcAttemptQuestionView = {
+  attemptQuestionId: string;
+  prompt: string;
+  options: KcOption[];
+  correctOptionId: string;
+  explanation: string | null;
 };
 
 /* ===================== Student learning state ======================= */
@@ -176,17 +221,23 @@ export type StudentUnit = {
   updatedAt: string;
 };
 
+/** 2026-09-21 (plan Phase 3): now created at attempt start (status
+ * in_progress, score/passed/answers null) so its question selection can be
+ * snapshotted before grading — see LpKcAttempt's schema comment. */
 export type KcAttempt = {
   id: string;
   studentId: string;
   kcId: string;
   attemptNo: number;
-  /** questionId → chosen optionId (null = skipped). */
-  answers: Record<string, string | null>;
-  /** Fraction correct, 0..1. */
-  score: number;
-  passed: boolean;
+  status: AttemptStatus;
+  /** attemptQuestionId → chosen optionId (null = skipped). Null until
+   * submitted. */
+  answers: Record<string, string | null> | null;
+  /** Fraction correct, 0..1. Null until submitted. */
+  score: number | null;
+  passed: boolean | null;
   createdAt: string;
+  submittedAt: string | null;
 };
 
 /** Renamed from PointsSourceType (§1, 2026-08-11). */
@@ -271,7 +322,13 @@ export type LpStandaloneAssessment = {
   difficultyMix: Record<string, number>;
   /** Fraction correct needed to pass, e.g. 0.75. */
   passThreshold: number;
-  timeLimitSeconds: number;
+  /** null = untimed (decision 7c, 2026-10-05). */
+  timeLimitSeconds: number | null;
+  /** Cap on scored attempts (decision 7b); null = unlimited. */
+  maxAttempts: number | null;
+  /** First approved publish from Learning Management (ISO). Learners who
+   * completed the module before it aren't gated by it; null = gates all. */
+  firstPublishedAt: string | null;
 };
 
 /** V1 scope: single_choice and multi_select only. */
@@ -339,7 +396,37 @@ export type LpAttemptAnswer = {
   /** Hidden from the client until submission; numeric to encode multi-select
    * partial credit. */
   pointsEarned: number | null;
+  /** "Flag for Review" toggle — independent of Report Question. */
+  flagged: boolean;
   answeredAt: string;
+};
+
+/** A learner-submitted issue report against a specific question (brief
+ * §5.5), collected on the end-of-flow reporting screen. */
+export type LpQuestionReport = {
+  id: string;
+  attemptId: string;
+  questionBankItemId: string;
+  studentId: string;
+  detail: string;
+  createdAt: string;
+};
+
+/** Per-question detail returned only after submit, and only for
+ * module-level assessments (2026-08-20 decision: program-level assessments
+ * don't expose a full answer-key review). */
+export type GradedAttemptQuestion = {
+  attemptQuestionId: string;
+  orderIndex: number;
+  prompt: string;
+  type: QuestionType;
+  options: KcOption[];
+  correctOptionIds: string[];
+  selectedOptionIds: string[];
+  explanation: string | null;
+  pointsPossible: number;
+  pointsEarned: number;
+  topicName: string | null;
 };
 
 /* ========================== Escalations ============================= */

@@ -20,7 +20,7 @@ import { selectQuestions } from "@/lib/assessment-engine";
 
 async function buildAttemptPayload(
   attemptId: string,
-  timeLimitSeconds: number,
+  timeLimitSeconds: number | null,
   startedAt: string,
   attemptNumber: number,
   status: string
@@ -33,7 +33,7 @@ async function buildAttemptPayload(
     attemptQuestions.map((q) => q.questionBankItemId)
   );
   const bankById = new Map(bankItems.map((b) => [b.id, b]));
-  const answerByQuestionId = new Map(answers.map((a) => [a.attemptQuestionId, a.selectedOptionIds]));
+  const answerByQuestionId = new Map(answers.map((a) => [a.attemptQuestionId, a]));
 
   return {
     attemptId,
@@ -43,10 +43,12 @@ async function buildAttemptPayload(
     timeLimitSeconds,
     questions: attemptQuestions.map((q) => {
       const bankItem = bankById.get(q.questionBankItemId);
+      const answer = answerByQuestionId.get(q.id);
       return {
         attemptQuestionId: q.id,
         orderIndex: q.orderIndex,
-        selectedOptionIds: answerByQuestionId.get(q.id) ?? [],
+        selectedOptionIds: answer?.selectedOptionIds ?? [],
+        flagged: answer?.flagged ?? false,
         ...(bankItem ? toPublicQuestionBankItem(bankItem) : null),
       };
     }),
@@ -59,8 +61,10 @@ async function buildAttemptPayload(
  * attempt"). An in_progress attempt found past its own time limit is
  * treated as abandoned: expired here (lazily, in place of a periodic
  * sweep) and NOT counted as a scored failure, then a fresh attempt starts
- * below. Blocked by the retake cooldown if the most recent *submitted*
- * attempt failed and its cooldown hasn't elapsed. */
+ * below. Untimed assessments never expire. A new attempt is refused at the
+ * Attempts Allowed cap (scored attempts only, 403 attempt_limit) and by the
+ * retake cooldown if the most recent *submitted* attempt failed and its
+ * cooldown hasn't elapsed. */
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ assessmentId: string }> }
@@ -76,8 +80,11 @@ export async function POST(
 
   const inProgress = await getInProgressAttempt(assessmentId, student.id);
   if (inProgress) {
+    // Untimed assessments (decision 7c) never expire.
     const deadline =
-      new Date(inProgress.startedAt).getTime() + assessment.timeLimitSeconds * 1000;
+      assessment.timeLimitSeconds === null
+        ? Number.POSITIVE_INFINITY
+        : new Date(inProgress.startedAt).getTime() + assessment.timeLimitSeconds * 1000;
     if (now.getTime() <= deadline) {
       const payload = await buildAttemptPayload(
         inProgress.id,
@@ -92,6 +99,14 @@ export async function POST(
   }
 
   const submitted = await getSubmittedAttempts(assessmentId, student.id);
+  // Decision 7b: cap on scored attempts (an in-progress one resumed above);
+  // the learner is pointed to support. Expired attempts don't count.
+  if (assessment.maxAttempts !== null && submitted.length >= assessment.maxAttempts) {
+    return NextResponse.json(
+      { error: "Attempt limit reached", code: "attempt_limit", maxAttempts: assessment.maxAttempts },
+      { status: 403 }
+    );
+  }
   const latest = submitted[0]; // most-recent-first
   if (latest?.passed === false && latest.nextEligibleAt && now < new Date(latest.nextEligibleAt)) {
     return NextResponse.json(

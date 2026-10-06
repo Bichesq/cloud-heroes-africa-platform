@@ -90,7 +90,7 @@
                     "type": "reading",
                     "order": 2,
                     "durationMin": 10,
-                    "heroImage": "/images/hero-cloud-basics.svg",
+                    "heroImage": "/figma-assets/unit-cloud-basics-illustration.jpg",
                     "blocks": [
                       {
                         "id": "lp-m1-u1-s1-i2-b1",

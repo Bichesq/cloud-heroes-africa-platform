@@ -18,6 +18,17 @@ import { gradeAttempt } from "@/lib/assessment-engine";
  * only thing faked is persistence, not the business logic under test.
  * Once a real Postgres instance is available, this should be supplemented
  * with a true DB-backed test hitting the actual route handler.
+ *
+ * Phase 2 (docs/plan/2026-09-20-learning-platform-v1-build.md — module
+ * unlock reliability) extracted this exact guard-then-grade-then-persist
+ * shape out of the submit route into lib/assessment-submission.ts
+ * #finalizeAttempt, reused unchanged by the new admin resync action
+ * (app/api/admin/assessments/attempts/[attemptId]/resync/route.ts) for
+ * force-finalizing an attempt that never reached the student-facing submit
+ * route at all. The "resync an already-submitted attempt" and "resync a
+ * stuck attempt exactly once" cases below exercise that same shared guard
+ * from the admin path's perspective — same fake, same pattern, different
+ * caller.
  */
 
 type FakeAttempt = {
@@ -118,5 +129,41 @@ describe("submit flow idempotency", () => {
     expect(store.submit("attempt-1", passing, 0.75).passed).toBe(true);
     expect(store.submit("attempt-2", failing, 0.75).passed).toBe(false);
     expect(store.gradeCalls).toBe(2);
+  });
+});
+
+describe("admin resync (shared finalizeAttempt guard, Phase 2)", () => {
+  it("resyncing an attempt a student already submitted returns the stored result without regrading", () => {
+    const store = new FakeAttemptStore();
+    store.seedInProgress("attempt-stuck");
+    const questions = [
+      { attemptQuestionId: "aq1", bankItem: bankItem(), topicName: null, topicUnitId: null, selectedOptionIds: ["a"] },
+    ];
+
+    const studentSubmit = store.submit("attempt-stuck", questions, 0.75);
+    expect(store.gradeCalls).toBe(1);
+
+    // Admin runs the resync action anyway (Help Desk didn't know it had
+    // already gone through) — must be a no-op, not a second grading pass.
+    const adminResync = store.submit("attempt-stuck", questions, 0.75);
+    expect(adminResync).toEqual(studentSubmit);
+    expect(store.gradeCalls).toBe(1);
+  });
+
+  it("resyncing a stuck attempt (never reached the student-facing submit route) grades it exactly once", () => {
+    const store = new FakeAttemptStore();
+    store.seedInProgress("attempt-abandoned"); // e.g. dropped request, crashed tab
+    const questions = [
+      { attemptQuestionId: "aq1", bankItem: bankItem(), topicName: null, topicUnitId: null, selectedOptionIds: ["a"] },
+    ];
+
+    const first = store.submit("attempt-abandoned", questions, 0.75);
+    expect(first.passed).toBe(true);
+    expect(store.gradeCalls).toBe(1);
+
+    // Retrying the resync (idempotent by design) must not grade again.
+    const second = store.submit("attempt-abandoned", questions, 0.75);
+    expect(second).toEqual(first);
+    expect(store.gradeCalls).toBe(1);
   });
 });

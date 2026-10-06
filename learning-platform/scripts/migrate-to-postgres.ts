@@ -342,6 +342,17 @@ async function migrateCatalog(programs: SourceProgram[]) {
 // Knowledge Checks — direct 1:1 copy, only column renames.
 // ---------------------------------------------------------------------------
 
+// 2026-09-21 (plan Phase 3): the target schema no longer stores a fixed
+// `questions` blob on LpKnowledgeCheck — questions live in the
+// LpKcQuestionBankItem bank instead, with the KC only recording how many to
+// draw per attempt. `questionsPerAttempt` is set to the full source list
+// length so a migrated KC's attempt behavior is unchanged (every authored
+// question shown, same as the old fixed-list runtime) until someone
+// deliberately authors a larger bank. Bank items are re-synced by delete +
+// recreate on every run (source question ids aren't necessarily valid UUIDs
+// for the bank's `@default(uuid())` id column, so they aren't preserved
+// across runs) — safe here since this script only ever runs against a
+// pre-launch/seed dataset, not live attempt history.
 async function migrateKnowledgeChecks(kcs: SourceKnowledgeCheck[]) {
   for (const kc of kcs) {
     await prisma.lpKnowledgeCheck.upsert({
@@ -351,15 +362,28 @@ async function migrateKnowledgeChecks(kcs: SourceKnowledgeCheck[]) {
         unitId: kc.unitId,
         title: kc.title,
         passThreshold: kc.passThreshold,
-        questions: kc.questions,
+        questionsPerAttempt: kc.questions.length,
       },
       update: {
         unitId: kc.unitId,
         title: kc.title,
         passThreshold: kc.passThreshold,
-        questions: kc.questions,
+        questionsPerAttempt: kc.questions.length,
       },
     });
+
+    await prisma.lpKcQuestionBankItem.deleteMany({ where: { kcId: kc.id } });
+    if (kc.questions.length > 0) {
+      await prisma.lpKcQuestionBankItem.createMany({
+        data: kc.questions.map((q) => ({
+          kcId: kc.id,
+          prompt: q.prompt,
+          options: q.options,
+          correctOptionId: q.correctOptionId,
+          explanation: q.explanation,
+        })),
+      });
+    }
   }
 }
 

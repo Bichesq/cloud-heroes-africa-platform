@@ -2,27 +2,18 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import {
-  BookOpen,
-  BookOpenText,
-  Calendar,
-  Home,
-  ListFilter,
-  Play,
-  Search,
-  User,
-} from "lucide-react";
+import { BookOpenText, ListFilter } from "lucide-react";
+import { Card, Chip, SearchField } from "@heroui/react";
 
-/* Program Catalogue (mockup "Catalog View"): heading + secondary pill nav,
- * filter/search row, and a responsive grid of program cards with
- * Enrolled/Locked chips and a persistent Start/Resume CTA overlay on the
- * enrolled card. Locked programs
- * (not enrolled) are not clickable — enrollment is admin/points-governed,
- * and surfacing un-startable content is exactly what the dashboard scope
- * decision (2026-07-02) avoids. */
-
-const STUDENT_HUB_URL =
-  process.env.NEXT_PUBLIC_STUDENT_HUB_URL ?? "http://localhost:3000";
+/* Program Catalogue, rebuilt against the "Learning Platform (Program
+ * Catalogue View)" Figma frame (docs/CHA Platform_4.fig, decoded via
+ * decode_fig.py — 4 state variants: Enroll, Enrolled, Enrolled/Resume,
+ * Completed). The global nav row and the Explore Programs/My Program
+ * switcher live in the shared TopBar now (present on every learner screen
+ * per requirements §1), not duplicated here. Card layout matches the
+ * decoded frame: image, title, 2-line description, then an always-visible
+ * status row (chip + optional CTA text) rather than a hover-only overlay —
+ * the Figma card shows that row inline in every state variant. */
 
 export type CatalogProgram = {
   id: string;
@@ -33,15 +24,8 @@ export type CatalogProgram = {
   delivery: string;
   enrolled: boolean;
   started: boolean;
+  completed: boolean;
 };
-
-const PILL_NAV = [
-  { label: "My Dashboard", icon: Home, href: `${STUDENT_HUB_URL}/dashboard`, external: true },
-  { label: "Catalogue", icon: BookOpen, href: "/catalog", active: true },
-  { label: "My Program", icon: BookOpenText, href: "/courses" },
-  { label: "My Profile", icon: User, href: `${STUDENT_HUB_URL}/profile`, external: true },
-  { label: "Calendar", icon: Calendar, href: `${STUDENT_HUB_URL}/dashboard`, external: true },
-];
 
 export default function CatalogClient({ programs }: { programs: CatalogProgram[] }) {
   const [query, setQuery] = useState("");
@@ -54,72 +38,46 @@ export default function CatalogClient({ programs }: { programs: CatalogProgram[]
 
   return (
     <div className="mx-auto w-full max-w-[1400px] px-8 pb-16 pt-8">
-      {/* Secondary pill nav (mockup: centered above the grid, right of title) */}
-      <div className="flex flex-wrap items-start justify-between gap-6">
-        <div>
-          <h1 className="font-display text-4xl font-extrabold sm:text-5xl">
-            Program Catalogue
-          </h1>
-          <p className="mt-2 text-lg text-cha-muted">
-            Enroll or click into any available programs below to start learning
-          </p>
-        </div>
-        <nav className="flex flex-wrap items-center gap-2 pt-2">
-          {PILL_NAV.map(({ label, icon: Icon, href, active, external }) =>
-            external ? (
-              <a
-                key={label}
-                href={href}
-                className="flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold text-cha-ink transition-colors hover:bg-cha-surface-2"
-              >
-                <Icon size={16} />
-                {label}
-              </a>
-            ) : (
-              <Link
-                key={label}
-                href={href}
-                className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                  active
-                    ? "bg-cha-orange text-white"
-                    : "text-cha-ink hover:bg-cha-surface-2"
-                }`}
-              >
-                <Icon size={16} />
-                {label}
-              </Link>
-            )
-          )}
-        </nav>
+      <div>
+        <h1 className="font-display text-4xl font-extrabold sm:text-5xl">
+          Program Catalogue
+        </h1>
+        <p className="mt-2 text-lg text-cha-muted">
+          Enroll or Click into any available programs below to start learning
+        </p>
       </div>
 
-      {/* Filters + search */}
+      {/* Filters + search — matches the Figma row's ordering (search field,
+       * prev/next paging arrows, FILTERS dropdown label) right-aligned under
+       * the title. Paging arrows and Filters aren't wired to anything yet:
+       * the catalogue has no filter taxonomy in the data model today, so
+       * this stays a visual placeholder rather than a fabricated filter. */}
       <div className="mt-8 flex items-center justify-end gap-4">
+        <SearchField aria-label="Search programs" className="w-[280px]" variant="secondary">
+          <SearchField.Group className="rounded-full bg-cha-surface">
+            <SearchField.SearchIcon className="text-cha-faint" />
+            <SearchField.Input
+              className="text-sm"
+              placeholder="Search..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+            <SearchField.ClearButton />
+          </SearchField.Group>
+        </SearchField>
         <button className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-cha-muted hover:text-cha-ink">
           <ListFilter size={15} />
           Filters
         </button>
-        <div className="flex w-[280px] items-center gap-2 rounded-full border border-cha-border bg-cha-surface px-3 py-2">
-          <Search size={16} className="shrink-0 text-cha-faint" />
-          <input
-            type="search"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search..."
-            aria-label="Search programs"
-            className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-cha-faint"
-          />
-        </div>
       </div>
 
-      {/* Program cards */}
       <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {visible.map((p) => (
           <ProgramCard key={p.id} program={p} />
         ))}
         {visible.length === 0 && (
           <p className="col-span-full py-16 text-center text-cha-muted">
-            No programs match “{query}”.
+            No programs match &ldquo;{query}&rdquo;.
           </p>
         )}
       </div>
@@ -127,58 +85,67 @@ export default function CatalogClient({ programs }: { programs: CatalogProgram[]
   );
 }
 
+function StatusRow({ program }: { program: CatalogProgram }) {
+  if (!program.enrolled) {
+    return (
+      <Chip color="default" size="lg" variant="soft">
+        <Chip.Label>Locked</Chip.Label>
+      </Chip>
+    );
+  }
+
+  if (program.completed) {
+    return (
+      <div className="flex items-center gap-2">
+        <Chip color="success" size="lg" variant="soft">
+          <Chip.Label>Completed 100%</Chip.Label>
+        </Chip>
+        <span className="font-display text-sm font-bold text-cha-orange">Resume Program</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <Chip color="accent" size="lg" variant="soft">
+        <Chip.Label>Enrolled</Chip.Label>
+      </Chip>
+      <span className="font-display text-sm font-bold text-cha-orange">
+        {program.started ? "Resume Program" : "Start Program"}
+      </span>
+    </div>
+  );
+}
+
 function ProgramCard({ program }: { program: CatalogProgram }) {
   const card = (
-    <article className="flex h-full flex-col rounded-2xl bg-cha-surface shadow-[0_4px_18px_rgba(0,0,0,0.09)] dark:shadow-[0_4px_18px_rgba(0,0,0,0.5)]">
-      {/* Image + hover overlay, inset from the card edges with its own rounding */}
-      <div className="px-5 pt-5">
-        <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-cha-surface-2">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={program.heroImage}
-            alt=""
-            className="h-full w-full object-cover"
-          />
-          {program.enrolled && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/45">
-              <span className="flex items-center gap-2 font-display text-lg font-bold text-white">
-                <Play size={20} fill="currentColor" />
-                {program.started ? "Resume Program" : "Start Program"}
-              </span>
-            </div>
-          )}
-        </div>
+    <Card className="h-full gap-0 p-5">
+      <div className="relative aspect-[16/9] overflow-hidden rounded-xl bg-cha-surface-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={program.heroImage} alt="" className="h-full w-full object-cover" />
       </div>
 
-      <div className="flex flex-1 flex-col px-5 pb-4 pt-4">
-        <h2 className="font-display text-xl font-extrabold leading-tight">
+      <Card.Content className="flex flex-1 flex-col px-0 pb-0 pt-4">
+        <Card.Title className="font-display text-xl font-extrabold leading-tight">
           {program.title}
-        </h2>
-        <p className="mt-1.5 line-clamp-3 text-[13px] leading-snug text-cha-muted">
+        </Card.Title>
+        <Card.Description className="mt-1.5 line-clamp-2 text-[13px] leading-snug text-cha-muted">
           {program.blurb}
-        </p>
+        </Card.Description>
 
         <div className="mt-3">
-          {program.enrolled ? (
-            <span className="font-display text-lg font-bold text-cha-ink">
-              Enrolled
-            </span>
-          ) : (
-            <span className="inline-block rounded-full bg-cha-faint/80 px-4 py-1.5 text-sm font-semibold text-white">
-              Locked
-            </span>
-          )}
+          <StatusRow program={program} />
         </div>
 
-        <div className="mt-2 border-b border-cha-border pb-2 text-xs font-semibold uppercase text-cha-muted">
+        <div className="mt-3 border-b border-cha-border pb-2 text-xs font-semibold uppercase text-cha-muted">
           {program.language}
         </div>
         <div className="flex items-center gap-1.5 pt-2 text-[11px] font-medium text-cha-muted">
           <BookOpenText size={13} />
           {program.delivery === "self-paced" ? "Self-Paced Learning" : program.delivery}
         </div>
-      </div>
-    </article>
+      </Card.Content>
+    </Card>
   );
 
   return program.enrolled ? (

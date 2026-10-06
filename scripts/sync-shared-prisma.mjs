@@ -21,6 +21,8 @@ const SHARED_DIR = join(REPO_ROOT, "prisma-shared");
 const TARGETS = [
   join(REPO_ROOT, "learning-platform", "prisma", "schema"),
   join(REPO_ROOT, "student-hub", "prisma", "schema"),
+  // 2026-09-24: third Prisma app (reads/writes only — never runs migrate).
+  join(REPO_ROOT, "learning-management", "prisma", "schema"),
 ];
 
 const files = readdirSync(SHARED_DIR).filter((f) => f.endsWith(".prisma"));

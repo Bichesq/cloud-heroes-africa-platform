@@ -1,0 +1,18 @@
+// learning-platform's Prisma project — the SOLE `prisma migrate` runner for
+// the shared learning_platform database (docs/shared-schema-audit.md §4).
+//
+// All models live in sibling files copied in from prisma-shared/ by
+// scripts/sync-shared-prisma.mjs (run by `npm run prisma:generate` /
+// `prisma:migrate`): platform-core, student-hub-local, and — since
+// 2026-09-24 — lp-core (moved there so learning-management can share it).
+// This file holds only the generator/datasource blocks, which multi-file
+// schema requires in exactly one file per project.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

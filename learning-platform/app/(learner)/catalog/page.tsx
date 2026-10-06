@@ -21,21 +21,33 @@ export default async function CatalogPage() {
   ]);
   const enrolledIds = enrollments.map((e) => e.programId);
   const startedUnitIds = new Set(studentUnits.map((u) => u.unitId));
+  const statusByUnitId = new Map(studentUnits.map((u) => [u.unitId, u.status]));
 
   return (
     <CatalogClient
-      programs={programs.map((p) => ({
-        id: p.id,
-        title: p.title,
-        blurb: p.blurb,
-        heroImage: p.heroImage,
-        language: p.language,
-        delivery: p.delivery,
-        enrolled: enrolledIds.includes(p.id),
-        started: p.modules.some((m) =>
-          m.units.some((u) => startedUnitIds.has(u.id))
-        ),
-      }))}
+      programs={programs.map((p) => {
+        const allUnits = p.modules.flatMap((m) => m.units);
+        return {
+          id: p.id,
+          title: p.title,
+          blurb: p.blurb,
+          heroImage: p.heroImage,
+          language: p.language,
+          delivery: p.delivery,
+          enrolled: enrolledIds.includes(p.id),
+          started: allUnits.some((u) => startedUnitIds.has(u.id)),
+          /* Program Catalogue's "Completed 100%" state (requirements §1) — no
+           * dedicated backend rollup exists yet, so this is derived here from
+           * the per-unit statuses already fetched for `started`, the same way
+           * ProgramOverview derives its own per-unit chips. */
+          completed:
+            allUnits.length > 0 &&
+            allUnits.every((u) => {
+              const status = statusByUnitId.get(u.id);
+              return status === "completed" || status === "verified";
+            }),
+        };
+      })}
     />
   );
 }

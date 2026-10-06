@@ -1,13 +1,16 @@
+import { withoutEmptyModules } from "@/lib/lp-utils";
 import { prisma } from "@/lib/prisma";
 import type {
   ContentBlock,
   CreatorRef,
-  KcQuestion,
+  KcOption,
+  KcQuestionBankItem,
   KnowledgeCheck,
   LpModule,
   LpProgram,
   LpReadinessAssessment,
   LpUnit,
+  QuestionDifficulty,
 } from "@/types";
 
 /* Published learning content, authored by Learning Management. LP only
@@ -26,7 +29,14 @@ type UnitRow = {
   tokensAward: number;
   tokensRequired: number;
   creators: unknown;
-  contentBlocks: { id: string; order: number; type: string; payload: unknown }[];
+  contentBlocks: {
+    id: string;
+    order: number;
+    type: string;
+    payload: unknown;
+    topicId: string | null;
+  }[];
+  topics: { id: string; name: string; description: string; order: number | null }[];
 };
 
 type ModuleRow = {
@@ -50,7 +60,20 @@ function toUnit(unit: UnitRow): LpUnit {
     creators: (unit.creators ?? []) as CreatorRef[],
     contentBlocks: [...unit.contentBlocks]
       .sort((a, b) => a.order - b.order)
-      .map((b) => ({ id: b.id, order: b.order, type: b.type, payload: b.payload }) as ContentBlock),
+      .map(
+        (b) =>
+          ({
+            id: b.id,
+            order: b.order,
+            type: b.type,
+            payload: b.payload,
+            topicId: b.topicId,
+          }) as ContentBlock
+      ),
+    topics: unit.topics
+      .filter((t): t is typeof t & { order: number } => t.order !== null)
+      .sort((a, b) => a.order - b.order)
+      .map((t) => ({ id: t.id, name: t.name, description: t.description, order: t.order })),
   };
 }
 
@@ -69,7 +92,19 @@ export async function getPrograms(): Promise<LpProgram[]> {
     where: { published: true },
     include: {
       modules: {
-        include: { units: { include: { contentBlocks: true } } },
+        include: {
+          // Draft units (publishedAt null — Phase 4 sub-step 3) never reach
+          // learners: not in the catalogue, unit pages, progress totals or
+          // resolveUnitAccess, which all start here.
+          units: {
+            where: { publishedAt: { not: null } },
+            include: {
+              contentBlocks: true,
+              // Only navigable topics — tag-only rows have a null order.
+              topics: { where: { order: { not: null } } },
+            },
+          },
+        },
       },
     },
   });
@@ -84,7 +119,8 @@ export async function getPrograms(): Promise<LpProgram[]> {
     delivery: p.delivery as "self-paced",
     creators: (p.creators ?? []) as CreatorRef[],
     published: p.published,
-    modules: [...p.modules].sort((a, b) => a.order - b.order).map(toModule),
+    // A module shows only once it has a published unit.
+    modules: withoutEmptyModules([...p.modules].sort((a, b) => a.order - b.order).map(toModule)),
   }));
 }
 
@@ -98,26 +134,81 @@ function toKnowledgeCheck(kc: {
   unitId: string;
   title: string;
   passThreshold: unknown;
-  questions: unknown;
+  questionsPerAttempt: number;
 }): KnowledgeCheck {
   return {
     id: kc.id,
     unitId: kc.unitId,
     title: kc.title,
     passThreshold: Number(kc.passThreshold),
-    questions: kc.questions as KcQuestion[],
+    questionsPerAttempt: kc.questionsPerAttempt,
   };
 }
 
+/** Only Knowledge Checks on a published unit of a published program exist
+ * for learners — both attempt routes (start, submit) come through here. */
 export async function getKnowledgeCheck(kcId: string): Promise<KnowledgeCheck | null> {
-  const kc = await prisma.lpKnowledgeCheck.findUnique({ where: { id: kcId } });
+  const kc = await prisma.lpKnowledgeCheck.findFirst({
+    where: { id: kcId, unit: PUBLISHED_UNIT_WHERE },
+  });
   return kc ? toKnowledgeCheck(kc) : null;
+}
+
+/** Relation filter: a unit learners may see. */
+const PUBLISHED_UNIT_WHERE = {
+  publishedAt: { not: null },
+  module: { program: { published: true } },
+} as const;
+
+/** Whether learners may see this unit (goals/notes routes take a raw
+ * unitId from the request, SECURITY.md §3). */
+export async function isPublishedUnit(unitId: string): Promise<boolean> {
+  const count = await prisma.lpUnit.count({ where: { id: unitId, ...PUBLISHED_UNIT_WHERE } });
+  return count === 1;
 }
 
 /** All Knowledge Checks belonging to a unit (a Unit may have zero or more). */
 export async function getKnowledgeChecksForUnit(unitId: string): Promise<KnowledgeCheck[]> {
   const rows = await prisma.lpKnowledgeCheck.findMany({ where: { unitId } });
   return rows.map(toKnowledgeCheck);
+}
+
+/** Batched form of getKnowledgeChecksForUnit, same pattern as
+ * getModuleAssessmentsForModules — avoids N+1 queries when a page needs
+ * Knowledge Check counts across every unit in a module (Module Content View). */
+export async function getKnowledgeChecksForUnits(unitIds: string[]): Promise<KnowledgeCheck[]> {
+  if (unitIds.length === 0) return [];
+  const rows = await prisma.lpKnowledgeCheck.findMany({ where: { unitId: { in: unitIds } } });
+  return rows.map(toKnowledgeCheck);
+}
+
+function toKcQuestionBankItem(row: {
+  id: string;
+  kcId: string;
+  difficulty: string;
+  prompt: string;
+  options: unknown;
+  correctOptionId: string;
+  explanation: string | null;
+}): KcQuestionBankItem {
+  return {
+    id: row.id,
+    kcId: row.kcId,
+    difficulty: row.difficulty as QuestionDifficulty,
+    prompt: row.prompt,
+    options: row.options as KcOption[],
+    correctOptionId: row.correctOptionId,
+    explanation: row.explanation,
+  };
+}
+
+/** Full question bank for a KC (2026-09-21, plan Phase 3 step 1) —
+ * `selectQuestions` draws a random per-attempt subset from this. */
+export async function getKcQuestionBank(kcId: string): Promise<KcQuestionBankItem[]> {
+  // Retired questions (replaced or removed by a published edit in Learning
+  // Management) are never drawn again; attempts that used them keep them.
+  const rows = await prisma.lpKcQuestionBankItem.findMany({ where: { kcId, retiredAt: null } });
+  return rows.map(toKcQuestionBankItem);
 }
 
 /** Exam Readiness assessment definition (unchanged shape — see brief §3). */
